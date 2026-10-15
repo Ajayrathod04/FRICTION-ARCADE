@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { AVATAR_CHOICES, STATION_NPCS } from '../../data/missionData';
+import type { StationNPC } from '../../data/missionData';
 
 interface StationCanvasProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
@@ -7,6 +9,10 @@ interface StationCanvasProps {
   repairsCompleted?: string[];
   repairsComplete: boolean;
   activeHotspot: 'kiosk' | 'board' | 'desk' | null;
+  selectedAvatarId?: 'explorer' | 'creative' | 'analyst';
+  onTalkToNPC?: (npc: StationNPC) => void;
+  onToggleMap?: () => void;
+  onShowHint?: () => void;
 }
 
 export const StationCanvas: React.FC<StationCanvasProps> = ({
@@ -15,9 +21,14 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   repairsCompleted = [],
   repairsComplete,
   activeHotspot,
+  selectedAvatarId = 'explorer',
+  onTalkToNPC,
+  onToggleMap,
+  onShowHint,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [nearbyHotspot, setNearbyHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
+  const [nearbyNPC, setNearbyNPC] = useState<StationNPC | null>(null);
 
   // Character world position (approaching ticket kiosk)
   const playerPos = useRef({ x: 0.2, z: 2.2 });
@@ -34,8 +45,10 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   const handleInteract = useCallback(() => {
     if (nearbyHotspot) {
       onSelectHotspot(nearbyHotspot);
+    } else if (nearbyNPC) {
+      onTalkToNPC?.(nearbyNPC);
     }
-  }, [nearbyHotspot, onSelectHotspot]);
+  }, [nearbyHotspot, nearbyNPC, onSelectHotspot, onTalkToNPC]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,10 +58,16 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
 
       keysDown.current[e.key.toLowerCase()] = true;
       if (e.key.toLowerCase() === 'e' || e.key === 'Enter') {
-        if (nearbyHotspot) {
+        if (nearbyHotspot || nearbyNPC) {
           e.preventDefault();
           handleInteract();
         }
+      } else if (e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        onToggleMap?.();
+      } else if (e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        onShowHint?.();
       }
     };
 
@@ -74,7 +93,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [nearbyHotspot, handleInteract]);
+  }, [nearbyHotspot, nearbyNPC, handleInteract, onToggleMap, onShowHint]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -424,20 +443,60 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
 
     stationGroup.add(deskGroup);
 
+    // --- 9.5 STATION NPCS (Screen 04 — In-world Characters) ---
+    // NPC 1: Agent Priya (behind Help Desk counter)
+    const priyaGroup = new THREE.Group();
+    priyaGroup.position.set(-2.4, 0.48, 0.1);
+    const priyaBody = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.5, 12), new THREE.MeshStandardMaterial({ color: 0x8a63d2, roughness: 0.4 }));
+    priyaBody.position.y = 0.25;
+    const priyaHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), new THREE.MeshStandardMaterial({ color: 0xf8d7b8 }));
+    priyaHead.position.y = 0.62;
+    const priyaHair = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 12, 0, Math.PI * 2, 0, Math.PI * 0.6), new THREE.MeshStandardMaterial({ color: 0x1f140e }));
+    priyaHair.position.set(0, 0.66, 0);
+    priyaGroup.add(priyaBody, priyaHead, priyaHair);
+    stationGroup.add(priyaGroup);
+
+    // NPC 2: Commuter Arjun (sitting on platform bench)
+    const arjunGroup = new THREE.Group();
+    arjunGroup.position.set(1.6, 0.28, 1.6);
+    const arjunBody = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.48, 12), new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.5 }));
+    arjunBody.position.y = 0.24;
+    const arjunHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), new THREE.MeshStandardMaterial({ color: 0xe0b696 }));
+    arjunHead.position.y = 0.58;
+    const arjunHair = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.12, 0.24), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    arjunHair.position.set(0, 0.66, 0);
+    arjunGroup.add(arjunBody, arjunHead, arjunHair);
+    stationGroup.add(arjunGroup);
+
+    // NPC 3: Conductor Rajiv (standing near train doors)
+    const rajivGroup = new THREE.Group();
+    rajivGroup.position.set(-0.8, 0, -2.8);
+    const rajivBody = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.62, 12), new THREE.MeshStandardMaterial({ color: 0x1a237e, roughness: 0.3 }));
+    rajivBody.position.y = 0.6;
+    const rajivHead = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 12), new THREE.MeshStandardMaterial({ color: 0xf0cbb0 }));
+    rajivHead.position.y = 1.05;
+    const rajivCap = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.08, 12), new THREE.MeshStandardMaterial({ color: 0x1a237e }));
+    rajivCap.position.set(0, 1.16, 0);
+    const rajivBrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.1), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    rajivBrim.position.set(0, 1.13, 0.1);
+    rajivGroup.add(rajivBody, rajivHead, rajivCap, rajivBrim);
+    stationGroup.add(rajivGroup);
+
     // --- 10. REFINED PROTAGONIST TRAVELER CHARACTER ---
-    // Matches the reference: tousled dark hair, orange hoodie, yellow backpack with patches, dark trousers, white sneakers
+    // Configured by selectedAvatarId
+    const activeAvatar = AVATAR_CHOICES.find((a) => a.id === selectedAvatarId) || AVATAR_CHOICES[0];
     const playerGroup = new THREE.Group();
     playerGroup.position.set(playerPos.current.x, 0, playerPos.current.z);
 
-    // Torso (Orange Hoodie with Kangaroo Pocket)
+    // Torso (Jacket / Hoodie)
     const hoodieGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.65, 16);
-    const hoodieMat = new THREE.MeshStandardMaterial({ color: 0xff6b00, roughness: 0.45 });
+    const hoodieMat = new THREE.MeshStandardMaterial({ color: activeAvatar.jacketColor, roughness: 0.45 });
     const hoodie = new THREE.Mesh(hoodieGeo, hoodieMat);
     hoodie.position.y = 0.62;
     hoodie.castShadow = true;
     playerGroup.add(hoodie);
 
-    // Hood trim behind neck
+    // Hood / Collar trim
     const hoodTrimGeo = new THREE.TorusGeometry(0.16, 0.05, 8, 16);
     const hoodTrim = new THREE.Mesh(hoodTrimGeo, hoodieMat);
     hoodTrim.rotation.x = Math.PI / 2.2;
@@ -452,41 +511,50 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     head.castShadow = true;
     playerGroup.add(head);
 
-    // Tousled Dark Hair with natural volume & tufts
-    const hairMat = new THREE.MeshStandardMaterial({ color: 0x221a16, roughness: 0.7 });
-    const hairCrownGeo = new THREE.SphereGeometry(0.18, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55);
-    const hairCrown = new THREE.Mesh(hairCrownGeo, hairMat);
-    hairCrown.position.set(0, 1.13, 0);
-    playerGroup.add(hairCrown);
+    // Custom Hairstyle
+    const hairMat = new THREE.MeshStandardMaterial({ color: activeAvatar.hairColor, roughness: 0.7 });
+    if (activeAvatar.hairStyle === 'topknot') {
+      const hairCrown = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+      hairCrown.position.set(0, 1.13, 0);
+      const topknot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), hairMat);
+      topknot.position.set(0, 1.32, -0.04);
+      playerGroup.add(hairCrown, topknot);
+    } else if (activeAvatar.hairStyle === 'parted') {
+      const hairCrown = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+      hairCrown.position.set(0, 1.13, 0);
+      const sideLock = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.22), hairMat);
+      sideLock.position.set(0.08, 1.22, 0);
+      sideLock.rotation.z = -0.25;
+      playerGroup.add(hairCrown, sideLock);
+    } else {
+      // Tousled Dark Hair with natural tufts
+      const hairCrown = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+      hairCrown.position.set(0, 1.13, 0);
+      playerGroup.add(hairCrown);
 
-    // Front tousled hair locks
-    const tuftGeo = new THREE.ConeGeometry(0.06, 0.12, 6);
-    for (const tx of [-0.07, 0, 0.07]) {
-      const tuft = new THREE.Mesh(tuftGeo, hairMat);
-      tuft.rotation.x = -Math.PI / 2.8;
-      tuft.rotation.z = tx * 2;
-      tuft.position.set(tx, 1.18, 0.13);
-      playerGroup.add(tuft);
+      const tuftGeo = new THREE.ConeGeometry(0.06, 0.12, 6);
+      for (const tx of [-0.07, 0, 0.07]) {
+        const tuft = new THREE.Mesh(tuftGeo, hairMat);
+        tuft.rotation.x = -Math.PI / 2.8;
+        tuft.rotation.z = tx * 2;
+        tuft.position.set(tx, 1.18, 0.13);
+        playerGroup.add(tuft);
+      }
     }
 
-    // Yellow Backpack with visible patches and shoulder straps
+    // Backpack
     const backpackGeo = new THREE.BoxGeometry(0.26, 0.34, 0.18);
-    const backpackMat = new THREE.MeshStandardMaterial({ color: 0xffd23f, roughness: 0.4 });
+    const backpackMat = new THREE.MeshStandardMaterial({ color: activeAvatar.backpackColor, roughness: 0.4 });
     const backpack = new THREE.Mesh(backpackGeo, backpackMat);
     backpack.position.set(0, 0.64, -0.22);
     backpack.castShadow = true;
     playerGroup.add(backpack);
 
-    // Backpack front badge patches (Pink & Cyan)
-    const patch1Geo = new THREE.BoxGeometry(0.08, 0.08, 0.02);
-    const patch1Mat = new THREE.MeshStandardMaterial({ color: 0xff3d8b });
-    const patch1 = new THREE.Mesh(patch1Geo, patch1Mat);
+    // Backpack front badge patches
+    const patch1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), new THREE.MeshStandardMaterial({ color: 0xff3d8b }));
     patch1.position.set(-0.06, 0.68, -0.32);
     playerGroup.add(patch1);
-
-    const patch2Geo = new THREE.BoxGeometry(0.08, 0.08, 0.02);
-    const patch2Mat = new THREE.MeshStandardMaterial({ color: 0x8ddcff });
-    const patch2 = new THREE.Mesh(patch2Geo, patch2Mat);
+    const patch2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), new THREE.MeshStandardMaterial({ color: 0x8ddcff }));
     patch2.position.set(0.06, 0.62, -0.32);
     playerGroup.add(patch2);
 
@@ -784,7 +852,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       // Kiosk Screen Glow Pulse
       kioskScreenMat.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2;
 
-      // PLAYER WASD MOVEMENT & ARTICULATION
+      // PLAYER WASD MOVEMENT & COLLISION BOUNDARIES
       const moveSpeed = keysDown.current['shift'] ? 4.0 : 2.4;
       let dx = 0;
       let dz = 0;
@@ -798,11 +866,19 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
 
       if (isMoving) {
         const len = Math.hypot(dx, dz);
-        dx = (dx / len) * moveSpeed * delta;
-        dz = (dz / len) * moveSpeed * delta;
+        const stepX = (dx / len) * moveSpeed * delta;
+        const stepZ = (dz / len) * moveSpeed * delta;
+        const nextX = THREE.MathUtils.clamp(playerPos.current.x + stepX, -3.7, 3.7);
+        const nextZ = THREE.MathUtils.clamp(playerPos.current.z + stepZ, -2.4, 2.7);
 
-        playerPos.current.x = THREE.MathUtils.clamp(playerPos.current.x + dx, -3.8, 3.8);
-        playerPos.current.z = THREE.MathUtils.clamp(playerPos.current.z + dz, -2.4, 2.8);
+        // Simple Level Collisions (cannot step through central kiosk or desk)
+        const inKiosk = Math.abs(nextX) < 0.65 && Math.abs(nextZ) < 0.55;
+        const inDesk = nextX > -3.1 && nextX < -1.7 && nextZ > 0.0 && nextZ < 0.85;
+
+        if (!inKiosk && !inDesk) {
+          playerPos.current.x = nextX;
+          playerPos.current.z = nextZ;
+        }
 
         // Turn smoothly toward movement direction
         const targetAngle = Math.atan2(dx, dz);
@@ -839,25 +915,37 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       playerGroup.position.x = playerPos.current.x;
       playerGroup.position.z = playerPos.current.z;
 
-      // PROXIMITY DETECTION TO HOTSPOTS
+      // PROXIMITY DETECTION TO HOTSPOTS & NPCS
       const playerVec = new THREE.Vector2(playerPos.current.x, playerPos.current.z);
       const kioskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.kiosk.x, hotspotPositions.kiosk.z));
       const boardDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.board.x, hotspotPositions.board.z));
       const deskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.desk.x, hotspotPositions.desk.z));
 
+      const arjunDist = playerVec.distanceTo(new THREE.Vector2(1.6, 1.6));
+      const rajivDist = playerVec.distanceTo(new THREE.Vector2(-0.8, -2.8));
+
       const PROXIMITY_RADIUS = 1.35;
       if (kioskDist < PROXIMITY_RADIUS) {
         setNearbyHotspot('kiosk');
-        // Reach out right hand toward kiosk
+        setNearbyNPC(null);
         rightArmGroup.rotation.x = -Math.PI / 3;
       } else if (boardDist < PROXIMITY_RADIUS) {
         setNearbyHotspot('board');
+        setNearbyNPC(null);
         rightArmGroup.rotation.x = -Math.PI / 3;
       } else if (deskDist < PROXIMITY_RADIUS) {
         setNearbyHotspot('desk');
+        setNearbyNPC(null);
         leftArmGroup.rotation.x = -Math.PI / 3;
+      } else if (arjunDist < 1.35) {
+        setNearbyHotspot(null);
+        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'arjun') || null);
+      } else if (rajivDist < 1.35) {
+        setNearbyHotspot(null);
+        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'rajiv') || null);
       } else {
         setNearbyHotspot(null);
+        setNearbyNPC(null);
       }
 
       // Smooth Isometric Camera Position with subtle pointer parallax
@@ -956,6 +1044,28 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         <div className="route-map-hud__title">
           <span className="hud-pulse" />
           <span>ROUTE TRAIL</span>
+          <div className="hud-shortcut-group">
+            {onToggleMap && (
+              <button
+                type="button"
+                className="hud-quick-btn"
+                onClick={onToggleMap}
+                title="Open station map (M)"
+              >
+                🗺 Map (M)
+              </button>
+            )}
+            {onShowHint && (
+              <button
+                type="button"
+                className="hud-quick-btn hud-quick-btn--hint"
+                onClick={onShowHint}
+                title="Show mission hint (H)"
+              >
+                💡 Hint (H)
+              </button>
+            )}
+          </div>
         </div>
         <div className="route-map-hud__checkpoints">
           <span className={`hud-ckpt ${cluesFound.includes('kiosk') ? 'is-done' : 'is-next'}`}>
@@ -993,6 +1103,25 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
               aria-label="Open interaction"
             >
               Open →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Proximity Interaction Prompt when standing near an NPC */}
+      {nearbyNPC && (
+        <div className="proximity-prompt">
+          <div className="proximity-prompt__pill">
+            <span className="key-cap">E</span>
+            <span>
+              Talk to <strong>{nearbyNPC.name}</strong> ({nearbyNPC.role})
+            </span>
+            <button
+              className="proximity-prompt__btn"
+              onClick={handleInteract}
+              aria-label={`Talk to ${nearbyNPC.name}`}
+            >
+              Talk →
             </button>
           </div>
         </div>

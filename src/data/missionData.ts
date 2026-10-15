@@ -245,3 +245,103 @@ export const TIMETABLE_ITEMS = [
   { train: 'Indrayani Exp', origin: 'Mumbai CST', destination: 'Pune Jn', time: '12:40 PM', status: 'ON TIME', platform: 'P1' },
   { train: 'Sinhagad Express', origin: 'Mumbai CST', destination: 'Pune Jn', time: '02:20 PM', status: 'ON TIME', platform: 'P3' },
 ];
+
+export interface AvatarChoice {
+  id: 'explorer' | 'creative' | 'analyst';
+  name: string;
+  role: string;
+  tagline: string;
+  jacketColor: number;
+  jacketCss: string;
+  backpackColor: number;
+  backpackCss: string;
+  pantsColor: number;
+  hairColor: number;
+  hairStyle: 'tousled' | 'topknot' | 'parted';
+  accessories: string;
+  description: string;
+}
+
+export const AVATAR_CHOICES: AvatarChoice[] = [
+  {
+    id: 'explorer',
+    name: 'The Explorer',
+    role: 'Wayfarer & Scout',
+    tagline: 'Notices hidden friction in fast-paced journeys',
+    jacketColor: 0xff6b00,
+    jacketCss: '#FF6B00',
+    backpackColor: 0xffd23f,
+    backpackCss: '#FFD23F',
+    pantsColor: 0x221c30,
+    hairColor: 0x221a16,
+    hairStyle: 'tousled',
+    accessories: 'Patched Backpack & Rolling Suitcase',
+    description: 'Energetic adventurer sporting an iconic orange hoodie, bright yellow patched backpack, dark trousers, and rolling luggage.',
+  },
+  {
+    id: 'creative',
+    name: 'The Creative',
+    role: 'Visual & Interaction Designer',
+    tagline: 'Spots subtle aesthetic and layout misalignments',
+    jacketColor: 0xff3d8b,
+    jacketCss: '#FF3D8B',
+    backpackColor: 0x8ddcff,
+    backpackCss: '#8DDCFF',
+    pantsColor: 0x36234b,
+    hairColor: 0x4a2e18,
+    hairStyle: 'topknot',
+    accessories: 'Lilac/Pink Jacket & Sky-Blue Satchel',
+    description: 'Stylishly outfitted in a vivid pink-magenta windbreaker, sky-blue satchel, topknot hairstyle, and mint accessories.',
+  },
+  {
+    id: 'analyst',
+    name: 'The Analyst',
+    role: 'Cognitive & Systems Architect',
+    tagline: 'Focused on clarity, predictability, and error logic',
+    jacketColor: 0x2a85ff,
+    jacketCss: '#2A85FF',
+    backpackColor: 0xff8a1f,
+    backpackCss: '#FF8A1F',
+    pantsColor: 0x181e2e,
+    hairColor: 0x161622,
+    hairStyle: 'parted',
+    accessories: 'Sky-Blue Coat & Retro Specs',
+    description: 'Crisp and methodical with a sky-blue coat, tangerine utility pack, neat side-parted hairstyle, and clear focus.',
+  },
+];
+
+export interface StationNPC {
+  id: string;
+  name: string;
+  role: string;
+  position: { x: number; z: number };
+  dialogue: string;
+  tip: string;
+}
+
+export const STATION_NPCS: StationNPC[] = [
+  {
+    id: 'priya',
+    name: 'Agent Priya',
+    role: 'Help Desk Concierge',
+    position: { x: -2.4, z: 0.8 },
+    dialogue: 'Welcome to Friction Station! If a form seems confusing, look for where your attention gets lost.',
+    tip: 'Clear action buttons save travelers from abandoning their tickets!',
+  },
+  {
+    id: 'arjun',
+    name: 'Arjun',
+    role: 'Daily Commuter',
+    position: { x: 1.2, z: 1.8 },
+    dialogue: 'I take the Deccan Express every Saturday. Last week I misbooked because the placeholder vanished when I typed!',
+    tip: 'Persistent labels mean you never have to re-read from memory.',
+  },
+  {
+    id: 'rajiv',
+    name: 'Conductor Rajiv',
+    role: 'Senior Train Guard',
+    position: { x: -0.8, z: -3.0 },
+    dialogue: 'Departures run on strict time. The board should tell people WHY a train is delayed, not just turn red.',
+    tip: 'Color alone is never enough for accessible status alerts.',
+  },
+];

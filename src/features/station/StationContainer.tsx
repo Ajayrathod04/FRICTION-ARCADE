@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StationCanvas } from './StationCanvas';
 import { StationFallback } from './StationFallback';
 import { isWebGLAvailable } from '../../lib/a11y';
+import type { StationNPC } from '../../data/missionData';
 
 interface StationContainerProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
@@ -11,6 +12,10 @@ interface StationContainerProps {
   activeHotspot: 'kiosk' | 'board' | 'desk' | null;
   force2D?: boolean;
   onToggle2D?: () => void;
+  selectedAvatarId?: 'explorer' | 'creative' | 'analyst';
+  onTalkToNPC?: (npc: StationNPC) => void;
+  onToggleMap?: () => void;
+  onShowHint?: () => void;
 }
 
 export const StationContainer: React.FC<StationContainerProps> = ({
@@ -21,6 +26,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
   activeHotspot,
   force2D = false,
   onToggle2D,
+  selectedAvatarId = 'explorer',
+  onTalkToNPC,
+  onToggleMap,
+  onShowHint,
 }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
 
@@ -69,6 +78,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             repairsCompleted={repairsCompleted}
             repairsComplete={repairsComplete}
             activeHotspot={activeHotspot}
+            selectedAvatarId={selectedAvatarId}
+            onTalkToNPC={onTalkToNPC}
+            onToggleMap={onToggleMap}
+            onShowHint={onShowHint}
           />
         ) : (
           <StationFallback
@@ -98,8 +111,20 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             <kbd className="key-cap">Shift</kbd>
             <span className="control-label">Sprint</span>
           </span>
+          {onToggleMap && (
+            <span className="control-item">
+              <kbd className="key-cap">M</kbd>
+              <span className="control-label">Map</span>
+            </span>
+          )}
+          {onShowHint && (
+            <span className="control-item">
+              <kbd className="key-cap">H</kbd>
+              <span className="control-label">Hint</span>
+            </span>
+          )}
           <span className="control-item control-item--mobile">
-            <span className="control-label">Tap any glowing hotspot to inspect</span>
+            <span className="control-label">Tap any glowing hotspot or character to inspect</span>
           </span>
         </div>
       </div>

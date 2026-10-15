@@ -6,6 +6,11 @@ import { BookingFlowBefore } from '../features/mission/BookingFlowBefore';
 import { RepairModal } from '../features/repair-lab/RepairModal';
 import { BookingFlowAfter } from '../features/mission/BookingFlowAfter';
 import { ResultsModal } from '../features/results/ResultsModal';
+import { CharacterSelectModal } from '../features/landing/CharacterSelectModal';
+import { IntroTutorialModal } from '../features/mission/IntroTutorialModal';
+import { StationMapModal } from '../features/station/StationMapModal';
+import { NPCModal } from '../features/station/NPCModal';
+import { DuoJamModal } from '../features/coop/DuoJamModal';
 import { HowItWorks } from '../components/HowItWorks';
 import { MeetTheStation } from '../components/MeetTheStation';
 import { DesignRulesSection } from '../components/DesignRulesSection';
@@ -17,10 +22,26 @@ import { Icons } from '../components/ui/Icons';
 import { announce } from '../lib/a11y';
 import { saveGameResults, loadGameResults } from '../lib/storage';
 import type { GameResults } from '../lib/storage';
+import type { StationNPC } from '../data/missionData';
 
 export const App: React.FC = () => {
   // Game loop states: 'idle' | 'booking_before' | 'designer_mode' | 'booking_after'
   const [gameStage, setGameStage] = useState<'idle' | 'booking_before' | 'designer_mode' | 'booking_after'>('idle');
+
+  // Screen 02: Avatar selection
+  const [selectedAvatarId, setSelectedAvatarId] = useState<'explorer' | 'creative' | 'analyst'>('explorer');
+  const [showCharSelect, setShowCharSelect] = useState<boolean>(false);
+
+  // Screen 03: Intro tutorial & briefing
+  const [showTutorial, setShowTutorial] = useState<boolean>(false);
+
+  // Screen 04: Station Map & NPC dialogues
+  const [showStationMap, setShowStationMap] = useState<boolean>(false);
+  const [activeNPC, setActiveNPC] = useState<StationNPC | null>(null);
+  const [missionHint, setMissionHint] = useState<string | null>(null);
+
+  // Section 16: Duo Design Jam (Cooperative Mode)
+  const [showDuoJam, setShowDuoJam] = useState<boolean>(false);
 
   // Clues & repairs state
   const [cluesFound, setCluesFound] = useState<string[]>([]);
@@ -59,16 +80,38 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleStartMission = () => {
-    announce('Starting mission. Opening Ticket Kiosk booking challenge.');
+  const handleStartMissionClick = () => {
+    // Screen 02: Open Character Select
+    setShowCharSelect(true);
+  };
+
+  const handleConfirmCharacter = () => {
+    // Screen 03: Transition to Briefing & Tutorial
+    setShowTutorial(true);
+  };
+
+  const handleStartExploring = () => {
+    announce('Entering Friction Station. Move with WASD to explore.');
+    const el = document.getElementById('playable-area');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleLaunchBookingChallenge = () => {
+    announce('Opening Ticket Kiosk booking challenge.');
     setGameStage('booking_before');
     const el = document.getElementById('playable-area');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleStartWithout3D = () => {
-    setIs2D(true);
-    handleStartMission();
+  const handleShowHint = () => {
+    const hints = [
+      'Checkpoint 1 (Kiosk): Check why placeholder-only text makes users forget field context.',
+      'Checkpoint 2 (Departure Board): Notice how color alone fails to explain why trains are delayed.',
+      'Checkpoint 3 (Help Desk): Spot how competing grey buttons obscure the primary next step.',
+    ];
+    const unvisited = cluesFound.length < 3 ? hints[cluesFound.length] : 'All clues collected! Launch the booking challenge to test the flow.';
+    setMissionHint(unvisited);
+    setTimeout(() => setMissionHint(null), 5000);
   };
 
   // Stage C completion
@@ -136,7 +179,7 @@ export const App: React.FC = () => {
     <div className="arcade-app-root">
       {/* Navigation Header */}
       <Header
-        onStartMission={handleStartMission}
+        onStartMission={handleStartMissionClick}
         is2D={is2D}
         onToggle2D={() => setIs2D(!is2D)}
       />
@@ -154,6 +197,14 @@ export const App: React.FC = () => {
                 <Badge variant="sticker" color="#FF8A1F" rotate={-2}>
                   HYPERBLOOM OCTOBER
                 </Badge>
+                <button
+                  type="button"
+                  className="coop-launch-pill"
+                  onClick={() => setShowDuoJam(true)}
+                  title="Play 2-player cooperative mode on this device"
+                >
+                  👥 DUO JAM (CO-OP)
+                </button>
               </div>
 
               <h1 className="hero-brand-title">
@@ -172,7 +223,7 @@ export const App: React.FC = () => {
               </div>
 
               <p className="hero-subtext">
-                Explore a tiny 3D station. Complete a ticket-booking challenge. Discover the confusing parts, then redesign the interface to make the journey clearer.
+                Explore a colourful 3D station. Discover three confusing design choices, solve the booking challenge and transform the station with better UX.
               </p>
 
               {/* Exact Hero CTA Buttons */}
@@ -180,17 +231,20 @@ export const App: React.FC = () => {
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={handleStartMission}
+                  onClick={handleStartMissionClick}
                   icon={<Icons.Sparkle size={20} color="#FFFFFF" />}
                   id="btn-hero-start"
                 >
-                  START THE MISSION ↗
+                  START THE MISSION →
                 </Button>
 
                 <Button
                   variant="secondary"
                   size="lg"
-                  onClick={handleStartWithout3D}
+                  onClick={() => {
+                    setIs2D(true);
+                    handleLaunchBookingChallenge();
+                  }}
                   icon={<Icons.Keyboard size={20} color="#17131F" />}
                   id="btn-hero-skip-3d"
                 >
@@ -200,7 +254,7 @@ export const App: React.FC = () => {
 
               <div className="hero-instruction-strip">
                 <Icons.Gamepad size={18} color="#FF8A1F" />
-                <span>Move with WASD · Press E to interact · Tap any highlighted hotspot</span>
+                <span>Move with WASD · Shift to sprint · E/Enter to interact · M for Map · H for Hint</span>
               </div>
             </div>
 
@@ -214,10 +268,22 @@ export const App: React.FC = () => {
                 activeHotspot={activeHotspot}
                 force2D={is2D}
                 onToggle2D={() => setIs2D(!is2D)}
+                selectedAvatarId={selectedAvatarId}
+                onTalkToNPC={(npc) => setActiveNPC(npc)}
+                onToggleMap={() => setShowStationMap((prev) => !prev)}
+                onShowHint={handleShowHint}
               />
             </div>
           </div>
         </section>
+
+        {/* Floating In-Game Hint Toast */}
+        {missionHint && (
+          <div className="mission-hint-toast" role="status" aria-live="polite">
+            <Icons.Sparkle size={18} color="#FFD23F" />
+            <span>{missionHint}</span>
+          </div>
+        )}
 
         {/* ACTIVE GAME STAGES (IN PLACE OF BORING REDIRECTS) */}
         {gameStage === 'booking_before' && (
@@ -248,16 +314,57 @@ export const App: React.FC = () => {
         <DesignRulesSection />
       </main>
 
-      {/* Interactive Modals */}
+      {/* Screen 02: Character Selection Modal */}
+      <CharacterSelectModal
+        isOpen={showCharSelect}
+        onClose={() => setShowCharSelect(false)}
+        selectedAvatarId={selectedAvatarId}
+        onSelectAvatar={(id) => setSelectedAvatarId(id)}
+        onEnterStation={handleConfirmCharacter}
+      />
+
+      {/* Screen 03: Introduction & Controls Briefing Modal */}
+      <IntroTutorialModal
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        onStartExploring={handleStartExploring}
+      />
+
+      {/* Screen 04: Overhead Station Map Modal */}
+      <StationMapModal
+        isOpen={showStationMap}
+        onClose={() => setShowStationMap(false)}
+        cluesFound={cluesFound}
+        onSelectHotspot={handleSelectHotspot}
+      />
+
+      {/* Screen 04: In-world NPC Dialogue Modal */}
+      <NPCModal
+        npc={activeNPC}
+        isOpen={activeNPC !== null}
+        onClose={() => setActiveNPC(null)}
+      />
+
+      {/* Section 16: Duo Design Jam Cooperative Mode Modal */}
+      <DuoJamModal
+        isOpen={showDuoJam}
+        onClose={() => setShowDuoJam(false)}
+        onStartCoop={() => {
+          setShowCharSelect(true);
+        }}
+      />
+
+      {/* Checkpoint Clue Discovery Modal */}
       <ClueModal
         hotspotId={activeHotspot}
         isOpen={activeHotspot !== null}
         onClose={() => setActiveHotspot(null)}
         onCollectClue={handleCollectClue}
-        onStartBooking={handleStartMission}
+        onStartBooking={handleLaunchBookingChallenge}
         cluesFound={cluesFound}
       />
 
+      {/* Designer Mode Repair Puzzles Modal */}
       <RepairModal
         isOpen={gameStage === 'designer_mode'}
         onClose={() => setGameStage('idle')}
@@ -265,6 +372,7 @@ export const App: React.FC = () => {
         onRepairApplied={handleRepairApplied}
       />
 
+      {/* Final Mission Results & Telemetry Report Modal */}
       <ResultsModal
         isOpen={showResults}
         onClose={() => setShowResults(false)}
