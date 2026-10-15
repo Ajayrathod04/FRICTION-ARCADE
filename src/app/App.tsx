@@ -24,6 +24,7 @@ export const App: React.FC = () => {
 
   // Clues & repairs state
   const [cluesFound, setCluesFound] = useState<string[]>([]);
+  const [repairsCompleted, setRepairsCompleted] = useState<string[]>([]);
   const [activeHotspot, setActiveHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
   const [repairsComplete, setRepairsComplete] = useState<boolean>(false);
 
@@ -78,8 +79,17 @@ export const App: React.FC = () => {
     setGameStage('designer_mode');
   };
 
+  const handleRepairApplied = (repairId: string) => {
+    if (!repairsCompleted.includes(repairId)) {
+      const updated = [...repairsCompleted, repairId];
+      setRepairsCompleted(updated);
+      announce(`Clarity Mode update: Station part '${repairId}' upgraded to accessible design.`);
+    }
+  };
+
   // Stage D completion
   const handleRepairsComplete = () => {
+    setRepairsCompleted(['labels', 'errors', 'actions']);
     setRepairsComplete(true);
     announce('All repairs successfully applied! Launching improved booking flow.');
     setGameStage('booking_after');
@@ -106,6 +116,7 @@ export const App: React.FC = () => {
   const handlePlayAgain = () => {
     setShowResults(false);
     setCluesFound([]);
+    setRepairsCompleted([]);
     setRepairsComplete(false);
     setBeforeTime(0);
     setBeforeErrors(0);
@@ -198,6 +209,7 @@ export const App: React.FC = () => {
               <StationContainer
                 onSelectHotspot={handleSelectHotspot}
                 cluesFound={cluesFound}
+                repairsCompleted={repairsCompleted}
                 repairsComplete={repairsComplete}
                 activeHotspot={activeHotspot}
                 force2D={is2D}
@@ -250,6 +262,7 @@ export const App: React.FC = () => {
         isOpen={gameStage === 'designer_mode'}
         onClose={() => setGameStage('idle')}
         onAllRepairsComplete={handleRepairsComplete}
+        onRepairApplied={handleRepairApplied}
       />
 
       <ResultsModal

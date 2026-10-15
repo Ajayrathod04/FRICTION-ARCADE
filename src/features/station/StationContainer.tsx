@@ -6,6 +6,7 @@ import { isWebGLAvailable } from '../../lib/a11y';
 interface StationContainerProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
   cluesFound: string[];
+  repairsCompleted?: string[];
   repairsComplete: boolean;
   activeHotspot: 'kiosk' | 'board' | 'desk' | null;
   force2D?: boolean;
@@ -15,6 +16,7 @@ interface StationContainerProps {
 export const StationContainer: React.FC<StationContainerProps> = ({
   onSelectHotspot,
   cluesFound,
+  repairsCompleted = [],
   repairsComplete,
   activeHotspot,
   force2D = false,
@@ -39,6 +41,11 @@ export const StationContainer: React.FC<StationContainerProps> = ({
           <span className="station-clue-counter">
             {cluesFound.length}/3 FRICTION CLUES
           </span>
+          {repairsCompleted.length > 0 && (
+            <span className="station-clarity-counter">
+              ✨ CLARITY: {repairsCompleted.length}/3 FIXED
+            </span>
+          )}
         </div>
 
         <div className="station-viewport-actions">
@@ -59,6 +66,7 @@ export const StationContainer: React.FC<StationContainerProps> = ({
           <StationCanvas
             onSelectHotspot={onSelectHotspot}
             cluesFound={cluesFound}
+            repairsCompleted={repairsCompleted}
             repairsComplete={repairsComplete}
             activeHotspot={activeHotspot}
           />

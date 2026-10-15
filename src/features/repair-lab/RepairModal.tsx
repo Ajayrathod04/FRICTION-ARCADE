@@ -9,12 +9,14 @@ interface RepairModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAllRepairsComplete: () => void;
+  onRepairApplied?: (repairId: string) => void;
 }
 
 export const RepairModal: React.FC<RepairModalProps> = ({
   isOpen,
   onClose,
   onAllRepairsComplete,
+  onRepairApplied,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export const RepairModal: React.FC<RepairModalProps> = ({
   const [solvedPuzzles, setSolvedPuzzles] = useState<string[]>([]);
 
   const currentPuzzle: RepairPuzzle = REPAIR_PUZZLES[currentStepIndex];
+  const isCurrentSolved = solvedPuzzles.includes(currentPuzzle.id);
 
   const handleSelectOption = (option: RepairOption) => {
     setSelectedOptionId(option.id);
@@ -31,7 +34,9 @@ export const RepairModal: React.FC<RepairModalProps> = ({
         text: option.explanation,
       });
       if (!solvedPuzzles.includes(currentPuzzle.id)) {
-        setSolvedPuzzles([...solvedPuzzles, currentPuzzle.id]);
+        const nextSolved = [...solvedPuzzles, currentPuzzle.id];
+        setSolvedPuzzles(nextSolved);
+        onRepairApplied?.(currentPuzzle.id);
       }
     } else {
       setFeedback({
@@ -57,7 +62,7 @@ export const RepairModal: React.FC<RepairModalProps> = ({
       onClose={onClose}
       title="DESIGNER MODE: REPAIR THE FLOW"
       badge={`REPAIR ${currentStepIndex + 1} OF 3`}
-      maxWidth="640px"
+      maxWidth="680px"
     >
       <div className="repair-modal-content">
         {/* Progress tracker */}
@@ -71,6 +76,94 @@ export const RepairModal: React.FC<RepairModalProps> = ({
               <span className="pip-label">{puzzle.id}</span>
             </div>
           ))}
+        </div>
+
+        {/* Live Shared Form Preview (Transforms when fix is chosen) */}
+        <div className="repair-preview-card">
+          <div className="repair-preview-card__header">
+            <span className="repair-preview-card__title">
+              {isCurrentSolved ? '✨ SHARED FORM UPDATED (CLARITY ACTIVE)' : '⚡ LIVE SHARED FORM PREVIEW (BEFORE FIX)'}
+            </span>
+            <span className={`preview-state-badge ${isCurrentSolved ? 'preview-state-badge--fixed' : 'preview-state-badge--flawed'}`}>
+              {isCurrentSolved ? 'FIX APPLIED ✓' : 'NEEDS REPAIR ⚠'}
+            </span>
+          </div>
+
+          <div className="repair-preview-card__body">
+            {currentPuzzle.id === 'labels' && (
+              <div className="preview-component">
+                {isCurrentSolved ? (
+                  <div className="preview-field-fixed">
+                    <label className="preview-label" htmlFor="preview-city">
+                      Departure City <span style={{ color: '#FF3B30' }}>*</span>
+                    </label>
+                    <input
+                      id="preview-city"
+                      type="text"
+                      className="preview-input preview-input--fixed"
+                      value="Mumbai CST"
+                      readOnly
+                    />
+                    <span className="preview-hint">Persistent label keeps context visible at all times</span>
+                  </div>
+                ) : (
+                  <div className="preview-field-flawed">
+                    <input
+                      type="text"
+                      className="preview-input preview-input--flawed"
+                      placeholder="departure city (e.g. mumbai)"
+                      readOnly
+                    />
+                    <span className="preview-warning">Vanishing placeholder: context disappears upon typing!</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentPuzzle.id === 'errors' && (
+              <div className="preview-component">
+                {isCurrentSolved ? (
+                  <div className="preview-error-fixed">
+                    <div className="preview-guidance-box">
+                      <Icons.Check size={18} color="#059669" />
+                      <span><strong>Saturday, 18 Oct 2026</strong> · Deccan Express available (2 AC seats)</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="preview-error-flawed">
+                    <div className="preview-cryptic-box">
+                      <Icons.Alert size={18} color="#FF3B30" />
+                      <span>Invalid input. Please correct fields.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentPuzzle.id === 'actions' && (
+              <div className="preview-component">
+                {isCurrentSolved ? (
+                  <div className="preview-actions-fixed">
+                    <button type="button" className="btn-arcade btn-primary btn-preview-cta">
+                      BOOK 2 SEATS (₹750) →
+                    </button>
+                    <button type="button" className="btn-preview-cancel">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="preview-actions-flawed">
+                    <button type="button" className="btn-preview-ambiguous">
+                      Cancel
+                    </button>
+                    <button type="button" className="btn-preview-ambiguous">
+                      Book Now
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="repair-card">
