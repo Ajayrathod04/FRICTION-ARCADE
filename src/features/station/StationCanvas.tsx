@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { AVATAR_CHOICES, STATION_NPCS } from '../../data/missionData';
 import type { StationNPC } from '../../data/missionData';
+import { MinimapRadar } from './MinimapRadar';
+import { TransitPhoneWidget } from './TransitPhoneWidget';
+import { PauseMenuModal } from './PauseMenuModal';
+import { SoundEffects, VoiceNarration } from '../../lib/audio';
 
 interface StationCanvasProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
@@ -13,6 +17,10 @@ interface StationCanvasProps {
   onTalkToNPC?: (npc: StationNPC) => void;
   onToggleMap?: () => void;
   onShowHint?: () => void;
+  onLaunchBookingChallenge?: () => void;
+  onOpenHowToPlay?: () => void;
+  onOpenDuoJam?: () => void;
+  onOpenDesignLab?: () => void;
 }
 
 export const StationCanvas: React.FC<StationCanvasProps> = ({
@@ -25,10 +33,30 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   onTalkToNPC,
   onToggleMap,
   onShowHint,
+  onLaunchBookingChallenge,
+  onOpenHowToPlay,
+  onOpenDuoJam,
+  onOpenDesignLab,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [nearbyHotspot, setNearbyHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
   const [nearbyNPC, setNearbyNPC] = useState<StationNPC | null>(null);
+
+  // Campus & SF Quest HUD states
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isPhoneOpen, setIsPhoneOpen] = useState<boolean>(false);
+  const [cameraMode, setCameraMode] = useState<'over_the_shoulder' | 'isometric'>('isometric');
+  const [voiceNarration, setVoiceNarration] = useState<boolean>(true);
+  const [graphicsMode, setGraphicsMode] = useState<'fast' | 'high'>('high');
+  const [activeRoleView, setActiveRoleView] = useState<'traveler' | 'designer' | 'evidence'>('traveler');
+  const [playerCoords, setPlayerCoords] = useState({ x: 0.2, z: 2.2, angle: 0 });
+
+  const isPausedRef = useRef(false);
+  isPausedRef.current = isPaused;
+  const cameraModeRef = useRef(cameraMode);
+  cameraModeRef.current = cameraMode;
+  const voiceNarrationRef = useRef(voiceNarration);
+  voiceNarrationRef.current = voiceNarration;
 
   // Character world position (approaching ticket kiosk)
   const playerPos = useRef({ x: 0.2, z: 2.2 });
@@ -44,8 +72,20 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
 
   const handleInteract = useCallback(() => {
     if (nearbyHotspot) {
+      if (voiceNarrationRef.current) {
+        VoiceNarration.speak(
+          nearbyHotspot === 'kiosk'
+            ? 'Inspecting Ticket Kiosk'
+            : nearbyHotspot === 'board'
+            ? 'Reading Departure Board'
+            : 'Visiting Help Desk'
+        );
+      }
       onSelectHotspot(nearbyHotspot);
     } else if (nearbyNPC) {
+      if (voiceNarrationRef.current) {
+        VoiceNarration.speak(`Speaking with ${nearbyNPC.name}`);
+      }
       onTalkToNPC?.(nearbyNPC);
     }
   }, [nearbyHotspot, nearbyNPC, onSelectHotspot, onTalkToNPC]);
@@ -57,16 +97,27 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       }
 
       keysDown.current[e.key.toLowerCase()] = true;
-      if (e.key.toLowerCase() === 'e' || e.key === 'Enter') {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setIsPaused((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setIsPhoneOpen((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'e' || e.key === 'Enter') {
         if (nearbyHotspot || nearbyNPC) {
           e.preventDefault();
+          SoundEffects.playBlip();
           handleInteract();
         }
       } else if (e.key.toLowerCase() === 'm') {
         e.preventDefault();
+        SoundEffects.playBlip();
         onToggleMap?.();
       } else if (e.key.toLowerCase() === 'h') {
         e.preventDefault();
+        SoundEffects.playBlip();
         onShowHint?.();
       }
     };
@@ -787,9 +838,16 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     // --- 12. ANIMATION & GAME LOOP ---
     let animationFrameId: number;
     let clock = new THREE.Clock();
+    let frameCount = 0;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+
+      if (isPausedRef.current) {
+        renderer.render(scene, camera);
+        return;
+      }
+
       const delta = clock.getDelta();
       const time = clock.getElapsedTime();
 
@@ -948,13 +1006,33 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         setNearbyNPC(null);
       }
 
-      // Smooth Isometric Camera Position with subtle pointer parallax
-      const camTargetX = playerPos.current.x * 0.4 + 3.2 + pointerPos.current.x * 0.25;
-      const camTargetZ = playerPos.current.z * 0.3 + 4.8 + pointerPos.current.y * 0.2;
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
-      camera.position.y = 3.8;
-      camera.lookAt(playerPos.current.x * 0.3, 0.65, playerPos.current.z * 0.2);
+      // Synchronize player position with Minimap Radar (throttled to ~15fps)
+      frameCount++;
+      if (frameCount % 4 === 0) {
+        setPlayerCoords({
+          x: playerPos.current.x,
+          z: playerPos.current.z,
+          angle: playerAngle.current,
+        });
+      }
+
+      // Camera handling: Over-the-Shoulder vs Isometric Concourse
+      if (cameraModeRef.current === 'over_the_shoulder') {
+        const camTargetX = playerPos.current.x - Math.sin(playerAngle.current) * 0.4;
+        const camTargetZ = playerPos.current.z + 2.2;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.3, 0.08);
+        camera.lookAt(playerPos.current.x, 0.85, playerPos.current.z - 1.5);
+      } else {
+        // Smooth Isometric Camera Position with subtle pointer parallax
+        const camTargetX = playerPos.current.x * 0.4 + 3.2 + pointerPos.current.x * 0.25;
+        const camTargetZ = playerPos.current.z * 0.3 + 4.8 + pointerPos.current.y * 0.2;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 3.8, 0.08);
+        camera.lookAt(playerPos.current.x * 0.3, 0.65, playerPos.current.z * 0.2);
+      }
 
       renderer.render(scene, camera);
     };
@@ -1039,33 +1117,87 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         </button>
       </div>
 
+      {/* Campus-Grade Top Concourse HUD */}
+      <div className="campus-concourse-hud" aria-label="Station Concourse HUD">
+        <div className="campus-hud-left">
+          <div className="campus-hud-badge">
+            <span className="campus-live-dot" />
+            <span className="campus-hud-title">FA FRICTION ARCADE · SOLO SANDBOX</span>
+          </div>
+          <div className="campus-hud-breadcrumb">
+            STATION CONCOURSE · PLATFORM 1
+          </div>
+          <div className="campus-hud-target">
+            Heading for{' '}
+            <strong>
+              {!cluesFound.includes('kiosk')
+                ? 'Ticket Kiosk (Missing Context)'
+                : !cluesFound.includes('board')
+                ? 'Departure Board (Confusing Feedback)'
+                : !cluesFound.includes('desk')
+                ? 'Help Desk (Unclear Actions)'
+                : 'Booking Challenge Flow'}
+            </strong>
+          </div>
+        </div>
+
+        <div className="campus-hud-right">
+          <button
+            type="button"
+            className="campus-hud-btn"
+            onClick={() => {
+              SoundEffects.playBlip();
+              setIsPhoneOpen(true);
+            }}
+            title="Open Transit Phone PDA (P)"
+          >
+            📱 PDA (P)
+          </button>
+          {onToggleMap && (
+            <button
+              type="button"
+              className="campus-hud-btn"
+              onClick={() => {
+                SoundEffects.playBlip();
+                onToggleMap();
+              }}
+              title="Open Concourse Map (M)"
+            >
+              🗺 Map (M)
+            </button>
+          )}
+          {onShowHint && (
+            <button
+              type="button"
+              className="campus-hud-btn campus-hud-btn--hint"
+              onClick={() => {
+                SoundEffects.playBlip();
+                onShowHint();
+              }}
+              title="Show Objective Hint (H)"
+            >
+              💡 Hint (H)
+            </button>
+          )}
+          <button
+            type="button"
+            className="campus-hud-btn campus-hud-btn--menu"
+            onClick={() => {
+              SoundEffects.playBlip();
+              setIsPaused(true);
+            }}
+            title="Open Pause Menu (Esc)"
+          >
+            ⏸ MENU (Esc)
+          </button>
+        </div>
+      </div>
+
       {/* Persistent Mini Route Map HUD (Section 4 — Friction Trail) */}
       <div className="route-map-hud" aria-label="Station Route Trail">
         <div className="route-map-hud__title">
           <span className="hud-pulse" />
           <span>ROUTE TRAIL</span>
-          <div className="hud-shortcut-group">
-            {onToggleMap && (
-              <button
-                type="button"
-                className="hud-quick-btn"
-                onClick={onToggleMap}
-                title="Open station map (M)"
-              >
-                🗺 Map (M)
-              </button>
-            )}
-            {onShowHint && (
-              <button
-                type="button"
-                className="hud-quick-btn hud-quick-btn--hint"
-                onClick={onShowHint}
-                title="Show mission hint (H)"
-              >
-                💡 Hint (H)
-              </button>
-            )}
-          </div>
         </div>
         <div className="route-map-hud__checkpoints">
           <span className={`hud-ckpt ${cluesFound.includes('kiosk') ? 'is-done' : 'is-next'}`}>
@@ -1082,6 +1214,15 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         </div>
       </div>
 
+      {/* SF Quest / CampusEvac Minimap Radar */}
+      <MinimapRadar
+        playerX={playerCoords.x}
+        playerZ={playerCoords.z}
+        playerAngle={playerCoords.angle}
+        cluesFound={cluesFound}
+        onExpandMap={onToggleMap || (() => {})}
+      />
+
       {/* Proximity Interaction Prompt when standing near a hotspot */}
       {nearbyHotspot && (
         <div className="proximity-prompt">
@@ -1091,10 +1232,10 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
               Interact with{' '}
               <strong>
                 {nearbyHotspot === 'kiosk'
-                  ? 'Ticket Kiosk'
+                  ? 'Ticket Kiosk 📋'
                   : nearbyHotspot === 'board'
-                  ? 'Departure Board'
-                  : 'Help Desk'}
+                  ? 'Departure Board 🚉'
+                  : 'Help Desk 💁'}
               </strong>
             </span>
             <button
@@ -1114,7 +1255,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
           <div className="proximity-prompt__pill">
             <span className="key-cap">E</span>
             <span>
-              Talk to <strong>{nearbyNPC.name}</strong> ({nearbyNPC.role})
+              Talk to <strong>{nearbyNPC.name}</strong> ({nearbyNPC.role}) 💬
             </span>
             <button
               className="proximity-prompt__btn"
@@ -1126,6 +1267,66 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
           </div>
         </div>
       )}
+
+      {/* Transit Phone PDA Widget (P) */}
+      <TransitPhoneWidget
+        isOpen={isPhoneOpen}
+        onClose={() => setIsPhoneOpen(false)}
+        cluesFound={cluesFound}
+        repairsCompleted={repairsCompleted}
+        onLaunchBooking={() => {
+          setIsPhoneOpen(false);
+          if (onLaunchBookingChallenge) {
+            onLaunchBookingChallenge();
+          } else {
+            onSelectHotspot('kiosk');
+          }
+        }}
+        onOpenMap={() => {
+          setIsPhoneOpen(false);
+          onToggleMap?.();
+        }}
+        onOpenDesignLab={() => {
+          setIsPhoneOpen(false);
+          onOpenDesignLab?.();
+        }}
+      />
+
+      {/* Campus-grade Pause Menu Overlay (Esc) */}
+      <PauseMenuModal
+        isOpen={isPaused}
+        onResume={() => setIsPaused(false)}
+        onRestartDrill={() => {
+          playerPos.current = { x: 0.2, z: 2.2 };
+          setIsPaused(false);
+        }}
+        onExitHome={() => {
+          setIsPaused(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        cameraMode={cameraMode}
+        onToggleCamera={() =>
+          setCameraMode((m) => (m === 'over_the_shoulder' ? 'isometric' : 'over_the_shoulder'))
+        }
+        voiceNarration={voiceNarration}
+        onToggleVoice={() => setVoiceNarration((v) => !v)}
+        graphicsMode={graphicsMode}
+        onToggleGraphics={() => setGraphicsMode((g) => (g === 'fast' ? 'high' : 'fast'))}
+        activeRoleView={activeRoleView}
+        onSelectRoleView={(r) => {
+          setActiveRoleView(r);
+          setIsPaused(false);
+          if (r === 'designer') {
+            onOpenDuoJam?.();
+          } else if (r === 'evidence') {
+            onOpenHowToPlay?.();
+          }
+        }}
+        onOpenHowToPlay={() => {
+          setIsPaused(false);
+          onOpenHowToPlay?.();
+        }}
+      />
     </div>
   );
 };

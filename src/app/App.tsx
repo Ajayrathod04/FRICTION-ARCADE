@@ -272,6 +272,10 @@ export const App: React.FC = () => {
                 onTalkToNPC={(npc) => setActiveNPC(npc)}
                 onToggleMap={() => setShowStationMap((prev) => !prev)}
                 onShowHint={handleShowHint}
+                onLaunchBookingChallenge={handleLaunchBookingChallenge}
+                onOpenHowToPlay={() => setShowTutorial(true)}
+                onOpenDuoJam={() => setShowDuoJam(true)}
+                onOpenDesignLab={handleOpenDesignLab}
               />
             </div>
           </div>

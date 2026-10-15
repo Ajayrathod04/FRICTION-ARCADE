@@ -16,6 +16,10 @@ interface StationContainerProps {
   onTalkToNPC?: (npc: StationNPC) => void;
   onToggleMap?: () => void;
   onShowHint?: () => void;
+  onLaunchBookingChallenge?: () => void;
+  onOpenHowToPlay?: () => void;
+  onOpenDuoJam?: () => void;
+  onOpenDesignLab?: () => void;
 }
 
 export const StationContainer: React.FC<StationContainerProps> = ({
@@ -30,6 +34,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
   onTalkToNPC,
   onToggleMap,
   onShowHint,
+  onLaunchBookingChallenge,
+  onOpenHowToPlay,
+  onOpenDuoJam,
+  onOpenDesignLab,
 }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
 
@@ -82,6 +90,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             onTalkToNPC={onTalkToNPC}
             onToggleMap={onToggleMap}
             onShowHint={onShowHint}
+            onLaunchBookingChallenge={onLaunchBookingChallenge}
+            onOpenHowToPlay={onOpenHowToPlay}
+            onOpenDuoJam={onOpenDuoJam}
+            onOpenDesignLab={onOpenDesignLab}
           />
         ) : (
           <StationFallback
