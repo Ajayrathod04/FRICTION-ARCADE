@@ -6,6 +6,7 @@ import type { StationNPC } from '../../data/missionData';
 
 interface StationContainerProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
+  onTriggerEcho?: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
   cluesFound: string[];
   repairsCompleted?: string[];
   repairsComplete: boolean;
@@ -20,10 +21,14 @@ interface StationContainerProps {
   onOpenHowToPlay?: () => void;
   onOpenDuoJam?: () => void;
   onOpenDesignLab?: () => void;
+  activeWaypointId?: string;
+  onSetWaypoint?: (wpId: string) => void;
+  onPlayerCoordsChange?: (coords: { x: number; z: number; angle: number }) => void;
 }
 
 export const StationContainer: React.FC<StationContainerProps> = ({
   onSelectHotspot,
+  onTriggerEcho,
   cluesFound,
   repairsCompleted = [],
   repairsComplete,
@@ -38,6 +43,9 @@ export const StationContainer: React.FC<StationContainerProps> = ({
   onOpenHowToPlay,
   onOpenDuoJam,
   onOpenDesignLab,
+  activeWaypointId = 'wp-kiosk',
+  onSetWaypoint,
+  onPlayerCoordsChange,
 }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
 
@@ -53,14 +61,14 @@ export const StationContainer: React.FC<StationContainerProps> = ({
         <div className="station-viewport-meta">
           <span className="station-live-dot" />
           <span className="station-live-title">
-            {show3D ? '3D STATION SIMULATION' : '2D ACCESSIBLE VIEW'}
+            {show3D ? '3D STATION CONCOURSE' : '2D ACCESSIBLE CONCOURSE'}
           </span>
           <span className="station-clue-counter">
-            {cluesFound.length}/3 FRICTION CLUES
+            {cluesFound.length}/3 STAMPS DISCOVERED
           </span>
           {repairsCompleted.length > 0 && (
             <span className="station-clarity-counter">
-              ✨ CLARITY: {repairsCompleted.length}/3 FIXED
+              ✨ CLARITY MODE: {repairsCompleted.length}/3 REPAIRED
             </span>
           )}
         </div>
@@ -82,6 +90,7 @@ export const StationContainer: React.FC<StationContainerProps> = ({
         {show3D ? (
           <StationCanvas
             onSelectHotspot={onSelectHotspot}
+            onTriggerEcho={onTriggerEcho}
             cluesFound={cluesFound}
             repairsCompleted={repairsCompleted}
             repairsComplete={repairsComplete}
@@ -94,10 +103,13 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             onOpenHowToPlay={onOpenHowToPlay}
             onOpenDuoJam={onOpenDuoJam}
             onOpenDesignLab={onOpenDesignLab}
+            activeWaypointId={activeWaypointId}
+            onPlayerCoordsChange={onPlayerCoordsChange}
           />
         ) : (
           <StationFallback
             onSelectHotspot={onSelectHotspot}
+            onTriggerEcho={onTriggerEcho}
             cluesFound={cluesFound}
             repairsComplete={repairsComplete}
             activeHotspot={activeHotspot}
@@ -105,7 +117,7 @@ export const StationContainer: React.FC<StationContainerProps> = ({
         )}
       </div>
 
-      {/* Control Help Bar */}
+      {/* Enhanced Control Help Bar */}
       <div className="station-viewport-footer">
         <div className="control-strip">
           <span className="control-item">
@@ -116,12 +128,16 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             <span className="control-label">Move</span>
           </span>
           <span className="control-item">
-            <kbd className="key-cap">E</kbd>
-            <span className="control-label">Interact</span>
-          </span>
-          <span className="control-item">
             <kbd className="key-cap">Shift</kbd>
             <span className="control-label">Sprint</span>
+          </span>
+          <span className="control-item">
+            <kbd className="key-cap">E</kbd>
+            <span className="control-label">Inspect</span>
+          </span>
+          <span className="control-item control-item--echo">
+            <kbd className="key-cap" style={{ background: '#ffd23f', color: '#17131f' }}>Q</kbd>
+            <span className="control-label" style={{ fontWeight: 700, color: '#ffd23f' }}>Friction Echo</span>
           </span>
           {onToggleMap && (
             <span className="control-item">
@@ -129,6 +145,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
               <span className="control-label">Map</span>
             </span>
           )}
+          <span className="control-item">
+            <kbd className="key-cap">P</kbd>
+            <span className="control-label">PDA</span>
+          </span>
           {onShowHint && (
             <span className="control-item">
               <kbd className="key-cap">H</kbd>
@@ -136,7 +156,7 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             </span>
           )}
           <span className="control-item control-item--mobile">
-            <span className="control-label">Tap any glowing hotspot or character to inspect</span>
+            <span className="control-label">Tap any glowing landmark or NPC to inspect</span>
           </span>
         </div>
       </div>

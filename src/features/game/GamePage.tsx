@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StationContainer } from '../station/StationContainer';
 import { ClueModal } from '../friction/ClueModal';
+import { FrictionEchoModal } from '../friction/FrictionEchoModal';
 import { BookingFlowBefore } from '../mission/BookingFlowBefore';
 import { RepairModal } from '../repair-lab/RepairModal';
 import { BookingFlowAfter } from '../mission/BookingFlowAfter';
@@ -44,6 +45,15 @@ export const GamePage: React.FC<GamePageProps> = ({
   // Duo Jam Cooperative Mode
   const [showDuoJam, setShowDuoJam] = useState<boolean>(false);
 
+  // Signature Mechanic: Friction Echo State & Active Waypoint Guidance
+  const [activeEchoHotspot, setActiveEchoHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
+  const [activeWaypointId, setActiveWaypointId] = useState<string>('wp-kiosk');
+  const [playerCoords, setPlayerCoords] = useState<{ x: number; z: number; angle: number }>({
+    x: 0.2,
+    z: 2.2,
+    angle: 0,
+  });
+
   // Clues & Repairs
   const [cluesFound, setCluesFound] = useState<string[]>([]);
   const [repairsCompleted, setRepairsCompleted] = useState<string[]>([]);
@@ -74,11 +84,25 @@ export const GamePage: React.FC<GamePageProps> = ({
     announce(`Selected station hotspot: ${hotspotId}`);
   };
 
+  const handleTriggerEcho = (hotspotId: 'kiosk' | 'board' | 'desk') => {
+    setActiveEchoHotspot(hotspotId);
+    announce(`Activated Friction Echo at ${hotspotId}`);
+  };
+
   const handleCollectClue = (clueId: string) => {
     if (!cluesFound.includes(clueId)) {
       const updated = [...cluesFound, clueId];
       setCluesFound(updated);
-      announce(`Clue sticker collected: ${clueId}. ${updated.length} of 3 found.`);
+      announce(`Evidence stamp collected: ${clueId}. ${updated.length} of 3 found.`);
+
+      // Advance active waypoint guidance along the Friction Trail
+      if (clueId === 'kiosk') {
+        setActiveWaypointId('wp-board');
+      } else if (clueId === 'board') {
+        setActiveWaypointId('wp-desk');
+      } else if (clueId === 'desk') {
+        setActiveWaypointId('wp-kiosk');
+      }
     }
   };
 
@@ -208,8 +232,49 @@ export const GamePage: React.FC<GamePageProps> = ({
             onClick={() => setShowStationMap(true)}
             title="Station Map (M)"
           >
-            🗺 Map
+            🗺 Map (M)
           </button>
+
+          {/* Friction Echo Signature Shortcut */}
+          <button
+            type="button"
+            className="game-hud-icon-btn"
+            onClick={() => {
+              const nextTarget = !cluesFound.includes('kiosk')
+                ? 'kiosk'
+                : !cluesFound.includes('board')
+                ? 'board'
+                : 'desk';
+              handleTriggerEcho(nextTarget);
+            }}
+            title="Activate Friction Echo (Q)"
+            style={{
+              background: '#ffd23f',
+              color: '#17131f',
+              fontWeight: 800,
+              border: '2px solid #17131f',
+            }}
+          >
+            ⚡ Echo (Q)
+          </button>
+
+          {/* Clarity Replay Shortcut (available when repairs are complete) */}
+          {repairsComplete && (
+            <button
+              type="button"
+              className="game-hud-icon-btn"
+              onClick={() => handleTriggerEcho('kiosk')}
+              title="Clarity Replay: Compare Before vs After passenger journeys"
+              style={{
+                background: '#b6ffb2',
+                color: '#17131f',
+                fontWeight: 800,
+                border: '2px solid #17131f',
+              }}
+            >
+              ✨ Clarity Replay
+            </button>
+          )}
 
           {/* Controls Tutorial Shortcut */}
           <button
@@ -229,6 +294,7 @@ export const GamePage: React.FC<GamePageProps> = ({
           <div className="game-station-fullscreen">
             <StationContainer
               onSelectHotspot={handleSelectHotspot}
+              onTriggerEcho={handleTriggerEcho}
               cluesFound={cluesFound}
               repairsCompleted={repairsCompleted}
               repairsComplete={repairsComplete}
@@ -243,6 +309,9 @@ export const GamePage: React.FC<GamePageProps> = ({
               onOpenHowToPlay={() => setShowTutorial(true)}
               onOpenDuoJam={() => setShowDuoJam(true)}
               onOpenDesignLab={onExitToHome}
+              activeWaypointId={activeWaypointId}
+              onSetWaypoint={(wpId) => setActiveWaypointId(wpId)}
+              onPlayerCoordsChange={(coords) => setPlayerCoords(coords)}
             />
           </div>
         )}
@@ -303,8 +372,13 @@ export const GamePage: React.FC<GamePageProps> = ({
         cluesFound={cluesFound}
         onSelectHotspot={(hotspot) => {
           setShowStationMap(false);
-          handleSelectHotspot(hotspot);
+          handleTriggerEcho(hotspot);
         }}
+        playerX={playerCoords.x}
+        playerZ={playerCoords.z}
+        playerAngle={playerCoords.angle}
+        activeWaypointId={activeWaypointId}
+        onSetWaypoint={(wpId) => setActiveWaypointId(wpId)}
       />
 
       {/* In-World NPC Dialogue Modal */}
@@ -321,10 +395,24 @@ export const GamePage: React.FC<GamePageProps> = ({
         onStartCoop={() => setShowDuoJam(false)}
       />
 
-      {/* Screen 05: Clue Forensic Modals */}
+      {/* SIGNATURE MECHANIC: Friction Echo Observation & Diagnosis Modal */}
+      <FrictionEchoModal
+        hotspotId={activeEchoHotspot}
+        isOpen={!!activeEchoHotspot}
+        onClose={() => setActiveEchoHotspot(null)}
+        onCollectClue={handleCollectClue}
+        onStartBooking={() => {
+          setActiveEchoHotspot(null);
+          setGameStage('booking_before');
+        }}
+        cluesFound={cluesFound}
+        isRepaired={repairsComplete}
+      />
+
+      {/* Fallback Clue Forensic Modal */}
       <ClueModal
         hotspotId={activeHotspot}
-        isOpen={!!activeHotspot}
+        isOpen={!!activeHotspot && !activeEchoHotspot}
         onClose={() => setActiveHotspot(null)}
         onCollectClue={handleCollectClue}
         onStartBooking={() => {

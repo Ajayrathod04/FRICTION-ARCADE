@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
-import { AVATAR_CHOICES, STATION_NPCS } from '../../data/missionData';
+import { AVATAR_CHOICES, STATION_NPCS, STATION_ECHOES } from '../../data/missionData';
 import type { StationNPC } from '../../data/missionData';
 import { MinimapRadar } from './MinimapRadar';
 import { TransitPhoneWidget } from './TransitPhoneWidget';
@@ -9,6 +9,7 @@ import { SoundEffects, VoiceNarration } from '../../lib/audio';
 
 interface StationCanvasProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
+  onTriggerEcho?: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
   cluesFound: string[];
   repairsCompleted?: string[];
   repairsComplete: boolean;
@@ -21,10 +22,13 @@ interface StationCanvasProps {
   onOpenHowToPlay?: () => void;
   onOpenDuoJam?: () => void;
   onOpenDesignLab?: () => void;
+  activeWaypointId?: string;
+  onPlayerCoordsChange?: (coords: { x: number; z: number; angle: number }) => void;
 }
 
 export const StationCanvas: React.FC<StationCanvasProps> = ({
   onSelectHotspot,
+  onTriggerEcho,
   cluesFound,
   repairsCompleted = [],
   repairsComplete,
@@ -37,6 +41,8 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   onOpenHowToPlay,
   onOpenDuoJam,
   onOpenDesignLab,
+  activeWaypointId = 'wp-kiosk',
+  onPlayerCoordsChange,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [nearbyHotspot, setNearbyHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
@@ -115,6 +121,11 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         e.preventDefault();
         SoundEffects.playBlip();
         onToggleMap?.();
+      } else if (e.key.toLowerCase() === 'q') {
+        e.preventDefault();
+        SoundEffects.playCollect();
+        const target = nearbyHotspot || (!cluesFound.includes('kiosk') ? 'kiosk' : !cluesFound.includes('board') ? 'board' : 'desk');
+        onTriggerEcho?.(target);
       } else if (e.key.toLowerCase() === 'h') {
         e.preventDefault();
         SoundEffects.playBlip();
@@ -533,6 +544,33 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     rajivGroup.add(rajivBody, rajivHead, rajivCap, rajivBrim);
     stationGroup.add(rajivGroup);
 
+    // --- 9.8 FRICTION ECHO GHOST PASSENGER (Signature Mechanic Visualizer) ---
+    const ghostGroup = new THREE.Group();
+    const ghostMat = new THREE.MeshStandardMaterial({
+      color: 0x8ddcff,
+      emissive: 0x8ddcff,
+      emissiveIntensity: 0.55,
+      transparent: true,
+      opacity: 0.72,
+      roughness: 0.2,
+    });
+    const ghostBody = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.55, 12), ghostMat);
+    ghostBody.position.y = 0.55;
+    const ghostHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), ghostMat);
+    ghostHead.position.y = 0.95;
+    // Glowing floating beacon badge over ghost's head
+    const beaconGeo = new THREE.RingGeometry(0.12, 0.18, 16);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xffd23f, side: THREE.DoubleSide });
+    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+    beacon.position.y = 1.35;
+    ghostGroup.add(ghostBody, ghostHead, beacon);
+
+    // Position ghost near current active target checkpoint or hesitation point
+    const activeHotspotTarget = !cluesFound.includes('kiosk') ? 'kiosk' : !cluesFound.includes('board') ? 'board' : 'desk';
+    const activeEchoData = STATION_ECHOES[activeHotspotTarget];
+    ghostGroup.position.set(activeEchoData.hesitationPoint.x, 0, activeEchoData.hesitationPoint.z);
+    stationGroup.add(ghostGroup);
+
     // --- 10. REFINED PROTAGONIST TRAVELER CHARACTER ---
     // Configured by selectedAvatarId
     const activeAvatar = AVATAR_CHOICES.find((a) => a.id === selectedAvatarId) || AVATAR_CHOICES[0];
@@ -910,6 +948,11 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       // Kiosk Screen Glow Pulse
       kioskScreenMat.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2;
 
+      // Friction Echo Ghost Passenger gentle hesitation sway
+      beacon.rotation.y = time * 2.2;
+      beacon.position.y = 1.35 + Math.sin(time * 3.5) * 0.08;
+      ghostGroup.position.y = Math.sin(time * 2.4) * 0.03;
+
       // PLAYER WASD MOVEMENT & COLLISION BOUNDARIES
       const moveSpeed = keysDown.current['shift'] ? 4.0 : 2.4;
       let dx = 0;
@@ -1009,11 +1052,13 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       // Synchronize player position with Minimap Radar (throttled to ~15fps)
       frameCount++;
       if (frameCount % 4 === 0) {
-        setPlayerCoords({
+        const coords = {
           x: playerPos.current.x,
           z: playerPos.current.z,
           angle: playerAngle.current,
-        });
+        };
+        setPlayerCoords(coords);
+        onPlayerCoordsChange?.(coords);
       }
 
       // Camera handling: Over-the-Shoulder vs Isometric Concourse
@@ -1221,15 +1266,18 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         playerAngle={playerCoords.angle}
         cluesFound={cluesFound}
         onExpandMap={onToggleMap || (() => {})}
+        activeWaypointId={activeWaypointId}
       />
 
       {/* Proximity Interaction Prompt when standing near a hotspot */}
       {nearbyHotspot && (
         <div className="proximity-prompt">
           <div className="proximity-prompt__pill">
+            <span className="key-cap" style={{ background: '#ffd23f', color: '#17131f' }}>Q</span>
+            <span style={{ fontWeight: 700, color: '#ffd23f' }}>Echo</span>
+            <span>•</span>
             <span className="key-cap">E</span>
             <span>
-              Interact with{' '}
               <strong>
                 {nearbyHotspot === 'kiosk'
                   ? 'Ticket Kiosk 📋'
@@ -1240,10 +1288,18 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
             </span>
             <button
               className="proximity-prompt__btn"
-              onClick={handleInteract}
-              aria-label="Open interaction"
+              style={{ background: '#ffd23f', color: '#17131f', fontWeight: 800 }}
+              onClick={() => onTriggerEcho?.(nearbyHotspot)}
+              aria-label="Activate Friction Echo"
             >
-              Open →
+              Echo (Q) →
+            </button>
+            <button
+              className="proximity-prompt__btn"
+              onClick={handleInteract}
+              aria-label="Inspect landmark"
+            >
+              Inspect (E)
             </button>
           </div>
         </div>

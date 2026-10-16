@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { STATION_WAYPOINTS, STATION_NPCS, calculateWalkableRoute } from '../../data/missionData';
+import type { StationWaypoint } from '../../data/missionData';
+import { SoundEffects } from '../../lib/audio';
 
 interface StationMapModalProps {
   isOpen: boolean;
   onClose: () => void;
   cluesFound: string[];
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
+  playerX?: number;
+  playerZ?: number;
+  playerAngle?: number;
+  activeWaypointId?: string;
+  onSetWaypoint?: (waypointId: string) => void;
 }
 
 export const StationMapModal: React.FC<StationMapModalProps> = ({
@@ -15,131 +23,239 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
   onClose,
   cluesFound,
   onSelectHotspot,
+  playerX = 0.2,
+  playerZ = 2.2,
+  playerAngle = 0,
+  activeWaypointId = 'wp-kiosk',
+  onSetWaypoint,
 }) => {
+  const [selectedWpId, setSelectedWpId] = useState<string>(activeWaypointId);
+
+  // World coordinates [-4.2, 4.2] -> [5, 95] % X
+  const toSvgX = (x: number) => {
+    return Math.max(6, Math.min(94, ((x + 4.2) / 8.4) * 100));
+  };
+
+  // World coordinates [-3.8, 3.8] -> [8, 92] % Y
+  const toSvgY = (z: number) => {
+    return Math.max(8, Math.min(92, ((z + 3.8) / 7.6) * 100));
+  };
+
+  const pSvgX = toSvgX(playerX);
+  const pSvgY = toSvgY(playerZ);
+  const pDeg = (playerAngle * 180) / Math.PI;
+
+  const currentWp = STATION_WAYPOINTS.find((w) => w.id === selectedWpId) || STATION_WAYPOINTS[2];
+
+  // Calculate live route from player to selected waypoint
+  const routePoints = calculateWalkableRoute(playerX, playerZ, currentWp.id);
+  const svgPathD = routePoints
+    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x)} ${toSvgY(pt.z)}`)
+    .join(' ');
+
+  const handleSelectWp = (wp: StationWaypoint) => {
+    setSelectedWpId(wp.id);
+    onSetWaypoint?.(wp.id);
+    SoundEffects.playBlip();
+  };
+
+  const handleGoToHotspot = () => {
+    if (currentWp.hotspotId) {
+      onClose();
+      onSelectHotspot(currentWp.hotspotId);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="STATION CONCOURSE MAP"
-      badge="OVERHEAD NAVIGATION · PRESS M"
-      maxWidth="700px"
+      title="STATION CONCOURSE TOP-DOWN MAP"
+      badge="OVERHEAD NAVIGATION · KEY M"
+      maxWidth="780px"
     >
       <div className="station-map-modal-content">
         <div className="station-map-meta-strip">
-          <span>Explore all 3 landmark checkpoints along the <strong>Friction Trail</strong> to unlock the booking mission.</span>
+          <span>
+            Click any landmark to set it as your <strong>Active Waypoint</strong>. Route guidance displays along safe walkable paths.
+          </span>
           <Badge variant="sticker" color="#FFD23F">
-            {cluesFound.length}/3 CHECKPOINTS
+            {cluesFound.length}/3 STAMPS COLLECTED
           </Badge>
         </div>
 
-        {/* 2D Overhead Schematic Plan */}
-        <div className="schematic-map">
-          {/* Train track zone */}
-          <div className="schematic-track-zone">
-            <span className="track-label">PLATFORM 01 · DECCAN EXPRESS (TO PUNE)</span>
-            <div className="track-rails" />
+        {/* 2D Overhead Schematic Plan matching 3D world geometry */}
+        <div className="schematic-map" style={{ position: 'relative', height: '360px', background: '#1c1729', borderRadius: '12px', border: '3px solid #17131f', overflow: 'hidden' }}>
+          <svg className="schematic-svg-grid" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+            {/* Background platform floor */}
+            <rect x="5" y="8" width="90" height="84" fill="#261d36" rx="4" />
+
+            {/* Platform 1 Track Bed and Rails (Top area: z = -4.6 to -3.0) */}
+            <rect x="5" y="8" width="90" height="18" fill="#14101e" />
+            <line x1="5" y1="12" x2="95" y2="12" stroke="#4a4060" strokeWidth="0.8" />
+            <line x1="5" y1="17" x2="95" y2="17" stroke="#4a4060" strokeWidth="0.8" />
+            <line x1="5" y1="24" x2="95" y2="24" stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+
+            {/* Train representation on Platform 1 */}
+            <rect x="8" y="9.5" width="84" height="6" fill="#ff8a1f" rx="1.5" />
+            <text x="50" y="14" fill="#17131f" fontSize="3" fontWeight="bold" textAnchor="middle">
+              PLATFORM 01 · DECCAN EXPRESS (TO PUNE)
+            </text>
+
+            {/* Walking Path Connectors (Graph edges) */}
+            {STATION_WAYPOINTS.map((wp) =>
+              wp.connectedIds.map((cId) => {
+                const target = STATION_WAYPOINTS.find((t) => t.id === cId);
+                if (!target || wp.id > target.id) return null;
+                return (
+                  <line
+                    key={`${wp.id}-${target.id}`}
+                    x1={toSvgX(wp.x)}
+                    y1={toSvgY(wp.z)}
+                    x2={toSvgX(target.x)}
+                    y2={toSvgY(target.z)}
+                    stroke="#382e4f"
+                    strokeWidth="1.2"
+                    strokeDasharray="2 1.5"
+                  />
+                );
+              })
+            )}
+
+            {/* Active Walkable Route Line */}
+            {svgPathD && (
+              <path
+                d={svgPathD}
+                fill="none"
+                stroke="#ffd23f"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray="4 2"
+                className="schematic-route-line"
+              />
+            )}
+
+            {/* In-World NPCs Markers */}
+            {STATION_NPCS.map((npc) => {
+              const nx = toSvgX(npc.position.x);
+              const ny = toSvgY(npc.position.z);
+              return (
+                <g key={npc.id} transform={`translate(${nx}, ${ny})`}>
+                  <circle r="2.2" fill="#8ddcff" stroke="#17131f" strokeWidth="0.8" />
+                  <text y="0.8" fontSize="2.2" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                    NPC
+                  </text>
+                  <text y="4.5" fontSize="2.0" fill="#8ddcff" fontWeight="bold" textAnchor="middle">
+                    {npc.name}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Waypoints / Checkpoints */}
+            {STATION_WAYPOINTS.map((wp) => {
+              const wx = toSvgX(wp.x);
+              const wy = toSvgY(wp.z);
+              const isSelected = selectedWpId === wp.id;
+              const isClueDone = wp.hotspotId && cluesFound.includes(wp.hotspotId);
+              const isCheckpoint = !!wp.hotspotId;
+
+              const pinColor = isClueDone
+                ? '#059669'
+                : isSelected
+                ? '#ffd23f'
+                : isCheckpoint
+                ? '#ff3d8b'
+                : '#c7b5ff';
+
+              return (
+                <g
+                  key={wp.id}
+                  transform={`translate(${wx}, ${wy})`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleSelectWp(wp)}
+                >
+                  <circle
+                    r={isSelected ? 4.0 : isCheckpoint ? 3.2 : 2.2}
+                    fill={pinColor}
+                    stroke="#17131f"
+                    strokeWidth={isSelected ? 1.4 : 0.8}
+                  />
+                  {isCheckpoint && (
+                    <text y="1.1" fontSize="2.6" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                      {wp.hotspotId === 'kiosk' ? '1' : wp.hotspotId === 'board' ? '2' : '3'}
+                    </text>
+                  )}
+                  <text y={isCheckpoint ? 5.8 : 4.5} fontSize="2.2" fill="#fff6e5" fontWeight="600" textAnchor="middle">
+                    {wp.name}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Player Blip with Direction Cone */}
+            <g transform={`translate(${pSvgX}, ${pSvgY})`}>
+              {/* Outer pulse */}
+              <circle r="4.2" fill="none" stroke="#ff8a1f" strokeWidth="0.6" opacity="0.6" />
+              {/* Direction Pointer */}
+              <polygon
+                points="0,-3.2 2.2,2.4 -2.2,2.4"
+                fill="#ff8a1f"
+                stroke="#17131f"
+                strokeWidth="0.8"
+                transform={`rotate(${pDeg})`}
+              />
+              <circle r="1.4" fill="#fff6e5" />
+            </g>
+          </svg>
+        </div>
+
+        {/* Selected Waypoint Info Strip */}
+        <div className="station-waypoint-info-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#fff6e5', border: '3px solid #17131f', borderRadius: '10px', marginTop: '12px', gap: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, background: '#ffd23f', padding: '2px 8px', borderRadius: '4px', border: '1.5px solid #17131f' }}>
+                WAYPOINT
+              </span>
+              <strong style={{ fontSize: '16px', color: '#17131f' }}>{currentWp.name}</strong>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#4a4060' }}>{currentWp.description}</p>
           </div>
 
-          {/* Platform Floor Area */}
-          <div className="schematic-concourse">
-            {/* Hotspot 1: Kiosk */}
-            <button
-              type="button"
-              className={`schematic-pin schematic-pin--kiosk ${cluesFound.includes('kiosk') ? 'is-done' : 'is-active'}`}
-              onClick={() => {
-                onClose();
-                onSelectHotspot('kiosk');
-              }}
-              title="Ticket Kiosk"
-            >
-              <span className="pin-num">1</span>
-              <div className="pin-tooltip">
-                <strong>Ticket Kiosk</strong>
-                <span>{cluesFound.includes('kiosk') ? 'Clue Found ✓' : 'Inspect Kiosk →'}</span>
-              </div>
-            </button>
-
-            {/* Connecting Trail Lines */}
-            <svg className="schematic-trail-lines" viewBox="0 0 400 200" aria-hidden="true">
-              <path
-                d="M 200 130 L 290 80"
-                stroke={cluesFound.includes('kiosk') ? '#059669' : '#FFD23F'}
-                strokeWidth="4"
-                strokeDasharray="6 4"
-                fill="none"
-              />
-              <path
-                d="M 290 80 L 110 90"
-                stroke={cluesFound.includes('board') ? '#059669' : '#C7B5FF'}
-                strokeWidth="4"
-                strokeDasharray="6 4"
-                fill="none"
-              />
-            </svg>
-
-            {/* Hotspot 2: Departure Board */}
-            <button
-              type="button"
-              className={`schematic-pin schematic-pin--board ${cluesFound.includes('board') ? 'is-done' : cluesFound.includes('kiosk') ? 'is-active' : ''}`}
-              onClick={() => {
-                onClose();
-                onSelectHotspot('board');
-              }}
-              title="Departure Board"
-            >
-              <span className="pin-num">2</span>
-              <div className="pin-tooltip">
-                <strong>Departure Board</strong>
-                <span>{cluesFound.includes('board') ? 'Clue Found ✓' : 'Inspect Board →'}</span>
-              </div>
-            </button>
-
-            {/* Hotspot 3: Help Desk */}
-            <button
-              type="button"
-              className={`schematic-pin schematic-pin--desk ${cluesFound.includes('desk') ? 'is-done' : cluesFound.includes('board') ? 'is-active' : ''}`}
-              onClick={() => {
-                onClose();
-                onSelectHotspot('desk');
-              }}
-              title="Help Desk"
-            >
-              <span className="pin-num">3</span>
-              <div className="pin-tooltip">
-                <strong>Help Desk</strong>
-                <span>{cluesFound.includes('desk') ? 'Clue Found ✓' : 'Inspect Desk →'}</span>
-              </div>
-            </button>
-
-            {/* Decorative station elements in schematic */}
-            <div className="schematic-landmark schematic-landmark--bench" style={{ left: '60%', top: '65%' }}>
-              <span>Bench</span>
-            </div>
-            <div className="schematic-landmark schematic-landmark--planter" style={{ left: '15%', top: '65%' }}>
-              <span>Planter</span>
-            </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {currentWp.hotspotId && (
+              <Button variant="primary" size="sm" onClick={handleGoToHotspot}>
+                Inspect Landmark →
+              </Button>
+            )}
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Resume Exploring
+            </Button>
           </div>
         </div>
 
-        <div className="station-map-legend">
-          <div className="legend-item">
-            <span className="legend-dot legend-dot--done" />
-            <span>Discovered Clue</span>
+        <div className="station-map-legend" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '12px', fontSize: '12px', color: '#17131f', fontWeight: 600 }}>
+          <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff8a1f', border: '2px solid #17131f', display: 'inline-block' }} />
+            <span>Player Location</span>
           </div>
-          <div className="legend-item">
-            <span className="legend-dot legend-dot--active" />
-            <span>Next Target Checkpoint</span>
+          <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff3d8b', border: '2px solid #17131f', display: 'inline-block' }} />
+            <span>Mission Checkpoint (1, 2, 3)</span>
           </div>
-          <div className="legend-item">
-            <span className="legend-dot legend-dot--upcoming" />
-            <span>Upcoming Node</span>
+          <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#059669', border: '2px solid #17131f', display: 'inline-block' }} />
+            <span>Evidence Diagnosed ✓</span>
           </div>
-        </div>
-
-        <div className="station-map-footer">
-          <Button variant="primary" size="md" onClick={onClose}>
-            Resume Game (Esc)
-          </Button>
+          <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#8ddcff', border: '2px solid #17131f', display: 'inline-block' }} />
+            <span>Station NPC</span>
+          </div>
+          <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '20px', height: '4px', background: '#ffd23f', display: 'inline-block', border: '1px solid #17131f' }} />
+            <span>Active Walkable Route Line</span>
+          </div>
         </div>
       </div>
     </Modal>

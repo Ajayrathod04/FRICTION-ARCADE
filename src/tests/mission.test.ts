@@ -39,3 +39,32 @@ test('formatSeconds utility converts seconds accurately', () => {
   assert.equal(formatSeconds(65), '01:05');
   assert.equal(formatSeconds(134), '02:14');
 });
+
+test('Friction Echo definitions have complete passenger journeys and valid diagnoses', async () => {
+  const { STATION_ECHOES } = await import('../data/missionData.ts');
+  const hotspots: Array<'kiosk' | 'board' | 'desk'> = ['kiosk', 'board', 'desk'];
+  for (const h of hotspots) {
+    const echo = STATION_ECHOES[h];
+    assert.ok(echo, `Echo for ${h} must exist`);
+    assert.ok(echo.passengerName, `Passenger name must be defined for ${h}`);
+    assert.ok(echo.observationNarrative.length > 20, `Observation narrative must be substantive for ${h}`);
+    assert.ok(echo.hesitationAction.length > 10, `Hesitation action must be defined for ${h}`);
+    const correctOpts = echo.options.filter((o) => o.isCorrect);
+    assert.equal(correctOpts.length, 1, `Echo for ${h} must have exactly one correct diagnosis`);
+    assert.equal(echo.options.length, 3, `Echo for ${h} must have 3 diagnosis choices`);
+  }
+});
+
+test('Walkable station route calculator outputs connected waypoints', async () => {
+  const { calculateWalkableRoute } = await import('../data/missionData.ts');
+  const entranceToKiosk = calculateWalkableRoute(0.2, 2.8, 'wp-kiosk');
+  assert.ok(entranceToKiosk.length >= 2, 'Route from entrance to kiosk should have at least 2 nodes');
+  assert.equal(entranceToKiosk[entranceToKiosk.length - 1].x, 0.0);
+  assert.equal(entranceToKiosk[entranceToKiosk.length - 1].z, 0.2);
+
+  const kioskToBoard = calculateWalkableRoute(0.0, 0.2, 'wp-board');
+  assert.ok(kioskToBoard.length >= 2, 'Route from kiosk to board should have at least 2 nodes');
+  assert.equal(kioskToBoard[kioskToBoard.length - 1].x, 2.4);
+  assert.equal(kioskToBoard[kioskToBoard.length - 1].z, -1.2);
+});
+

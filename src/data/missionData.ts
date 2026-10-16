@@ -345,3 +345,330 @@ export const STATION_NPCS: StationNPC[] = [
     tip: 'Color alone is never enough for accessible status alerts.',
   },
 ];
+
+// --- FRICTION ECHO: SIGNATURE GAMEPLAY MECHANIC ---
+export interface FrictionEchoOption {
+  id: string;
+  label: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export interface FrictionEchoData {
+  hotspotId: 'kiosk' | 'board' | 'desk';
+  passengerName: string;
+  passengerRole: string;
+  avatarColor: string;
+  locationName: string;
+  ghostStartPos: { x: number; z: number };
+  ghostTargetPos: { x: number; z: number };
+  hesitationPoint: { x: number; z: number };
+  observationNarrative: string;
+  hesitationAction: string;
+  diagnosisPrompt: string;
+  options: FrictionEchoOption[];
+  afterRepairResolution: string;
+}
+
+export const STATION_ECHOES: Record<'kiosk' | 'board' | 'desk', FrictionEchoData> = {
+  kiosk: {
+    hotspotId: 'kiosk',
+    passengerName: 'Arjun',
+    passengerRole: 'Hurried Weekend Traveler',
+    avatarColor: '#FF8A1F',
+    locationName: 'Ticket Kiosk',
+    ghostStartPos: { x: 0.2, z: 2.6 },
+    ghostTargetPos: { x: 0.0, z: 0.5 },
+    hesitationPoint: { x: 0.0, z: 0.7 },
+    observationNarrative:
+      'Arjun rushes to the Kiosk to book the Deccan Express. He taps into the origin field, types "M", and stops. The light-gray placeholder text vanished. He squints, rubs his forehead, presses backspace to re-read the ghosted prompt, and hesitates for 4 critical seconds.',
+    hesitationAction:
+      'Erasing typed characters repeatedly just to verify what the vanished placeholder originally requested.',
+    diagnosisPrompt:
+      'Diagnose the friction: What caused Arjun to freeze and erase his input at the ticket kiosk?',
+    options: [
+      {
+        id: 'A',
+        label: 'A. Disappearing placeholder labels forced Arjun to rely on fragile short-term recall.',
+        isCorrect: true,
+        explanation:
+          'Exact diagnosis! Placeholders vanish upon typing. Without permanent HTML <label> tags, users must delete their input to confirm the field requirements.',
+      },
+      {
+        id: 'B',
+        label: 'B. The kiosk touch screen was physically unplugged or broken.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. The screen responded immediately, but the interface lost essential field context as soon as typing began.',
+      },
+      {
+        id: 'C',
+        label: 'C. The Deccan Express train had already departed.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. The schedule was active, but the form design imposed unnecessary cognitive load on the traveler.',
+      },
+    ],
+    afterRepairResolution:
+      'With persistent labels applied, Arjun reads "Departure Station" clearly above the box, types with confidence without second-guessing, and completes his booking in record time!',
+  },
+  board: {
+    hotspotId: 'board',
+    passengerName: 'Meera',
+    passengerRole: 'Connecting Commuter',
+    avatarColor: '#FF3D8B',
+    locationName: 'Solari Departure Board',
+    ghostStartPos: { x: -0.6, z: -2.2 },
+    ghostTargetPos: { x: 2.2, z: -1.0 },
+    hesitationPoint: { x: 2.0, z: -0.9 },
+    observationNarrative:
+      'Meera checks the departure board for her connecting express to Pune. The Solari display flashes red with a cryptic badge: "ALERT 404". There is no reason given, no alternate platform mentioned, and no recovery step provided. She looks anxiously back and forth between the tracks and the ceiling.',
+    hesitationAction:
+      'Staring at a flashing red badge with no text explanation of whether her train is delayed or cancelled.',
+    diagnosisPrompt:
+      'Diagnose the friction: Why is Meera stranded in confusion in front of the departure board?',
+    options: [
+      {
+        id: 'A',
+        label: 'A. The board used color-only and a cryptic error code without plain-language next steps.',
+        isCorrect: true,
+        explanation:
+          'Exact diagnosis! Communicating status via red color and obscure codes violates accessibility heuristics. Systems must clearly explain what happened and what step to take next.',
+      },
+      {
+        id: 'B',
+        label: 'B. Meera forgot her glasses and could not see the letters.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. The board was in full view, but its ambiguous error feedback left her without actionable guidance.',
+      },
+      {
+        id: 'C',
+        label: 'C. The station was struck by a power outage.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. The board had full power, but its software failed to provide human-centered error recovery.',
+      },
+    ],
+    afterRepairResolution:
+      'With actionable status feedback restored, the board reads "ON TIME · Platform 1 · Gate Closes 10:25 AM" with green icons and clear platform directions. Meera walks straight to coach 3!',
+  },
+  desk: {
+    hotspotId: 'desk',
+    passengerName: 'Kabir',
+    passengerRole: 'First-Time Passenger',
+    avatarColor: '#8DDCFF',
+    locationName: 'Customer Help Desk',
+    ghostStartPos: { x: -1.4, z: 1.8 },
+    ghostTargetPos: { x: -2.2, z: 0.6 },
+    hesitationPoint: { x: -2.0, z: 0.6 },
+    observationNarrative:
+      'Kabir reaches Agent Priya at the Help Desk to confirm his senior citizen reservation. The counter tablet displays two identical wide gray buttons: "CANCEL RESERVATION" and "CONFIRM TICKETS". Both have the exact same size, gray background, and weight. Kabir hovers his index finger back and forth, terrified of accidentally deleting his ticket.',
+    hesitationAction:
+      'Hesitating between two identical gray buttons because the safe forward action lacks visual priority.',
+    diagnosisPrompt:
+      'Diagnose the friction: What stopped Kabir from pressing the confirmation button with confidence?',
+    options: [
+      {
+        id: 'A',
+        label: 'A. Primary and destructive actions shared equal visual weight, creating dangerous ambiguity.',
+        isCorrect: true,
+        explanation:
+          'Exact diagnosis! Action hierarchy demands that constructive forward actions receive prominent visual priority (contrast, color, size), while destructive actions are visually secondary.',
+      },
+      {
+        id: 'B',
+        label: 'B. Agent Priya refused to speak with him.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. Agent Priya was ready to help, but the counter screen failed to provide intuitive visual hierarchy.',
+      },
+      {
+        id: 'C',
+        label: 'C. The tablet had run out of battery.',
+        isCorrect: false,
+        explanation:
+          'Incorrect. The tablet was illuminated, but the competing buttons confused the user.',
+      },
+    ],
+    afterRepairResolution:
+      'With clear visual hierarchy applied, "Confirm Tickets →" stands out as a vibrant high-contrast orange button, while "Cancel" is a discreet secondary link. Kabir taps with a smile!',
+  },
+};
+
+// --- AUTHORED STATION WAYPOINTS & WALKABLE NAVIGATION GRAPH ---
+export interface StationWaypoint {
+  id: string;
+  name: string;
+  category: 'entrance' | 'kiosk' | 'board' | 'desk' | 'platform' | 'lounge' | 'concourse';
+  x: number;
+  z: number;
+  hotspotId?: 'kiosk' | 'board' | 'desk';
+  description: string;
+  connectedIds: string[];
+}
+
+export const STATION_WAYPOINTS: StationWaypoint[] = [
+  {
+    id: 'wp-entrance',
+    name: 'Main Entrance & Foyer',
+    category: 'entrance',
+    x: 0.2,
+    z: 2.8,
+    description: 'Station concourse entrance with wayfinding overhead marquee.',
+    connectedIds: ['wp-center', 'wp-lounge'],
+  },
+  {
+    id: 'wp-center',
+    name: 'Central Concourse Plaza',
+    category: 'concourse',
+    x: 0.0,
+    z: 1.2,
+    description: 'Central hub connecting ticketing, departure boards, and customer service.',
+    connectedIds: ['wp-entrance', 'wp-kiosk', 'wp-lounge', 'wp-board-path'],
+  },
+  {
+    id: 'wp-kiosk',
+    name: 'Ticket Kiosk (Checkpoint 1)',
+    category: 'kiosk',
+    x: 0.0,
+    z: 0.2,
+    hotspotId: 'kiosk',
+    description: 'Self-service automated ticketing terminals.',
+    connectedIds: ['wp-center', 'wp-platform-path', 'wp-board-path', 'wp-desk-path'],
+  },
+  {
+    id: 'wp-board-path',
+    name: 'East Corridor',
+    category: 'concourse',
+    x: 1.4,
+    z: -0.4,
+    description: 'Walkway leading to the Solari departure board.',
+    connectedIds: ['wp-center', 'wp-kiosk', 'wp-board'],
+  },
+  {
+    id: 'wp-board',
+    name: 'Departure Board (Checkpoint 2)',
+    category: 'board',
+    x: 2.4,
+    z: -1.2,
+    hotspotId: 'board',
+    description: 'Overhead LED Solari timetable board.',
+    connectedIds: ['wp-board-path', 'wp-platform-east'],
+  },
+  {
+    id: 'wp-desk-path',
+    name: 'West Walkway',
+    category: 'concourse',
+    x: -1.4,
+    z: 0.6,
+    description: 'Passage towards Agent Priya customer service desk.',
+    connectedIds: ['wp-kiosk', 'wp-lounge', 'wp-desk'],
+  },
+  {
+    id: 'wp-desk',
+    name: 'Help Desk (Checkpoint 3)',
+    category: 'desk',
+    x: -2.4,
+    z: 0.4,
+    hotspotId: 'desk',
+    description: 'Staffed customer service desk and accessibility support.',
+    connectedIds: ['wp-desk-path'],
+  },
+  {
+    id: 'wp-lounge',
+    name: 'Waiting Lounge & Benches',
+    category: 'lounge',
+    x: -1.4,
+    z: 1.8,
+    description: 'Rest area with wooden benches, planters, and commuter Rajiv.',
+    connectedIds: ['wp-entrance', 'wp-center', 'wp-desk-path'],
+  },
+  {
+    id: 'wp-platform-path',
+    name: 'Central Platform Gate',
+    category: 'concourse',
+    x: 0.0,
+    z: -1.4,
+    description: 'Turnstile gate opening onto the passenger platform.',
+    connectedIds: ['wp-kiosk', 'wp-platform-main', 'wp-platform-east'],
+  },
+  {
+    id: 'wp-platform-main',
+    name: 'Platform 1 (Deccan Express)',
+    category: 'platform',
+    x: 0.0,
+    z: -2.8,
+    description: 'Passenger train tracks and yellow safety tactile line.',
+    connectedIds: ['wp-platform-path', 'wp-platform-east'],
+  },
+  {
+    id: 'wp-platform-east',
+    name: 'Platform 1 East Ramp',
+    category: 'platform',
+    x: 1.8,
+    z: -2.6,
+    description: 'East platform walkway connecting to departures.',
+    connectedIds: ['wp-board', 'wp-platform-path', 'wp-platform-main'],
+  },
+];
+
+/**
+ * Calculates a walkable route from the player's current position to a target landmark waypoint.
+ * Uses breadcrumb search through the authored station navigation graph to guarantee that
+ * paths never clip through walls, trains, or kiosk cabinets!
+ */
+export function calculateWalkableRoute(
+  fromX: number,
+  fromZ: number,
+  targetWaypointId: string
+): Array<{ x: number; z: number }> {
+  const targetWp = STATION_WAYPOINTS.find((w) => w.id === targetWaypointId);
+  if (!targetWp) return [{ x: fromX, z: fromZ }];
+
+  // Find the closest waypoint to player start
+  let nearestStart = STATION_WAYPOINTS[0];
+  let minDist = Infinity;
+  for (const wp of STATION_WAYPOINTS) {
+    const d = Math.hypot(wp.x - fromX, wp.z - fromZ);
+    if (d < minDist) {
+      minDist = d;
+      nearestStart = wp;
+    }
+  }
+
+  // BFS search on graph
+  const queue: Array<{ id: string; path: string[] }> = [{ id: nearestStart.id, path: [nearestStart.id] }];
+  const visited = new Set<string>([nearestStart.id]);
+
+  let bestPath: string[] = [nearestStart.id];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (current.id === targetWaypointId) {
+      bestPath = current.path;
+      break;
+    }
+    const currentWp = STATION_WAYPOINTS.find((w) => w.id === current.id);
+    if (!currentWp) continue;
+    for (const neighborId of currentWp.connectedIds) {
+      if (!visited.has(neighborId)) {
+        visited.add(neighborId);
+        queue.push({ id: neighborId, path: [...current.path, neighborId] });
+      }
+    }
+  }
+
+  const resultPoints: Array<{ x: number; z: number }> = [{ x: fromX, z: fromZ }];
+  for (const wpId of bestPath) {
+    const wp = STATION_WAYPOINTS.find((w) => w.id === wpId);
+    if (wp) {
+      resultPoints.push({ x: wp.x, z: wp.z });
+    }
+  }
+  // Ensure the target's exact coordinate is the final point
+  if (resultPoints.length > 0) {
+    resultPoints[resultPoints.length - 1] = { x: targetWp.x, z: targetWp.z };
+  }
+  return resultPoints;
+}
+
