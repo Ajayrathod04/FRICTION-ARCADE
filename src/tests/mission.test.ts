@@ -68,3 +68,34 @@ test('Walkable station route calculator outputs connected waypoints', async () =
   assert.equal(kioskToBoard[kioskToBoard.length - 1].z, -1.2);
 });
 
+test('Mission State Machine transitions and objective progression', async () => {
+  const { canTransitionTo, getNextObjectiveText } = await import('../features/game/state/missionStateMachine.ts');
+
+  // Verify transition rules
+  assert.equal(canTransitionTo('game_entry', 'avatar_select'), true);
+  assert.equal(canTransitionTo('avatar_select', 'briefing'), true);
+  assert.equal(canTransitionTo('briefing', 'exploration'), true);
+  assert.equal(canTransitionTo('exploration', 'kiosk_investigation'), true);
+  assert.equal(canTransitionTo('case_file_flow_lab', 'exploration'), true, 'Should allow returning to exploration');
+
+  // Verify dynamic objective text
+  const initialObj = getNextObjectiveText([], false, 'exploration');
+  assert.match(initialObj, /Zone C.*Ticket Kiosk/);
+
+  const boardObj = getNextObjectiveText(['kiosk'], false, 'exploration');
+  assert.match(boardObj, /Zone D.*Departure Board/);
+
+  const deskObj = getNextObjectiveText(['kiosk', 'board'], false, 'exploration');
+  assert.match(deskObj, /Zone E.*Help Desk/);
+
+  const bookingObj = getNextObjectiveText(['kiosk', 'board', 'desk'], false, 'exploration');
+  assert.match(bookingObj, /Booking Challenge/);
+
+  const flowLabObj = getNextObjectiveText(['kiosk', 'board', 'desk'], false, 'case_file_flow_lab');
+  assert.match(flowLabObj, /Flow Lab/);
+
+  const boardingObj = getNextObjectiveText(['kiosk', 'board', 'desk'], true, 'clarity_boarding');
+  assert.match(boardingObj, /board the Deccan Express/);
+});
+
+

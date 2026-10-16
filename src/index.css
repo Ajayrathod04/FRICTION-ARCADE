@@ -5315,5 +5315,428 @@ body {
   animation: routeLineDash 1.2s linear infinite;
 }
 
+/* ==========================================================================
+   FRICTION VISION FORENSIC HUD & SCANLINE OVERLAY
+   ========================================================================== */
+
+.friction-vision-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  overflow: hidden;
+  animation: visionFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes visionFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.vision-scanline-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(15, 11, 24, 0.35) 0%, rgba(10, 6, 18, 0.88) 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(141, 220, 255, 0.035) 0px,
+      rgba(141, 220, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+}
+
+.vision-hud-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 28px;
+  background: rgba(15, 11, 24, 0.95);
+  border-bottom: 2px solid #8ddcff;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.vision-hud-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vision-hud-blip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8ddcff;
+  box-shadow: 0 0 12px #8ddcff, 0 0 20px #8ddcff;
+  animation: visionBlipPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes visionBlipPulse {
+  from {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.vision-title-text {
+  font-family: var(--font-display, 'Archivo Variable', sans-serif);
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  color: #8ddcff;
+  text-transform: uppercase;
+}
+
+.vision-badge-pill {
+  background: #17131f;
+  border: 1px solid #8ddcff;
+  color: #8ddcff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.vision-hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.vision-hotspot-label {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #a1a1aa;
+}
+
+.vision-hotspot-label strong {
+  color: #ffd23f;
+}
+
+.vision-close-btn {
+  background: rgba(255, 59, 48, 0.15);
+  border: 1.5px solid #ff3b30;
+  color: #ff857f;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vision-close-btn:hover {
+  background: #ff3b30;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 59, 48, 0.4);
+}
+
+.vision-drawer-panel {
+  position: relative;
+  z-index: 2;
+  margin: auto;
+  max-width: 680px;
+  width: 92%;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: #17131f;
+  border: 2px solid #8ddcff;
+  box-shadow: 0 0 45px rgba(141, 220, 255, 0.2), 0 24px 60px rgba(0, 0, 0, 0.9);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.vision-passenger-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vision-passenger-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vision-passenger-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.vision-passenger-name {
+  font-family: var(--font-display, 'Archivo Variable', sans-serif);
+  font-weight: 800;
+  font-size: 17px;
+  color: #ffffff;
+}
+
+.vision-passenger-meta {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.vision-replay-toggle {
+  display: flex;
+  background: #221838;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.vision-toggle-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: #a1a1aa;
+  transition: all 0.15s ease;
+}
+
+.vision-toggle-btn.is-active {
+  background: #8ddcff;
+  color: #17131f;
+  font-weight: 800;
+}
+
+.vision-evidence-box {
+  background: #221838;
+  border: 1px solid rgba(141, 220, 255, 0.25);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.vision-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffd23f;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vision-step-chip {
+  background: rgba(255, 210, 63, 0.18);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.vision-status-note {
+  color: #8ddcff;
+}
+
+.vision-narrative-p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e4e4e7;
+  margin: 0 0 12px 0;
+}
+
+.vision-hesitation-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255, 59, 48, 0.12);
+  border-left: 4px solid #ff3b30;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.vision-hesitation-alert strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #ff857f;
+  margin-bottom: 2px;
+}
+
+.vision-hesitation-alert--clarity {
+  background: rgba(5, 150, 105, 0.15);
+  border-left: 4px solid #059669;
+}
+
+.vision-hesitation-alert--clarity strong {
+  color: #6ee7b7;
+}
+
+.vision-diagnosis-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vision-question-title {
+  font-family: var(--font-display, 'Archivo Variable', sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.vision-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vision-radio-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #2a203f;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 12px 16px;
+  text-align: left;
+  color: #e4e4e7;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vision-radio-card:hover:not(:disabled) {
+  border-color: rgba(141, 220, 255, 0.5);
+  background: #32264b;
+}
+
+.vision-radio-card.is-selected {
+  border-color: #8ddcff;
+  background: #1f2742;
+  color: #ffffff;
+}
+
+.vision-radio-card.is-correct {
+  border-color: #059669;
+  background: rgba(5, 150, 105, 0.15);
+  color: #6ee7b7;
+}
+
+.vision-radio-card.is-incorrect {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+}
+
+.vision-radio-glyph {
+  font-size: 16px;
+  color: #8ddcff;
+  flex-shrink: 0;
+}
+
+.vision-radio-text {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.vision-feedback-alert {
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vision-feedback-alert.is-success {
+  background: rgba(5, 150, 105, 0.15);
+  border: 1.5px solid #059669;
+}
+
+.vision-feedback-alert.is-error {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1.5px solid #dc2626;
+}
+
+.vision-feedback-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+
+.vision-feedback-alert.is-success .vision-feedback-title {
+  color: #6ee7b7;
+}
+
+.vision-feedback-alert.is-error .vision-feedback-title {
+  color: #fca5a5;
+}
+
+.vision-feedback-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #f4f4f5;
+  margin: 0;
+}
+
+.vision-stamp-reward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vision-principle-badge {
+  font-size: 12px;
+  color: #b6ffb2;
+}
+
+.vision-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vision-btn-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 
 

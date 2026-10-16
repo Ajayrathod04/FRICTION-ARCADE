@@ -24,6 +24,9 @@ interface StationContainerProps {
   activeWaypointId?: string;
   onSetWaypoint?: (wpId: string) => void;
   onPlayerCoordsChange?: (coords: { x: number; z: number; angle: number }) => void;
+  isFrictionVision?: boolean;
+  onToggleFrictionVision?: () => void;
+  isBoarding?: boolean;
 }
 
 export const StationContainer: React.FC<StationContainerProps> = ({
@@ -46,6 +49,9 @@ export const StationContainer: React.FC<StationContainerProps> = ({
   activeWaypointId = 'wp-kiosk',
   onSetWaypoint,
   onPlayerCoordsChange,
+  isFrictionVision = false,
+  onToggleFrictionVision,
+  isBoarding = false,
 }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
 
@@ -105,6 +111,9 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             onOpenDesignLab={onOpenDesignLab}
             activeWaypointId={activeWaypointId}
             onPlayerCoordsChange={onPlayerCoordsChange}
+            isFrictionVision={isFrictionVision}
+            onToggleFrictionVision={onToggleFrictionVision}
+            isBoarding={isBoarding}
           />
         ) : (
           <StationFallback

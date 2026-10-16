@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StationContainer } from '../station/StationContainer';
 import { ClueModal } from '../friction/ClueModal';
-import { FrictionEchoModal } from '../friction/FrictionEchoModal';
+import { FrictionVisionOverlay } from './investigation/FrictionVisionOverlay';
 import { BookingFlowBefore } from '../mission/BookingFlowBefore';
 import { RepairModal } from '../repair-lab/RepairModal';
 import { BookingFlowAfter } from '../mission/BookingFlowAfter';
@@ -12,11 +12,13 @@ import { StationMapModal } from '../station/StationMapModal';
 import { NPCModal } from '../station/NPCModal';
 import { DuoJamModal } from '../coop/DuoJamModal';
 import { Icons } from '../../components/ui/Icons';
+import { SoundEffects } from '../../lib/audio';
 import { announce } from '../../lib/a11y';
 import { saveGameResults, loadGameResults } from '../../lib/storage';
 import type { GameResults } from '../../lib/storage';
 import type { StationNPC } from '../../data/missionData';
 import { AVATAR_CHOICES } from '../../data/missionData';
+import { getNextObjectiveText } from './state/missionStateMachine';
 
 interface GamePageProps {
   onExitToHome: () => void;
@@ -45,12 +47,14 @@ export const GamePage: React.FC<GamePageProps> = ({
   // Duo Jam Cooperative Mode
   const [showDuoJam, setShowDuoJam] = useState<boolean>(false);
 
-  // Signature Mechanic: Friction Echo State & Active Waypoint Guidance
+  // Signature Mechanic: Friction Vision State & Active Waypoint Guidance
+  const [isFrictionVision, setIsFrictionVision] = useState<boolean>(false);
+  const [isBoarding, setIsBoarding] = useState<boolean>(false);
   const [activeEchoHotspot, setActiveEchoHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
   const [activeWaypointId, setActiveWaypointId] = useState<string>('wp-kiosk');
   const [playerCoords, setPlayerCoords] = useState<{ x: number; z: number; angle: number }>({
-    x: 0.2,
-    z: 2.2,
+    x: 0.0,
+    z: 3.2,
     angle: 0,
   });
 
@@ -86,7 +90,9 @@ export const GamePage: React.FC<GamePageProps> = ({
 
   const handleTriggerEcho = (hotspotId: 'kiosk' | 'board' | 'desk') => {
     setActiveEchoHotspot(hotspotId);
-    announce(`Activated Friction Echo at ${hotspotId}`);
+    setIsFrictionVision(true);
+    SoundEffects.playCollect();
+    announce(`Activated Friction Vision at ${hotspotId}`);
   };
 
   const handleCollectClue = (clueId: string) => {
@@ -123,7 +129,7 @@ export const GamePage: React.FC<GamePageProps> = ({
   const handleBeforeComplete = (elapsedSec: number, errorCount: number) => {
     setBeforeTime(elapsedSec);
     setBeforeErrors(errorCount);
-    announce('Stage C complete. Transitioning to Designer Mode.');
+    announce('Stage C complete. Transitioning to Designer Mode Flow Lab.');
     setGameStage('designer_mode');
   };
 
@@ -143,7 +149,7 @@ export const GamePage: React.FC<GamePageProps> = ({
     setGameStage('booking_after');
   };
 
-  // Stage E completion
+  // Stage E completion -> Cinematic Climax: Boarding & Departure -> Results
   const handleAfterComplete = (elapsedSec: number, errorCount: number) => {
     const finalResults: GameResults = {
       beforeTimeSec: beforeTime || 78,
@@ -156,13 +162,19 @@ export const GamePage: React.FC<GamePageProps> = ({
     };
     setGameResults(finalResults);
     saveGameResults(finalResults);
-    announce('Mission complete! Results ready for review.');
     setGameStage('station');
-    setShowResults(true);
+    setIsBoarding(true);
+    SoundEffects.playRepairSuccess();
+    announce('Clarity achieved! Passengers Arjun, Meera, and Kabir successfully reach Platform 1 and board the Deccan Express!');
+    setTimeout(() => {
+      setShowResults(true);
+    }, 4500);
   };
 
   const handlePlayAgain = () => {
     setShowResults(false);
+    setIsBoarding(false);
+    setIsFrictionVision(false);
     setCluesFound([]);
     setRepairsCompleted([]);
     setRepairsComplete(false);
@@ -187,7 +199,21 @@ export const GamePage: React.FC<GamePageProps> = ({
           </button>
           <div className="game-mission-pill">
             <Icons.Train size={16} color="#FFD23F" />
-            <span className="game-mission-title">MISSION 01: THE LAST TICKET</span>
+            <span className="game-mission-title">
+              {getNextObjectiveText(
+                cluesFound,
+                repairsComplete,
+                gameStage === 'booking_before'
+                  ? 'booking_before'
+                  : gameStage === 'designer_mode'
+                  ? 'case_file_flow_lab'
+                  : gameStage === 'booking_after'
+                  ? 'booking_after'
+                  : isBoarding
+                  ? 'clarity_boarding'
+                  : 'exploration'
+              )}
+            </span>
             <span className="game-route-badge">MUMBAI ➔ PUNE</span>
           </div>
         </div>
@@ -235,7 +261,7 @@ export const GamePage: React.FC<GamePageProps> = ({
             🗺 Map (M)
           </button>
 
-          {/* Friction Echo Signature Shortcut */}
+          {/* Friction Vision Forensic Ability Shortcut */}
           <button
             type="button"
             className="game-hud-icon-btn"
@@ -245,17 +271,18 @@ export const GamePage: React.FC<GamePageProps> = ({
                 : !cluesFound.includes('board')
                 ? 'board'
                 : 'desk';
-              handleTriggerEcho(nextTarget);
+              setActiveEchoHotspot(activeHotspot || nextTarget);
+              setIsFrictionVision((prev) => !prev);
             }}
-            title="Activate Friction Echo (Q)"
+            title="Toggle Friction Vision (Q)"
             style={{
-              background: '#ffd23f',
+              background: isFrictionVision ? '#8ddcff' : '#ffd23f',
               color: '#17131f',
               fontWeight: 800,
               border: '2px solid #17131f',
             }}
           >
-            ⚡ Echo (Q)
+            {isFrictionVision ? '✕ Close Vision' : '⚡ Vision (Q)'}
           </button>
 
           {/* Clarity Replay Shortcut (available when repairs are complete) */}
@@ -263,7 +290,10 @@ export const GamePage: React.FC<GamePageProps> = ({
             <button
               type="button"
               className="game-hud-icon-btn"
-              onClick={() => handleTriggerEcho('kiosk')}
+              onClick={() => {
+                setActiveEchoHotspot('kiosk');
+                setIsFrictionVision(true);
+              }}
               title="Clarity Replay: Compare Before vs After passenger journeys"
               style={{
                 background: '#b6ffb2',
@@ -312,6 +342,17 @@ export const GamePage: React.FC<GamePageProps> = ({
               activeWaypointId={activeWaypointId}
               onSetWaypoint={(wpId) => setActiveWaypointId(wpId)}
               onPlayerCoordsChange={(coords) => setPlayerCoords(coords)}
+              isFrictionVision={isFrictionVision}
+              onToggleFrictionVision={() => {
+                const nextTarget = !cluesFound.includes('kiosk')
+                  ? 'kiosk'
+                  : !cluesFound.includes('board')
+                  ? 'board'
+                  : 'desk';
+                setActiveEchoHotspot(activeHotspot || nextTarget);
+                setIsFrictionVision((prev) => !prev);
+              }}
+              isBoarding={isBoarding}
             />
           </div>
         )}
@@ -395,18 +436,22 @@ export const GamePage: React.FC<GamePageProps> = ({
         onStartCoop={() => setShowDuoJam(false)}
       />
 
-      {/* SIGNATURE MECHANIC: Friction Echo Observation & Diagnosis Modal */}
-      <FrictionEchoModal
-        hotspotId={activeEchoHotspot}
-        isOpen={!!activeEchoHotspot}
-        onClose={() => setActiveEchoHotspot(null)}
+      {/* SIGNATURE MECHANIC: In-World Forensic Friction Vision Forensic HUD */}
+      <FrictionVisionOverlay
+        isOpen={isFrictionVision || !!activeEchoHotspot}
+        onClose={() => {
+          setIsFrictionVision(false);
+          setActiveEchoHotspot(null);
+        }}
+        activeHotspot={activeEchoHotspot || activeHotspot}
+        cluesFound={cluesFound}
+        repairsComplete={repairsComplete}
         onCollectClue={handleCollectClue}
-        onStartBooking={() => {
+        onStartBookingChallenge={() => {
+          setIsFrictionVision(false);
           setActiveEchoHotspot(null);
           setGameStage('booking_before');
         }}
-        cluesFound={cluesFound}
-        isRepaired={repairsComplete}
       />
 
       {/* Fallback Clue Forensic Modal */}
