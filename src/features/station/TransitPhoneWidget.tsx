@@ -109,10 +109,16 @@ export const TransitPhoneWidget: React.FC<TransitPhoneWidgetProps> = ({
               onClick={() => {
                 SoundEffects.playBlip();
                 onClose();
-                onLaunchBooking();
+                if (cluesFound.length === 3) {
+                  onLaunchBooking();
+                } else {
+                  onOpenMap();
+                }
               }}
             >
-              {cluesFound.length === 3 ? 'START BOOKING CHALLENGE ➔' : 'TEST BOOKING FLOW (PREVIEW) ➔'}
+              {cluesFound.length === 3
+                ? 'START BOOKING CHALLENGE ➔'
+                : `FIND ALL CLUES (${cluesFound.length}/3 STAMPS) ➔`}
             </button>
             <div className="phone-secondary-row">
               <button

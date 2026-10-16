@@ -21,13 +21,26 @@ export const RepairModal: React.FC<RepairModalProps> = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; text: string } | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [solvedPuzzles, setSolvedPuzzles] = useState<string[]>([]);
 
   const currentPuzzle: RepairPuzzle = REPAIR_PUZZLES[currentStepIndex];
   const isCurrentSolved = solvedPuzzles.includes(currentPuzzle.id);
 
   const handleSelectOption = (option: RepairOption) => {
+    if (isCurrentSolved) return;
     setSelectedOptionId(option.id);
+    if (!isSubmitted) {
+      setFeedback(null);
+    }
+  };
+
+  const handleSubmitOption = () => {
+    if (!selectedOptionId) return;
+    const option = currentPuzzle.options.find((o) => o.id === selectedOptionId);
+    if (!option) return;
+
+    setIsSubmitted(true);
     if (option.isCorrect) {
       setFeedback({
         isCorrect: true,
@@ -46,9 +59,16 @@ export const RepairModal: React.FC<RepairModalProps> = ({
     }
   };
 
+  const handleRetry = () => {
+    setSelectedOptionId(null);
+    setFeedback(null);
+    setIsSubmitted(false);
+  };
+
   const handleNextPuzzle = () => {
     setSelectedOptionId(null);
     setFeedback(null);
+    setIsSubmitted(false);
     if (currentStepIndex < REPAIR_PUZZLES.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -173,10 +193,14 @@ export const RepairModal: React.FC<RepairModalProps> = ({
           <div className="repair-options-list" role="radiogroup" aria-label={currentPuzzle.prompt}>
             {currentPuzzle.options.map((opt) => {
               const isSelected = selectedOptionId === opt.id;
-              const optionClass = isSelected
+              const optionClass = isSubmitted
                 ? opt.isCorrect
                   ? 'repair-option--correct'
-                  : 'repair-option--wrong'
+                  : isSelected
+                  ? 'repair-option--wrong'
+                  : ''
+                : isSelected
+                ? 'repair-option--selected'
                 : '';
 
               return (
@@ -187,11 +211,14 @@ export const RepairModal: React.FC<RepairModalProps> = ({
                   onClick={() => handleSelectOption(opt)}
                   role="radio"
                   aria-checked={isSelected}
+                  disabled={isCurrentSolved}
                 >
                   <div className="repair-option-radio">
-                    {isSelected && opt.isCorrect && <Icons.Check size={16} color="#ffffff" />}
-                    {isSelected && !opt.isCorrect && <Icons.Close size={16} color="#ffffff" />}
-                    {!isSelected && <span className="radio-dot" />}
+                    {isSubmitted && opt.isCorrect && <Icons.Check size={16} color="#ffffff" />}
+                    {isSubmitted && isSelected && !opt.isCorrect && <Icons.Close size={16} color="#ffffff" />}
+                    {(!isSubmitted || (!opt.isCorrect && !isSelected)) && (
+                      <span className={`radio-dot ${isSelected ? 'radio-dot--active' : ''}`} />
+                    )}
                   </div>
                   <div className="repair-option-details">
                     <span className="repair-option-label">{opt.label}</span>
@@ -227,16 +254,33 @@ export const RepairModal: React.FC<RepairModalProps> = ({
         </div>
 
         <div className="repair-modal-footer">
-          <Button
-            variant={feedback?.isCorrect ? 'mint' : 'secondary'}
-            size="lg"
-            onClick={handleNextPuzzle}
-            disabled={!feedback?.isCorrect}
-          >
-            {currentStepIndex < REPAIR_PUZZLES.length - 1
-              ? 'Apply Fix & Next Puzzle →'
-              : 'Complete All Repairs & Test Improved Flow →'}
-          </Button>
+          {!isSubmitted || !feedback?.isCorrect ? (
+            <div className="repair-actions-row">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleSubmitOption}
+                disabled={!selectedOptionId || isCurrentSolved}
+              >
+                Submit Design Repair →
+              </Button>
+              {isSubmitted && !feedback?.isCorrect && (
+                <Button variant="secondary" size="lg" onClick={handleRetry}>
+                  ↻ Try Another Solution
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Button
+              variant="mint"
+              size="lg"
+              onClick={handleNextPuzzle}
+            >
+              {currentStepIndex < REPAIR_PUZZLES.length - 1
+                ? 'Apply Fix & Next Puzzle →'
+                : 'Complete All Repairs & Test Improved Flow →'}
+            </Button>
+          )}
         </div>
       </div>
     </Modal>

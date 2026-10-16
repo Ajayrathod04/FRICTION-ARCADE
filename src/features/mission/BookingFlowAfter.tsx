@@ -13,9 +13,9 @@ export const BookingFlowAfter: React.FC<BookingFlowAfterProps> = ({
   onComplete,
   onBackToStation,
 }) => {
-  const [origin, setOrigin] = useState('Mumbai CST');
-  const [destination, setDestination] = useState('Pune Junction');
-  const [date, setDate] = useState('2026-10-18');
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
+  const [date, setDate] = useState('2026-10-17');
   const [passengers, setPassengers] = useState(2);
   const [seatType, setSeatType] = useState<'AC' | 'Sleeper' | 'Regular'>('AC');
 
@@ -40,9 +40,11 @@ export const BookingFlowAfter: React.FC<BookingFlowAfterProps> = ({
     };
   }, []);
 
-  const isOriginValid = origin.trim().length >= 2;
-  const isDestValid = destination.trim().length >= 2 && destination.toLowerCase() !== origin.toLowerCase();
-  const isDateValid = date.length > 0;
+  const cleanOrigin = origin.trim().toLowerCase();
+  const cleanDest = destination.trim().toLowerCase();
+  const isOriginValid = cleanOrigin.includes('mumbai') || cleanOrigin.length >= 3;
+  const isDestValid = (cleanDest.includes('pune') || cleanDest.length >= 3) && cleanDest !== cleanOrigin;
+  const isDateValid = date.length > 0 && (date.includes('17') || date.includes('2026-10-17'));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +94,7 @@ export const BookingFlowAfter: React.FC<BookingFlowAfterProps> = ({
           <div className="task-objective-card__content">
             <span className="task-objective-label">SAME OBJECTIVE · BETTER FLOW</span>
             <p className="task-objective-text">
-              Book <strong>2 seats</strong> from <strong>Mumbai</strong> to <strong>Pune</strong> for <strong>Saturday (18 Oct 2026)</strong>.
+              Book <strong>2 seats</strong> from <strong>Mumbai</strong> to <strong>Pune</strong> for <strong>Saturday (17 Oct 2026)</strong>.
             </p>
           </div>
         </div>

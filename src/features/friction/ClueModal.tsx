@@ -29,11 +29,11 @@ export const ClueModal: React.FC<ClueModalProps> = ({
 
   const handleCollect = () => {
     onCollectClue(hotspotId);
-    if (hotspotId === 'kiosk') {
-      onClose();
+    onClose();
+    // Only launch booking drill when all 3 evidence stamps are found
+    const updatedCount = cluesFound.includes(hotspotId) ? cluesFound.length : cluesFound.length + 1;
+    if (updatedCount >= 3 && hotspotId === 'kiosk') {
       onStartBooking();
-    } else {
-      onClose();
     }
   };
 

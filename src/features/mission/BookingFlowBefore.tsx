@@ -50,12 +50,12 @@ export const BookingFlowBefore: React.FC<BookingFlowBeforeProps> = ({
 
     const isOriginValid = cleanOrigin.includes('mumbai') || cleanOrigin === 'bom';
     const isDestValid = cleanDest.includes('pune') || cleanDest === 'pnq';
-    // Accepts formats like 18-10-2026, 18/10/2026, 2026-10-18, or Saturday
+    // Accepts formats like 17-10-2026, 17/10/2026, 2026-10-17, or Saturday
     const isDateValid =
-      cleanDate.includes('18') ||
+      cleanDate.includes('17') ||
       cleanDate.toLowerCase().includes('sat') ||
-      cleanDate.includes('2026-10-18') ||
-      cleanDate.includes('18-10-2026');
+      cleanDate.includes('2026-10-17') ||
+      cleanDate.includes('17-10-2026');
 
     if (!isOriginValid || !isDestValid || !isDateValid) {
       setErrorsCount((prev) => prev + 1);
@@ -99,7 +99,7 @@ export const BookingFlowBefore: React.FC<BookingFlowBeforeProps> = ({
           <div className="task-objective-card__content">
             <span className="task-objective-label">YOUR MISSION</span>
             <p className="task-objective-text">
-              Book <strong>2 seats</strong> from <strong>Mumbai</strong> to <strong>Pune</strong> for <strong>Saturday (18 Oct 2026)</strong>.
+              Book <strong>2 seats</strong> from <strong>Mumbai</strong> to <strong>Pune</strong> for <strong>Saturday (17 Oct 2026)</strong>.
             </p>
           </div>
         </div>

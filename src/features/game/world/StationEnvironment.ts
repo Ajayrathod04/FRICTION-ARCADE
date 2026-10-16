@@ -33,6 +33,247 @@ export interface StationEnvironmentHandles {
   dispose: () => void;
 }
 
+function createBoardCanvasTexture(isErrorsRepaired: boolean): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.fillStyle = '#0f0c18';
+  ctx.fillRect(0, 0, 1024, 512);
+
+  ctx.strokeStyle = '#2b233d';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, 1016, 504);
+
+  // Golden Header Banner
+  ctx.fillStyle = '#ff8a1f';
+  ctx.fillRect(8, 8, 1008, 64);
+  ctx.fillStyle = '#17131f';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillText('MUMBAI CENTRAL · TRAIN DEPARTURES', 24, 52);
+
+  // Table Column Headers
+  ctx.fillStyle = '#221a36';
+  ctx.fillRect(8, 76, 1008, 44);
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText('TRAIN NO.', 28, 106);
+  ctx.fillText('DESTINATION', 230, 106);
+  ctx.fillText('TIME', 450, 106);
+  ctx.fillText('PLATFORM', 560, 106);
+  ctx.fillText('STATUS / ACTION', 730, 106);
+
+  // Row 1: 12127 DECCAN EXP (Mission Train)
+  ctx.fillStyle = '#191328';
+  ctx.fillRect(8, 126, 1008, 76);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText('12127 DECCAN EXP', 28, 172);
+  ctx.fillStyle = '#8ddcff';
+  ctx.fillText('PUNE JN', 230, 172);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('07:15', 450, 172);
+
+  if (!isErrorsRepaired) {
+    ctx.fillStyle = '#ff3b30';
+    ctx.fillText('???', 580, 172);
+    ctx.fillStyle = '#ff3b30';
+    ctx.fillRect(720, 142, 270, 46);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('⚠ ALERT 404', 740, 174);
+  } else {
+    ctx.fillStyle = '#b6ffb2';
+    ctx.fillText('PL 1', 580, 172);
+    ctx.fillStyle = '#059669';
+    ctx.fillRect(720, 142, 270, 46);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('✓ BOARDING · TRACK 1A', 735, 172);
+  }
+
+  // Row 2: 12951 RAJDHANI EXP
+  ctx.fillStyle = '#140f20';
+  ctx.fillRect(8, 206, 1008, 64);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.font = '22px monospace';
+  ctx.fillText('12951 RAJDHANI EXP', 28, 246);
+  ctx.fillStyle = '#8ddcff';
+  ctx.fillText('NEW DELHI', 230, 246);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('07:45', 450, 246);
+  ctx.fillText('PL 2', 580, 246);
+  ctx.fillStyle = '#059669';
+  ctx.fillText('ON TIME', 740, 246);
+
+  // Row 3: 12009 SHATABDI EXP
+  ctx.fillStyle = '#191328';
+  ctx.fillRect(8, 274, 1008, 64);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.fillText('12009 SHATABDI EXP', 28, 314);
+  ctx.fillStyle = '#8ddcff';
+  ctx.fillText('AHMEDABAD', 230, 314);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('08:10', 450, 314);
+  ctx.fillText('PL 3', 580, 314);
+  ctx.fillStyle = '#ffd23f';
+  ctx.fillText('EXP 08:15', 740, 314);
+
+  // Row 4: 22105 INDRAYANI EXP
+  ctx.fillStyle = '#140f20';
+  ctx.fillRect(8, 342, 1008, 64);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.fillText('22105 INDRAYANI EXP', 28, 382);
+  ctx.fillStyle = '#8ddcff';
+  ctx.fillText('PUNE JN', 230, 382);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('08:40', 450, 382);
+  ctx.fillText('PL 1', 580, 382);
+  ctx.fillStyle = '#059669';
+  ctx.fillText('ON TIME', 740, 382);
+
+  // Footer Wayfinding Marquee
+  ctx.fillStyle = '#ff8a1f';
+  ctx.fillRect(8, 420, 1008, 80);
+  ctx.fillStyle = '#17131f';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('WAYFINDING: PLATFORM 1 ACCESS VIA CENTRAL CONCOURSE · DECCAN EXP DEPARTS 07:15', 24, 468);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createKioskCanvasTexture(isLabelsRepaired: boolean): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.fillStyle = '#17131f';
+  ctx.fillRect(0, 0, 512, 512);
+
+  ctx.fillStyle = '#ff8a1f';
+  ctx.fillRect(0, 0, 512, 60);
+  ctx.fillStyle = '#17131f';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('KIOSK #04 · TICKET BOOKING', 20, 42);
+
+  if (!isLabelsRepaired) {
+    ctx.fillStyle = '#261f36';
+    ctx.fillRect(30, 90, 452, 90);
+    ctx.strokeStyle = '#4a3d66';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(30, 90, 452, 90);
+
+    ctx.fillStyle = '#6b5e85';
+    ctx.font = 'italic 24px sans-serif';
+    ctx.fillText('Type departure city here...', 50, 145);
+
+    ctx.fillStyle = '#ff3b30';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('⚠ FLAW: Disappearing placeholder loses context', 30, 220);
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Passenger hesitates when typing replaces prompt.', 30, 250);
+  } else {
+    ctx.fillStyle = '#ffd23f';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('DEPARTURE CITY *', 30, 110);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(30, 125, 452, 70);
+    ctx.strokeStyle = '#059669';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(30, 125, 452, 70);
+
+    ctx.fillStyle = '#17131f';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('Mumbai CST', 50, 170);
+
+    ctx.fillStyle = '#059669';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('✓ Persistent Label Active · High Contrast', 30, 230);
+  }
+
+  ctx.fillStyle = '#a1a1aa';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('DESTINATION: Pune Junction (PNQ)', 30, 290);
+
+  ctx.fillStyle = '#2a223e';
+  ctx.fillRect(30, 315, 452, 80);
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('12127 DECCAN EXPRESS', 50, 350);
+  ctx.fillStyle = '#8ddcff';
+  ctx.font = '18px sans-serif';
+  ctx.fillText('07:15 AM · 2 Seats · AC Chair Car', 50, 378);
+
+  ctx.fillStyle = '#059669';
+  ctx.fillRect(30, 420, 452, 60);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('TAP [E] OR [Q] TO INVESTIGATE', 80, 458);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createHelpDeskCanvasTexture(isActionsRepaired: boolean): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 320;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.fillStyle = '#17131f';
+  ctx.fillRect(0, 0, 512, 320);
+
+  ctx.fillStyle = '#c7b5ff';
+  ctx.fillRect(0, 0, 512, 50);
+  ctx.fillStyle = '#17131f';
+  ctx.font = 'bold 24px sans-serif';
+  ctx.fillText('AGENT DESK · RESERVATION ACTIONS', 20, 35);
+
+  if (!isActionsRepaired) {
+    ctx.fillStyle = '#ff3b30';
+    ctx.fillRect(25, 90, 220, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('CANCEL BOOKING', 45, 140);
+
+    ctx.fillStyle = '#ff3b30';
+    ctx.fillRect(265, 90, 220, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('CONFIRM TICKET', 285, 140);
+
+    ctx.fillStyle = '#ff857f';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('⚠ Competing visual weights confuse users', 25, 220);
+  } else {
+    ctx.fillStyle = '#059669';
+    ctx.fillRect(25, 80, 460, 85);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('★ CONFIRM & PRINT (PRIMARY)', 55, 135);
+
+    ctx.strokeStyle = '#a1a1aa';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(25, 190, 460, 55);
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('Cancel reservation (Secondary)', 120, 225);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function buildStationEnvironment(options: StationEnvironmentBuildOptions): StationEnvironmentHandles {
   const { scene, isClarity, clarityRepairs } = options;
   const disposables: Array<{ dispose: () => void }> = [];
@@ -97,32 +338,33 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   }
 
   // =========================================================================
-  // 2. ZONE A: ARRIVAL PLAZA & STATION PORTAL (South Zone: z = 3.0 to 4.2)
+  // 2. ZONE A: ARRIVAL PLAZA & STATION PORTAL (South Zone: z = 4.8)
+  // Positioned cleanly behind spawn (z = 3.2) so it never blocks the camera!
   // =========================================================================
   const plazaGroup = new THREE.Group();
-  plazaGroup.position.set(0, 0, 3.6);
+  plazaGroup.position.set(0, 0, 4.8);
 
-  // Grand Architectural Portal Arch
-  const portalPillarGeo = registerGeo(new THREE.BoxGeometry(0.45, 3.6, 0.45));
+  // Grand Architectural Portal Arch Columns (spaced wide at x: -3.8 and 3.8)
+  const portalPillarGeo = registerGeo(new THREE.BoxGeometry(0.55, 5.0, 0.55));
   const portalStoneMat = registerMat(
     new THREE.MeshStandardMaterial({ color: 0x241b34, roughness: 0.5, metalness: 0.1 })
   );
-  for (const px of [-2.4, 2.4]) {
+  for (const px of [-3.8, 3.8]) {
     const pPillar = new THREE.Mesh(portalPillarGeo, portalStoneMat);
-    pPillar.position.set(px, 1.8, 0);
+    pPillar.position.set(px, 2.5, 0);
     pPillar.castShadow = true;
     plazaGroup.add(pPillar);
   }
 
-  // Arch Header Beam
-  const portalBeamGeo = registerGeo(new THREE.BoxGeometry(5.2, 0.6, 0.5));
+  // Elevated Arch Header Beam (placed high at y = 5.1 to prevent view obstruction)
+  const portalBeamGeo = registerGeo(new THREE.BoxGeometry(8.2, 0.6, 0.5));
   const portalBeam = new THREE.Mesh(portalBeamGeo, portalStoneMat);
-  portalBeam.position.set(0, 3.5, 0);
+  portalBeam.position.set(0, 5.1, 0);
   portalBeam.castShadow = true;
   plazaGroup.add(portalBeam);
 
   // Golden Station Marquee Nameplate: "MUMBAI CENTRAL · FRICTION ARCADE"
-  const nameplateGeo = registerGeo(new THREE.BoxGeometry(4.2, 0.4, 0.08));
+  const nameplateGeo = registerGeo(new THREE.BoxGeometry(5.4, 0.45, 0.08));
   const nameplateMat = registerMat(
     new THREE.MeshStandardMaterial({
       color: 0x17131f,
@@ -132,28 +374,28 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     })
   );
   const nameplate = new THREE.Mesh(nameplateGeo, nameplateMat);
-  nameplate.position.set(0, 3.5, 0.28);
+  nameplate.position.set(0, 5.1, -0.28);
   plazaGroup.add(nameplate);
 
   // Station Grand Clock above portal
-  const clockFrameGeo = registerGeo(new THREE.CylinderGeometry(0.35, 0.35, 0.08, 24));
+  const clockFrameGeo = registerGeo(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 24));
   const clockFrameMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.8, roughness: 0.2 }));
   const clockFrame = new THREE.Mesh(clockFrameGeo, clockFrameMat);
   clockFrame.rotation.x = Math.PI / 2;
-  clockFrame.position.set(0, 4.15, 0.25);
+  clockFrame.position.set(0, 5.75, -0.25);
   plazaGroup.add(clockFrame);
 
-  const clockFaceGeo = registerGeo(new THREE.CircleGeometry(0.3, 24));
+  const clockFaceGeo = registerGeo(new THREE.CircleGeometry(0.35, 24));
   const clockFaceMat = registerMat(new THREE.MeshBasicMaterial({ color: 0xffffff }));
   const clockFace = new THREE.Mesh(clockFaceGeo, clockFaceMat);
-  clockFace.position.set(0, 4.15, 0.3);
+  clockFace.position.set(0, 5.75, -0.2);
   plazaGroup.add(clockFace);
 
   // Moving Clock Minute Hand
-  const clockHandGeo = registerGeo(new THREE.BoxGeometry(0.03, 0.18, 0.01));
+  const clockHandGeo = registerGeo(new THREE.BoxGeometry(0.03, 0.22, 0.01));
   const clockHandMat = registerMat(new THREE.MeshBasicMaterial({ color: 0x17131f }));
   const clockHandMesh = new THREE.Mesh(clockHandGeo, clockHandMat);
-  clockHandMesh.position.set(0, 4.22, 0.31);
+  clockHandMesh.position.set(0, 5.82, -0.19);
   plazaGroup.add(clockHandMesh);
 
   // Entrance Turnstile Gates (Glass & Steel barriers)
@@ -229,10 +471,10 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     stationGroup.add(colGroup);
   }
 
-  // Vaulted Roof Steel Trusses spanning across concourse
+  // Vaulted Roof Steel Trusses spanning across concourse (elevated high to prevent camera clipping)
   for (const rz of [2.4, 0.6, -1.2]) {
     const trussGroup = new THREE.Group();
-    trussGroup.position.set(0, 4.1, rz);
+    trussGroup.position.set(0, 5.2, rz);
 
     // Horizontal tie beam
     const tieGeo = registerGeo(new THREE.BoxGeometry(8.6, 0.12, 0.12));
@@ -353,15 +595,15 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   kioskBannerMesh.position.set(0, 1.66, 0.36);
   kioskGroup.add(kioskBannerMesh);
 
-  // Interactive Screen Display (Glows and transforms with clarity)
+  // Interactive Screen Display (Luminous interface with actual graphics)
   const kScreenGeo = registerGeo(new THREE.PlaneGeometry(0.74, 0.68));
-  const kScreenColor = isLabelsRepaired ? 0x8ddcff : isClarity ? 0xb6ffb2 : 0xffd6e0;
+  const kioskTex = createKioskCanvasTexture(isLabelsRepaired);
+  disposables.push(kioskTex);
   const kioskScreenMat = registerMat(
     new THREE.MeshStandardMaterial({
-      color: kScreenColor,
-      emissive: kScreenColor,
-      emissiveIntensity: 0.5,
-      roughness: 0.15,
+      map: kioskTex,
+      roughness: 0.2,
+      metalness: 0.1,
     })
   );
   const kioskScreenMesh = new THREE.Mesh(kScreenGeo, kioskScreenMat);
@@ -427,16 +669,16 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   boardHousing.castShadow = true;
   boardGroup.add(boardHousing);
 
-  // Solari Schedule LED Display Face
+  // Solari Schedule LED Display Face (High-resolution split-flap display)
   const isErrorsRepaired = clarityRepairs.includes('errors');
   const bScreenGeo = registerGeo(new THREE.PlaneGeometry(1.95, 1.05));
-  const bLedColor = isErrorsRepaired ? 0x22c55e : isClarity ? 0xb6ffb2 : 0xff3b30;
+  const boardTex = createBoardCanvasTexture(isErrorsRepaired);
+  disposables.push(boardTex);
   const departureBoardLedMat = registerMat(
     new THREE.MeshStandardMaterial({
-      color: 0x0a0812,
-      emissive: bLedColor,
-      emissiveIntensity: 0.55,
+      map: boardTex,
       roughness: 0.2,
+      metalness: 0.1,
     })
   );
   const departureBoardLed = new THREE.Mesh(bScreenGeo, departureBoardLedMat);
@@ -478,12 +720,13 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   deskGroup.add(counterTop);
 
   // Countertop Monitor Screen (Demonstrating button hierarchy)
-  const dMonitorGeo = registerGeo(new THREE.BoxGeometry(0.42, 0.28, 0.04));
+  const dMonitorGeo = registerGeo(new THREE.BoxGeometry(0.44, 0.28, 0.04));
+  const deskTex = createHelpDeskCanvasTexture(isActionsRepaired);
+  disposables.push(deskTex);
   const dMonitorMat = registerMat(
     new THREE.MeshStandardMaterial({
-      color: isActionsRepaired ? 0xff8a1f : 0x4a4060,
-      emissive: isActionsRepaired ? 0xff8a1f : 0x4a4060,
-      emissiveIntensity: 0.5,
+      map: deskTex,
+      roughness: 0.2,
     })
   );
   const deskMonitorMesh = new THREE.Mesh(dMonitorGeo, dMonitorMat);

@@ -911,6 +911,7 @@ body {
 
 .modal-panel {
   background-color: var(--color-paper);
+  color: var(--color-ink) !important;
   border: var(--border-thick);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-hard-lg);
@@ -934,6 +935,7 @@ body {
   align-items: center;
   justify-content: space-between;
   background-color: var(--color-paper-light);
+  color: var(--color-ink) !important;
 }
 
 .modal-header__badge {
@@ -954,6 +956,11 @@ body {
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 900;
+  color: var(--color-ink) !important;
+}
+
+.modal-body {
+  color: var(--color-ink) !important;
 }
 
 .modal-close-btn {
@@ -1909,12 +1916,13 @@ body {
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 900;
+  color: var(--color-ink) !important;
 }
 
 .repair-prompt {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-ink-light);
+  color: var(--color-ink-light) !important;
 }
 
 .repair-options-list {
@@ -5737,6 +5745,85 @@ body {
   gap: 12px;
   flex-wrap: wrap;
 }
+
+/* ==========================================================================
+   UNIVERSAL HIGH-CONTRAST MODAL HIERARCHY & TEXT GUARD
+   Guarantees no white-on-cream or pale-on-light contrast failures
+   ========================================================================== */
+
+.modal-panel,
+.modal-header,
+.modal-body,
+.char-select-modal-content,
+.tutorial-modal-content,
+.clue-modal-content,
+.repair-modal-content,
+.results-modal-content,
+.pause-menu-content,
+.case-file-item,
+.booking-challenge-container,
+.task-objective-card,
+.improved-form,
+.flawed-form,
+.repair-card,
+.char-choice-card {
+  color: var(--color-ink) !important;
+}
+
+.modal-header__title,
+.brief-headline,
+.char-card-title,
+.repair-title,
+.clue-subtitle,
+.controls-card-title,
+.results-title,
+.task-objective-text,
+.char-select-subtext,
+.t-step-text,
+.t-step-text strong,
+.repair-preview-card__title,
+.preview-label,
+.form-field-label,
+.telemetry-item,
+.stat-num,
+.stat-unit,
+.results-card-title,
+.rule-title {
+  color: var(--color-ink) !important;
+}
+
+.brief-instructions,
+.char-card-desc,
+.repair-prompt,
+.clue-text,
+.results-desc,
+.t-step-desc,
+.controls-card-desc,
+.repair-option-desc,
+.field-helper-text {
+  color: var(--color-ink-light) !important;
+}
+
+.repair-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radio-dot--active {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-ink);
+}
+
+.repair-option--selected {
+  border-color: var(--color-ink) !important;
+  background-color: #FFF2DF !important;
+  box-shadow: 0 0 0 2px var(--color-ink) !important;
+}
+
 
 
 
