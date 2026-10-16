@@ -189,9 +189,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     );
 
     // --- 2. CAMERA ---
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0.0, 2.75, 6.8);
-    camera.lookAt(0, 0.9, 2.5);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+    camera.position.set(2.8, 3.8, 5.2);
+    camera.lookAt(0, 0.65, 0.2);
 
     // --- 3. RENDERER ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -333,24 +333,23 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         onPlayerCoordsChange?.(coords);
       }
 
-      // Camera handling: Stable Third-Person Follow Camera centered behind & above the traveler
+      // Camera handling: 3/4 Isometric Follow Camera framing traveler, landmarks, and Platform 1
       if (cameraModeRef.current === 'over_the_shoulder') {
-        const camTargetX = playerPos.x - Math.sin(playerAngle) * 0.35 + 0.25;
-        const camTargetZ = playerPos.z + Math.cos(playerAngle) * 2.2;
+        const camTargetX = playerPos.x - Math.sin(playerAngle) * 0.4 + 0.3;
+        const camTargetZ = playerPos.z + Math.cos(playerAngle) * 2.4;
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.09);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.09);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.1, 0.09);
-        camera.lookAt(playerPos.x, 1.05, playerPos.z - 1.2);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.2, 0.09);
+        camera.lookAt(playerPos.x, 1.0, playerPos.z - 1.2);
       } else {
-        // High-clarity third-person follow camera: tracks traveler smoothly through concourse
-        const followDistance = 3.6;
-        const followHeight = 2.75;
-        const camTargetX = playerPos.x * 0.8 + pointerPos.current.x * 0.2;
-        const camTargetZ = playerPos.z + followDistance + pointerPos.current.y * 0.15;
+        // High-clarity 3/4 isometric follow camera with subtle parallax
+        const camTargetX = playerPos.x * 0.45 + 2.8 + pointerPos.current.x * 0.2;
+        const camTargetY = 3.8;
+        const camTargetZ = playerPos.z * 0.35 + 5.0 + pointerPos.current.y * 0.15;
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, followHeight, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.08);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
-        camera.lookAt(playerPos.x, 0.9, playerPos.z - 0.7);
+        camera.lookAt(playerPos.x * 0.35, 0.7, playerPos.z * 0.2);
       }
 
       renderer.render(scene, camera);

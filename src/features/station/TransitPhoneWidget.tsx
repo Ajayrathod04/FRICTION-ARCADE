@@ -70,7 +70,7 @@ export const TransitPhoneWidget: React.FC<TransitPhoneWidgetProps> = ({
             <div className="phone-mission-details">
               <span>2 Passengers</span>
               <span>•</span>
-              <span>Sat, 18 Oct 2026</span>
+              <span>Sat, 17 Oct 2026</span>
             </div>
           </div>
 

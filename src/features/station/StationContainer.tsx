@@ -86,7 +86,7 @@ export const StationContainer: React.FC<StationContainerProps> = ({
               onClick={onToggle2D}
               aria-label={show3D ? 'Switch to accessible 2D view' : 'Switch to 3D world'}
             >
-              {show3D ? 'View 2D Map' : 'View 3D Station'}
+              {show3D ? 'Accessible 2D Mode' : '3D Concourse'}
             </button>
           )}
         </div>

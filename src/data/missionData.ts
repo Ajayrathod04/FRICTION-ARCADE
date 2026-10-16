@@ -38,10 +38,10 @@ export interface DesignRule {
 export const MISSION_DETAILS = {
   code: 'MISSION 01',
   name: 'THE LAST TICKET',
-  taskPrompt: 'Book two seats from Mumbai to Pune for Saturday, 18 Oct 2026.',
+  taskPrompt: 'Book two seats from Mumbai to Pune for Saturday, 17 Oct 2026.',
   destination: 'Pune',
   origin: 'Mumbai',
-  targetDate: '2026-10-18',
+  targetDate: '2026-10-17',
   targetSeats: 2,
   seatType: 'AC',
 };
@@ -122,7 +122,7 @@ export const REPAIR_PUZZLES: RepairPuzzle[] = [
       {
         id: 'A',
         label: 'A. Provide clear inline text + warning icon + specific guidance on how to fix the error.',
-        description: 'E.g., "Enter date as YYYY-MM-DD (e.g. 18 Oct 2026)" with high contrast.',
+        description: 'E.g., "Enter date as YYYY-MM-DD (e.g. 17 Oct 2026)" with high contrast.',
         isCorrect: true,
         explanation: 'Correct! Combining icons and descriptive text ensures users know exactly what went wrong and how to fix it immediately.',
       },

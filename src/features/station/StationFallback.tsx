@@ -163,7 +163,7 @@ export const StationFallback: React.FC<StationFallbackProps> = ({
           <div className="mini-ticket__notch-r" />
           <div className="mini-ticket__content">
             <div className="mini-ticket__route">MUMBAI → PUNE</div>
-            <div className="mini-ticket__meta">SAT 18 OCT 2026 · 2 SEATS · FRICTION ARCADE</div>
+            <div className="mini-ticket__meta">SAT 17 OCT 2026 · 2 SEATS · FRICTION ARCADE</div>
           </div>
           <div className="mini-ticket__status">
             {repairsComplete ? 'STAMPED · COMPLETE ✓' : `${cluesFound.length}/3 STAMPS COLLECTED`}

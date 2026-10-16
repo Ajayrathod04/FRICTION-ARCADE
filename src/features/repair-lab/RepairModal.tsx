@@ -146,7 +146,7 @@ export const RepairModal: React.FC<RepairModalProps> = ({
                   <div className="preview-error-fixed">
                     <div className="preview-guidance-box">
                       <Icons.Check size={18} color="#059669" />
-                      <span><strong>Saturday, 18 Oct 2026</strong> · Deccan Express available (2 AC seats)</span>
+                      <span><strong>Saturday, 17 Oct 2026</strong> · Deccan Express available (2 AC seats)</span>
                     </div>
                   </div>
                 ) : (

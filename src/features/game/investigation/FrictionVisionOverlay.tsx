@@ -264,14 +264,15 @@ export const FrictionVisionOverlay: React.FC<FrictionVisionOverlayProps> = ({
             </div>
           ) : (
             <div className="vision-btn-row">
-              {targetHotspot === 'kiosk' && (
+              {cluesFound.length === 3 ? (
                 <Button variant="primary" size="md" onClick={onStartBookingChallenge}>
-                  Proceed to Booking Mission →
+                  All 3 Clues Found! Launch Booking Challenge →
+                </Button>
+              ) : (
+                <Button variant="mint" size="md" onClick={onClose}>
+                  Evidence Stamp Collected! Find Next Friction Point ({cluesFound.length}/3) →
                 </Button>
               )}
-              <Button variant="mint" size="md" onClick={onClose}>
-                {cluesFound.length === 3 ? 'Review Friction Trail ✓' : 'Continue Concourse Search →'}
-              </Button>
             </div>
           )}
         </div>

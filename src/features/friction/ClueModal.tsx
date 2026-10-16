@@ -27,12 +27,12 @@ export const ClueModal: React.FC<ClueModalProps> = ({
   const clue: ClueItem = CLUES[hotspotId];
   const isAlreadyFound = cluesFound.includes(hotspotId);
 
+  const isAllStampsFound = (cluesFound.includes(hotspotId) ? cluesFound.length : cluesFound.length + 1) >= 3;
+
   const handleCollect = () => {
     onCollectClue(hotspotId);
     onClose();
-    // Only launch booking drill when all 3 evidence stamps are found
-    const updatedCount = cluesFound.includes(hotspotId) ? cluesFound.length : cluesFound.length + 1;
-    if (updatedCount >= 3 && hotspotId === 'kiosk') {
+    if (isAllStampsFound) {
       onStartBooking();
     }
   };
@@ -78,19 +78,16 @@ export const ClueModal: React.FC<ClueModalProps> = ({
         </div>
 
         <div className="clue-modal-actions">
-          {hotspotId === 'kiosk' ? (
+          {isAllStampsFound ? (
             <Button variant="primary" size="lg" onClick={handleCollect}>
-              {isAlreadyFound ? 'Launch Booking Mission →' : 'Collect Badge & Start Challenge →'}
+              All 3 Stamps Found! Launch Booking Challenge (BEFORE Flow) →
             </Button>
           ) : (
-            <div className="clue-modal-btn-row">
-              <Button variant="mint" size="md" onClick={handleCollect}>
-                {isAlreadyFound ? 'Close Clue' : 'Unlock Sticker & Continue →'}
-              </Button>
-              <Button variant="secondary" size="md" onClick={onStartBooking}>
-                Jump to Booking Mission
-              </Button>
-            </div>
+            <Button variant="mint" size="lg" onClick={handleCollect}>
+              {isAlreadyFound
+                ? `Evidence Stamp Collected (${cluesFound.length}/3) · Continue →`
+                : `Collect Stamp & Continue (${cluesFound.length + 1}/3) →`}
+            </Button>
           )}
         </div>
       </div>

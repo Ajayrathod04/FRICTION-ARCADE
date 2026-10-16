@@ -137,23 +137,7 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
             )}
 
             {/* In-World NPCs Markers */}
-            {STATION_NPCS.map((npc) => {
-              const nx = toSvgX(npc.position.x);
-              const ny = toSvgY(npc.position.z);
-              return (
-                <g key={npc.id} transform={`translate(${nx}, ${ny})`}>
-                  <circle r="2.2" fill="#8ddcff" stroke="#17131f" strokeWidth="0.8" />
-                  <text y="0.8" fontSize="2.2" fill="#17131f" fontWeight="bold" textAnchor="middle">
-                    NPC
-                  </text>
-                  <text y="4.5" fontSize="2.0" fill="#8ddcff" fontWeight="bold" textAnchor="middle">
-                    {npc.name}
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* Waypoints / Checkpoints */}
+            {/* Waypoints / Landmarks (Rendered first with crisp pill labels) */}
             {STATION_WAYPOINTS.map((wp) => {
               const wx = toSvgX(wp.x);
               const wy = toSvgY(wp.z);
@@ -169,6 +153,21 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
                 ? '#ff3d8b'
                 : '#c7b5ff';
 
+              // Dynamic label offset based on landmark location to prevent overlapping
+              let labelOffsetX = 0;
+              let labelOffsetY = isCheckpoint ? 7.0 : 5.5;
+              let textAnchor: 'middle' | 'start' | 'end' = 'middle';
+
+              if (wp.id === 'wp-desk') {
+                labelOffsetX = -2;
+                labelOffsetY = 6.5;
+              } else if (wp.id === 'wp-board') {
+                labelOffsetX = 2;
+                labelOffsetY = 6.5;
+              } else if (wp.id === 'wp-gate' || wp.id === 'wp-train') {
+                labelOffsetY = -5.0;
+              }
+
               return (
                 <g
                   key={wp.id}
@@ -176,19 +175,67 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleSelectWp(wp)}
                 >
+                  {/* Pin Circle */}
                   <circle
-                    r={isSelected ? 4.0 : isCheckpoint ? 3.2 : 2.2}
+                    r={isSelected ? 4.2 : isCheckpoint ? 3.4 : 2.2}
                     fill={pinColor}
                     stroke="#17131f"
-                    strokeWidth={isSelected ? 1.4 : 0.8}
+                    strokeWidth={isSelected ? 1.6 : 1.0}
                   />
                   {isCheckpoint && (
-                    <text y="1.1" fontSize="2.6" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                    <text y="1.2" fontSize="2.6" fill="#17131f" fontWeight="bold" textAnchor="middle">
                       {wp.hotspotId === 'kiosk' ? '1' : wp.hotspotId === 'board' ? '2' : '3'}
                     </text>
                   )}
-                  <text y={isCheckpoint ? 5.8 : 4.5} fontSize="2.2" fill="#fff6e5" fontWeight="600" textAnchor="middle">
-                    {wp.name}
+
+                  {/* High-Contrast Pill Background for Text (prevents overlapping clutter) */}
+                  <g transform={`translate(${labelOffsetX}, ${labelOffsetY})`}>
+                    <rect
+                      x={-wp.name.length * 1.3}
+                      y="-2.8"
+                      width={wp.name.length * 2.6}
+                      height="4.2"
+                      rx="2.1"
+                      fill="#17131f"
+                      stroke={isSelected ? '#ffd23f' : isCheckpoint ? pinColor : '#4a4060'}
+                      strokeWidth={isSelected ? '0.9' : '0.5'}
+                    />
+                    <text
+                      y="0.3"
+                      fontSize="2.2"
+                      fill={isSelected ? '#ffd23f' : isCheckpoint ? '#fff6e5' : '#c7b5ff'}
+                      fontWeight="700"
+                      textAnchor={textAnchor}
+                    >
+                      {wp.name}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
+
+            {/* In-World NPCs Markers (Placed with distinct cyan badges and non-overlapping tags) */}
+            {STATION_NPCS.map((npc) => {
+              const nx = toSvgX(npc.position.x);
+              const ny = toSvgY(npc.position.z);
+              return (
+                <g key={npc.id} transform={`translate(${nx}, ${ny})`}>
+                  <circle r="2.0" fill="#8ddcff" stroke="#17131f" strokeWidth="0.8" />
+                  <text y="0.8" fontSize="1.8" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                    👤
+                  </text>
+                  <rect
+                    x={-npc.name.length * 1.1}
+                    y="-5.4"
+                    width={npc.name.length * 2.2}
+                    height="3.6"
+                    rx="1.8"
+                    fill="#17131f"
+                    stroke="#8ddcff"
+                    strokeWidth="0.5"
+                  />
+                  <text y="-3.0" fontSize="1.8" fill="#8ddcff" fontWeight="bold" textAnchor="middle">
+                    {npc.name}
                   </text>
                 </g>
               );

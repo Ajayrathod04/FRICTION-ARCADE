@@ -186,7 +186,7 @@ export const BookingFlowAfter: React.FC<BookingFlowAfterProps> = ({
                 className={`improved-input ${dateTouched && !isDateValid ? 'improved-input--error' : ''}`}
                 required
               />
-              <span className="field-helper-text">Selected: Saturday, 18 Oct 2026</span>
+              <span className="field-helper-text">Selected: Saturday, 17 Oct 2026</span>
             </div>
 
             {/* Field 4: Passenger Counter with tactile 48px buttons */}
@@ -302,7 +302,7 @@ export const BookingFlowAfter: React.FC<BookingFlowAfterProps> = ({
               <div className="boarding-pass__grid">
                 <div>
                   <span className="pass-label">DATE</span>
-                  <span className="pass-val">Sat, 18 Oct 2026</span>
+                  <span className="pass-val">Sat, 17 Oct 2026</span>
                 </div>
                 <div>
                   <span className="pass-label">PASSENGERS</span>

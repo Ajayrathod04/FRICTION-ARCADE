@@ -338,67 +338,55 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   }
 
   // =========================================================================
-  // 2. ZONE A: ARRIVAL PLAZA & STATION PORTAL (South Zone: z = 4.8)
-  // Positioned cleanly behind spawn (z = 3.2) so it never blocks the camera!
+  // 2. ZONE A: ARRIVAL PLAZA (Welcoming South Gateway Terrace)
+  // Low-profile architectural boundary: zero overhead beams obstructing camera!
   // =========================================================================
   const plazaGroup = new THREE.Group();
-  plazaGroup.position.set(0, 0, 4.8);
+  plazaGroup.position.set(0, 0, 4.4);
 
-  // Grand Architectural Portal Arch Columns (spaced wide at x: -3.8 and 3.8)
-  const portalPillarGeo = registerGeo(new THREE.BoxGeometry(0.55, 5.0, 0.55));
-  const portalStoneMat = registerMat(
+  // Grand Flank Entrance Pylons with warm globe lanterns (placed wide at x: -3.8 and 3.8)
+  const pPillarGeo = registerGeo(new THREE.BoxGeometry(0.55, 2.4, 0.55));
+  const pStoneMat = registerMat(
     new THREE.MeshStandardMaterial({ color: 0x241b34, roughness: 0.5, metalness: 0.1 })
   );
-  for (const px of [-3.8, 3.8]) {
-    const pPillar = new THREE.Mesh(portalPillarGeo, portalStoneMat);
-    pPillar.position.set(px, 2.5, 0);
-    pPillar.castShadow = true;
-    plazaGroup.add(pPillar);
-  }
-
-  // Elevated Arch Header Beam (placed high at y = 5.1 to prevent view obstruction)
-  const portalBeamGeo = registerGeo(new THREE.BoxGeometry(8.2, 0.6, 0.5));
-  const portalBeam = new THREE.Mesh(portalBeamGeo, portalStoneMat);
-  portalBeam.position.set(0, 5.1, 0);
-  portalBeam.castShadow = true;
-  plazaGroup.add(portalBeam);
-
-  // Golden Station Marquee Nameplate: "MUMBAI CENTRAL · FRICTION ARCADE"
-  const nameplateGeo = registerGeo(new THREE.BoxGeometry(5.4, 0.45, 0.08));
-  const nameplateMat = registerMat(
+  const lanternGlobeGeo = registerGeo(new THREE.SphereGeometry(0.2, 16, 16));
+  const lanternGlobeMat = registerMat(
     new THREE.MeshStandardMaterial({
-      color: 0x17131f,
-      emissive: 0xffd23f,
-      emissiveIntensity: 0.45,
+      color: 0xffe2b8,
+      emissive: 0xffa040,
+      emissiveIntensity: 0.9,
       roughness: 0.2,
     })
   );
-  const nameplate = new THREE.Mesh(nameplateGeo, nameplateMat);
-  nameplate.position.set(0, 5.1, -0.28);
-  plazaGroup.add(nameplate);
 
-  // Station Grand Clock above portal
-  const clockFrameGeo = registerGeo(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 24));
-  const clockFrameMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.8, roughness: 0.2 }));
-  const clockFrame = new THREE.Mesh(clockFrameGeo, clockFrameMat);
-  clockFrame.rotation.x = Math.PI / 2;
-  clockFrame.position.set(0, 5.75, -0.25);
-  plazaGroup.add(clockFrame);
+  for (const px of [-3.8, 3.8]) {
+    const pPillar = new THREE.Mesh(pPillarGeo, pStoneMat);
+    pPillar.position.set(px, 1.2, 0);
+    pPillar.castShadow = true;
+    plazaGroup.add(pPillar);
 
-  const clockFaceGeo = registerGeo(new THREE.CircleGeometry(0.35, 24));
-  const clockFaceMat = registerMat(new THREE.MeshBasicMaterial({ color: 0xffffff }));
-  const clockFace = new THREE.Mesh(clockFaceGeo, clockFaceMat);
-  clockFace.position.set(0, 5.75, -0.2);
-  plazaGroup.add(clockFace);
+    const globe = new THREE.Mesh(lanternGlobeGeo, lanternGlobeMat);
+    globe.position.set(px, 2.55, 0);
+    plazaGroup.add(globe);
+  }
 
-  // Moving Clock Minute Hand
-  const clockHandGeo = registerGeo(new THREE.BoxGeometry(0.03, 0.22, 0.01));
-  const clockHandMat = registerMat(new THREE.MeshBasicMaterial({ color: 0x17131f }));
-  const clockHandMesh = new THREE.Mesh(clockHandGeo, clockHandMat);
-  clockHandMesh.position.set(0, 5.82, -0.19);
-  plazaGroup.add(clockHandMesh);
+  // Arrival Welcome Signboards on side pylons
+  const welcomeSignGeo = registerGeo(new THREE.BoxGeometry(1.6, 0.35, 0.06));
+  const welcomeSignMat = registerMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x17131f,
+      emissive: 0xffd23f,
+      emissiveIntensity: 0.35,
+      roughness: 0.3,
+    })
+  );
+  for (const sx of [-3.8, 3.8]) {
+    const sign = new THREE.Mesh(welcomeSignGeo, welcomeSignMat);
+    sign.position.set(sx > 0 ? sx - 0.7 : sx + 0.7, 1.6, 0);
+    plazaGroup.add(sign);
+  }
 
-  // Entrance Turnstile Gates (Glass & Steel barriers)
+  // Entrance Turnstile Gates (Glass & Steel barriers at z = -0.4)
   for (const gx of [-1.0, 0.0, 1.0]) {
     const gatePillarGeo = registerGeo(new THREE.BoxGeometry(0.18, 0.9, 0.6));
     const gatePillarMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x4a4060, roughness: 0.3 }));
@@ -415,7 +403,7 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   }
 
   // Exterior Plaza Planters and Decorative Shrubs
-  for (const plx of [-3.2, 3.2]) {
+  for (const plx of [-3.0, 3.0]) {
     const planterBoxGeo = registerGeo(new THREE.BoxGeometry(0.7, 0.45, 0.7));
     const planterBoxMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xff8a1f, roughness: 0.4 }));
     const planterBox = new THREE.Mesh(planterBoxGeo, planterBoxMat);
@@ -433,9 +421,9 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   stationGroup.add(plazaGroup);
 
   // =========================================================================
-  // 3. ZONE B: CENTRAL CONCOURSE (Columns, Roof Trusses, Skylight Canopy)
+  // 3. ZONE B: CENTRAL CONCOURSE (Architectural Columns & Lofty Glass Canopy)
+  // All structural ribs sit high at y = 6.6+ with zero low cables or camera obstructions
   // =========================================================================
-  // 4 Fluted Architectural Columns with Square Plinths
   const columnPositions = [
     { x: -3.2, z: 1.8 },
     { x: 3.2, z: 1.8 },
@@ -455,79 +443,70 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     colGroup.add(plinth);
 
     // Fluted Column Shaft
-    const shaftGeo = registerGeo(new THREE.CylinderGeometry(0.2, 0.24, 3.6, 16));
+    const shaftGeo = registerGeo(new THREE.CylinderGeometry(0.2, 0.24, 3.8, 16));
     const shaftMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xd8c8b4, roughness: 0.4 }));
     const shaft = new THREE.Mesh(shaftGeo, shaftMat);
-    shaft.position.y = 2.05;
+    shaft.position.y = 2.15;
     shaft.castShadow = true;
     colGroup.add(shaft);
 
     // Capital (Crown)
     const capGeo = registerGeo(new THREE.BoxGeometry(0.6, 0.25, 0.6));
     const cap = new THREE.Mesh(capGeo, plinthMat);
-    cap.position.y = 3.9;
+    cap.position.y = 4.1;
     colGroup.add(cap);
+
+    // Warm Architectural Wall Sconce on each column (at y = 2.5, illuminating concourse)
+    const sconceArmGeo = registerGeo(new THREE.BoxGeometry(0.08, 0.08, 0.2));
+    const sconceMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x17131f, metalness: 0.7 }));
+    const sconceArm = new THREE.Mesh(sconceArmGeo, sconceMat);
+    sconceArm.position.set(0, 2.5, pos.z > 0 ? -0.28 : 0.28);
+    colGroup.add(sconceArm);
+
+    const sconceLightGeo = registerGeo(new THREE.SphereGeometry(0.12, 12, 12));
+    const sconceLightMat = registerMat(
+      new THREE.MeshStandardMaterial({
+        color: 0xffd23f,
+        emissive: 0xff9922,
+        emissiveIntensity: 0.9,
+        roughness: 0.2,
+      })
+    );
+    const sconceLight = new THREE.Mesh(sconceLightGeo, sconceLightMat);
+    sconceLight.position.set(0, 2.5, pos.z > 0 ? -0.4 : 0.4);
+    colGroup.add(sconceLight);
 
     stationGroup.add(colGroup);
   }
 
-  // Vaulted Roof Steel Trusses spanning across concourse (elevated high to prevent camera clipping)
-  for (const rz of [2.4, 0.6, -1.2]) {
-    const trussGroup = new THREE.Group();
-    trussGroup.position.set(0, 5.2, rz);
+  // Lofty Victorian Skylight Glass Canopy (Positioned high at y = 6.4, letting sun in)
+  const skylightGroup = new THREE.Group();
+  skylightGroup.position.set(0, 6.4, 0.4);
 
-    // Horizontal tie beam
-    const tieGeo = registerGeo(new THREE.BoxGeometry(8.6, 0.12, 0.12));
-    const steelMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x1f192b, metalness: 0.7, roughness: 0.3 }));
-    const tie = new THREE.Mesh(tieGeo, steelMat);
-    trussGroup.add(tie);
-
-    // Arched rafter top
-    const rafterGeo = registerGeo(new THREE.TorusGeometry(4.3, 0.07, 8, 24, Math.PI));
-    const rafter = new THREE.Mesh(rafterGeo, steelMat);
-    rafter.rotation.z = Math.PI;
-    trussGroup.add(rafter);
-
-    // Hanging Industrial Pendant Lamps
-    for (const lx of [-2.0, 0, 2.0]) {
-      const cordGeo = registerGeo(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 6));
-      const cord = new THREE.Mesh(cordGeo, steelMat);
-      cord.position.set(lx, -0.45, 0);
-      trussGroup.add(cord);
-
-      const lampShadeGeo = registerGeo(new THREE.ConeGeometry(0.25, 0.2, 12));
-      const lampMat = registerMat(
-        new THREE.MeshStandardMaterial({
-          color: 0xffbe60,
-          emissive: 0xffbe60,
-          emissiveIntensity: 0.8,
-          roughness: 0.2,
-        })
-      );
-      const lampShade = new THREE.Mesh(lampShadeGeo, lampMat);
-      lampShade.position.set(lx, -0.9, 0);
-      lampShade.rotation.x = Math.PI;
-      trussGroup.add(lampShade);
-    }
-    stationGroup.add(trussGroup);
-  }
-
-  // Skylight Glass Ceiling Panels
-  const glassGeo = registerGeo(new THREE.PlaneGeometry(8.6, 4.4));
+  const glassGeo = registerGeo(new THREE.PlaneGeometry(8.6, 6.0));
   const glassMat = registerMat(
     new THREE.MeshStandardMaterial({
       color: 0x8ddcff,
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.18,
       roughness: 0.1,
-      metalness: 0.9,
+      metalness: 0.8,
       side: THREE.DoubleSide,
     })
   );
   const skylight = new THREE.Mesh(glassGeo, glassMat);
   skylight.rotation.x = Math.PI / 2;
-  skylight.position.set(0, 4.6, 0.6);
-  stationGroup.add(skylight);
+  skylightGroup.add(skylight);
+
+  // Slender roof arch ribs high above camera (y = 6.5)
+  for (const rz of [-2.0, 0, 2.0]) {
+    const ribGeo = registerGeo(new THREE.BoxGeometry(8.8, 0.08, 0.08));
+    const ribMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x221a30, metalness: 0.8 }));
+    const rib = new THREE.Mesh(ribGeo, ribMat);
+    rib.position.set(0, 0.05, rz);
+    skylightGroup.add(rib);
+  }
+  stationGroup.add(skylightGroup);
 
   // Waiting Lounge (Wooden Benches & Planters in Southwest quadrant)
   const benchPositions = [
@@ -756,6 +735,63 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   // =========================================================================
   // 7. ZONE F: PLATFORM 1 & DECCAN EXPRESS TRAIN (North Zone: z = -2.6 to -4.6)
   // =========================================================================
+  // North Platform Gantry with Grand Clock & Station Signboard
+  const northGantry = new THREE.Group();
+  northGantry.position.set(0, 0, -2.8);
+
+  // Side Support Columns
+  const gantryPillarGeo = registerGeo(new THREE.BoxGeometry(0.45, 4.4, 0.45));
+  const gantryMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x241b34, roughness: 0.4, metalness: 0.2 }));
+  for (const gx of [-3.8, 3.8]) {
+    const p = new THREE.Mesh(gantryPillarGeo, gantryMat);
+    p.position.set(gx, 2.2, 0);
+    p.castShadow = true;
+    northGantry.add(p);
+  }
+
+  // Horizontal Portal Beam (Framing Platform 1 overhead at y = 4.0)
+  const gantryBeamGeo = registerGeo(new THREE.BoxGeometry(8.2, 0.4, 0.4));
+  const gantryBeam = new THREE.Mesh(gantryBeamGeo, gantryMat);
+  gantryBeam.position.set(0, 4.1, 0);
+  gantryBeam.castShadow = true;
+  northGantry.add(gantryBeam);
+
+  // Station Platform Signboard: "PLATFORM 01 · DECCAN EXPRESS (TO PUNE)"
+  const pSignGeo = registerGeo(new THREE.BoxGeometry(4.8, 0.42, 0.08));
+  const pSignMat = registerMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x17131f,
+      emissive: 0xffd23f,
+      emissiveIntensity: 0.4,
+      roughness: 0.25,
+    })
+  );
+  const pSign = new THREE.Mesh(pSignGeo, pSignMat);
+  pSign.position.set(0, 4.1, 0.22);
+  northGantry.add(pSign);
+
+  // Grand Station Clock centered atop gantry
+  const clockFrameGeo = registerGeo(new THREE.CylinderGeometry(0.38, 0.38, 0.08, 24));
+  const clockFrameMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.8, roughness: 0.2 }));
+  const clockFrame = new THREE.Mesh(clockFrameGeo, clockFrameMat);
+  clockFrame.rotation.x = Math.PI / 2;
+  clockFrame.position.set(0, 4.65, 0.22);
+  northGantry.add(clockFrame);
+
+  const clockFaceGeo = registerGeo(new THREE.CircleGeometry(0.32, 24));
+  const clockFaceMat = registerMat(new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  const clockFace = new THREE.Mesh(clockFaceGeo, clockFaceMat);
+  clockFace.position.set(0, 4.65, 0.27);
+  northGantry.add(clockFace);
+
+  const clockHandGeo = registerGeo(new THREE.BoxGeometry(0.025, 0.18, 0.01));
+  const clockHandMat = registerMat(new THREE.MeshBasicMaterial({ color: 0x17131f }));
+  const clockHandMesh = new THREE.Mesh(clockHandGeo, clockHandMat);
+  clockHandMesh.position.set(0, 4.71, 0.28);
+  northGantry.add(clockHandMesh);
+
+  stationGroup.add(northGantry);
+
   // Platform Edge Tactile Yellow Safety Strip (z = -3.2)
   const pEdgeGeo = registerGeo(new THREE.BoxGeometry(9.6, 0.03, 0.35));
   const pEdgeMat = registerMat(
