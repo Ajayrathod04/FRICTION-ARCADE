@@ -299,24 +299,18 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       const rajivDist = playerVec.distanceTo(new THREE.Vector2(-0.8, -2.9));
 
       const PROX_THRESHOLD = 1.45;
-      if (kioskDist < PROX_THRESHOLD) {
+      if (kioskDist < PROX_THRESHOLD || arjunDist < PROX_THRESHOLD) {
         setNearbyHotspot('kiosk');
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'arjun') || null);
-      } else if (boardDist < PROX_THRESHOLD) {
+      } else if (boardDist < PROX_THRESHOLD || meeraDist < PROX_THRESHOLD) {
         setNearbyHotspot('board');
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'meera') || null);
       } else if (deskDist < PROX_THRESHOLD) {
         setNearbyHotspot('desk');
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'priya') || null);
-      } else if (arjunDist < PROX_THRESHOLD) {
-        setNearbyHotspot('kiosk');
-        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'arjun') || null);
-      } else if (meeraDist < PROX_THRESHOLD) {
-        setNearbyHotspot('board');
-        setNearbyNPC(null);
       } else if (kabirDist < PROX_THRESHOLD) {
         setNearbyHotspot('desk');
-        setNearbyNPC(null);
+        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'kabir') || null);
       } else if (rajivDist < PROX_THRESHOLD) {
         setNearbyHotspot(null);
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'rajiv') || null);

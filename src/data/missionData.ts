@@ -321,28 +321,44 @@ export interface StationNPC {
 
 export const STATION_NPCS: StationNPC[] = [
   {
+    id: 'arjun',
+    name: 'Arjun',
+    role: 'Ticket Kiosk Traveler',
+    position: { x: 0.0, z: 0.65 },
+    dialogue: 'I take the Deccan Express every Saturday. As soon as I clicked into the Date field, the placeholder "e.g. 17 Oct 2026" vanished! I had no idea whether it wanted DD/MM or YYYY-MM-DD!',
+    tip: 'Persistent floating labels ensure travelers never have to guess input formats from memory.',
+  },
+  {
+    id: 'meera',
+    name: 'Meera',
+    role: 'Departure Concourse Passenger',
+    position: { x: 2.3, z: -0.85 },
+    dialogue: 'Look at that Solari board! It just flashed "ALERT 404" in red. Is my train delayed, cancelled, or moving tracks? There is no explanation or recommended next step!',
+    tip: 'Color alone is never enough for status alerts. Always pair icons with plain descriptive language and next steps.',
+  },
+  {
+    id: 'kabir',
+    name: 'Kabir',
+    role: 'Help Desk Visitor',
+    position: { x: -2.1, z: 0.55 },
+    dialogue: 'I was using the customer terminal and almost tapped "Cancel Booking" because it looked identical to "Confirm Assistance"! Both buttons had the exact same bright purple style!',
+    tip: 'Visual hierarchy is vital: primary actions must stand out, while destructive or secondary choices remain subdued.',
+  },
+  {
     id: 'priya',
     name: 'Agent Priya',
     role: 'Help Desk Concierge',
-    position: { x: -2.4, z: 0.8 },
-    dialogue: 'Welcome to Friction Station! If a form seems confusing, look for where your attention gets lost.',
-    tip: 'Clear action buttons save travelers from abandoning their tickets!',
-  },
-  {
-    id: 'arjun',
-    name: 'Arjun',
-    role: 'Daily Commuter',
-    position: { x: 1.2, z: 1.8 },
-    dialogue: 'I take the Deccan Express every Saturday. Last week I misbooked because the placeholder vanished when I typed!',
-    tip: 'Persistent labels mean you never have to re-read from memory.',
+    position: { x: -2.6, z: 0.1 },
+    dialogue: 'Welcome to Friction Station! Every day, dozens of travelers ask for help because interfaces hide crucial context or offer ambiguous choices. Help us fix the flow!',
+    tip: 'Accessible design doesn\'t just help people with disabilities—it prevents errors for every tired, rushed traveler.',
   },
   {
     id: 'rajiv',
     name: 'Conductor Rajiv',
     role: 'Senior Train Guard',
-    position: { x: -0.8, z: -3.0 },
-    dialogue: 'Departures run on strict time. The board should tell people WHY a train is delayed, not just turn red.',
-    tip: 'Color alone is never enough for accessible status alerts.',
+    position: { x: -0.8, z: -2.9 },
+    dialogue: 'The Deccan Express to Pune is on Platform 1! We depart promptly at 07:15. Once you solve the concourse design friction and book your ticket, I will welcome you aboard!',
+    tip: 'A smooth booking experience gets travelers to their platforms calmly and on time.',
   },
 ];
 

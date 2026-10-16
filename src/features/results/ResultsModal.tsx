@@ -6,6 +6,7 @@ import { Icons } from '../../components/ui/Icons';
 import { formatSeconds } from '../../lib/storage';
 import type { GameResults } from '../../lib/storage';
 import { DESIGN_RULES } from '../../data/missionData';
+import { SoundEffects } from '../../lib/audio';
 
 interface ResultsModalProps {
   isOpen: boolean;
@@ -23,6 +24,12 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
   onOpenDesignLab,
 }) => {
   const [copied, setCopied] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      SoundEffects.playRepairSuccess();
+    }
+  }, [isOpen]);
 
   if (!results) return null;
 
@@ -54,13 +61,43 @@ Recorded Journey: Mumbai to Pune
       isOpen={isOpen}
       onClose={onClose}
       title="MISSION 01: RESULTS & CASE REPORT"
-      badge="MISSION COMPLETE"
-      maxWidth="720px"
+      badge="QUEST COMPLETE!"
+      maxWidth="760px"
     >
       <div className="results-modal-content">
+        {/* Japanese Arcade Style Quest Complete Fanfare Banner */}
+        <div className="quest-complete-banner" style={{ background: 'linear-gradient(135deg, #ffd23f, #ff8a1f)', border: '3px solid #17131f', borderRadius: '12px', padding: '16px 20px', textAlign: 'center', boxShadow: '0 6px 0 #17131f', marginBottom: '18px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#17131f', color: '#ffd23f', padding: '4px 14px', borderRadius: '999px', fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            ★ QUEST CLEAR · クエストクリア ★
+          </div>
+          <h2 style={{ fontSize: '28px', fontWeight: 900, margin: '8px 0 4px', color: '#17131f', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+            QUEST COMPLETE!
+          </h2>
+          <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#2c1e40' }}>
+            The Deccan Express has successfully departed with all passengers aboard!
+          </p>
+
+          {/* Cheering Passenger Cast Lineup */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '14px', flexWrap: 'wrap' }}>
+            {[
+              { name: 'Explorer', role: 'You (Traveler)', color: '#ff8a1f', emoji: '🎒' },
+              { name: 'Arjun', role: 'Commuter', color: '#3b6e47', emoji: '🧑‍💻' },
+              { name: 'Meera', role: 'Passenger', color: '#d946ef', emoji: '👩‍💼' },
+              { name: 'Kabir', role: 'Visitor', color: '#0ea5e9', emoji: '🙋‍♂️' },
+              { name: 'Rajiv', role: 'Conductor', color: '#1e3a8a', emoji: '👮‍♂️' },
+            ].map((char) => (
+              <div key={char.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#fff6e5', border: '2px solid #17131f', borderRadius: '8px', padding: '6px 10px', boxShadow: '0 3px 0 #17131f', minWidth: '76px' }}>
+                <span style={{ fontSize: '22px' }}>{char.emoji}</span>
+                <strong style={{ fontSize: '12px', color: '#17131f', marginTop: '2px' }}>{char.name}</strong>
+                <span style={{ fontSize: '10px', color: '#6b7280' }}>{char.role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Header Celebration */}
         <div className="results-header-banner">
-          <Badge variant="sticker" color="#FFD23F" rotate={-1}>
+          <Badge variant="sticker" color="#059669" rotate={-1}>
             🏆 YOU SPOTTED THE FRICTION & FIXED THE FLOW
           </Badge>
           <h3 className="results-title">Your Actual Recorded Performance</h3>

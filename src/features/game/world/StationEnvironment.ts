@@ -321,6 +321,98 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   terrazzoStrip.receiveShadow = true;
   stationGroup.add(terrazzoStrip);
 
+  // Royal Blue Carpet Queue Runner (Leading towards Ticket Kiosk, as in station reference art)
+  const carpetGeo = registerGeo(new THREE.BoxGeometry(1.4, 0.015, 1.8));
+  const carpetMat = registerMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x1d4ed8, // Royal cobalt blue
+      roughness: 0.7,
+      metalness: 0.05,
+    })
+  );
+  const queueCarpet = new THREE.Mesh(carpetGeo, carpetMat);
+  queueCarpet.position.set(0, 0.012, 1.25);
+  queueCarpet.receiveShadow = true;
+  stationGroup.add(queueCarpet);
+
+  // Polished Brass Stanchion Posts with Crimson Velvet Ropes (bordering queue carpet)
+  const stanchionPoleGeo = registerGeo(new THREE.CylinderGeometry(0.025, 0.025, 0.75, 12));
+  const stanchionBaseGeo = registerGeo(new THREE.CylinderGeometry(0.12, 0.12, 0.03, 16));
+  const stanchionBallGeo = registerGeo(new THREE.SphereGeometry(0.045, 12, 12));
+  const brassMat = registerMat(
+    new THREE.MeshStandardMaterial({
+      color: 0xd4af37, // Polished brass
+      metalness: 0.85,
+      roughness: 0.18,
+    })
+  );
+  const velvetRopeMat = registerMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x991b1b, // Rich crimson velvet
+      roughness: 0.6,
+    })
+  );
+
+  for (const sx of [-0.75, 0.75]) {
+    for (const sz of [0.6, 1.3, 2.0]) {
+      const sGroup = new THREE.Group();
+      sGroup.position.set(sx, 0, sz);
+
+      const base = new THREE.Mesh(stanchionBaseGeo, brassMat);
+      base.position.y = 0.015;
+      const pole = new THREE.Mesh(stanchionPoleGeo, brassMat);
+      pole.position.y = 0.38;
+      const ball = new THREE.Mesh(stanchionBallGeo, brassMat);
+      ball.position.y = 0.76;
+
+      sGroup.add(base, pole, ball);
+      stationGroup.add(sGroup);
+    }
+
+    // Velvet connecting rope
+    const ropeGeo = registerGeo(new THREE.BoxGeometry(0.03, 0.03, 1.4));
+    const rope = new THREE.Mesh(ropeGeo, velvetRopeMat);
+    rope.position.set(sx, 0.62, 1.3);
+    stationGroup.add(rope);
+  }
+
+  // Freestanding Vintage Cast-Iron Pedestal Clock Tower (at x: 1.6, z: 1.4)
+  const clockTowerGroup = new THREE.Group();
+  clockTowerGroup.position.set(1.6, 0, 1.4);
+
+  const ctBaseGeo = registerGeo(new THREE.BoxGeometry(0.42, 0.5, 0.42));
+  const ctIronMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.5 }));
+  const ctBase = new THREE.Mesh(ctBaseGeo, ctIronMat);
+  ctBase.position.y = 0.25;
+  clockTowerGroup.add(ctBase);
+
+  const ctShaftGeo = registerGeo(new THREE.CylinderGeometry(0.1, 0.12, 1.6, 12));
+  const ctShaft = new THREE.Mesh(ctShaftGeo, ctIronMat);
+  ctShaft.position.y = 1.3;
+  clockTowerGroup.add(ctShaft);
+
+  const ctHeadGeo = registerGeo(new THREE.CylinderGeometry(0.3, 0.3, 0.24, 24));
+  const ctHead = new THREE.Mesh(ctHeadGeo, ctIronMat);
+  ctHead.rotation.x = Math.PI / 2;
+  ctHead.position.y = 2.2;
+  clockTowerGroup.add(ctHead);
+
+  const ctDialGeo = registerGeo(new THREE.CircleGeometry(0.24, 24));
+  const ctDialMat = registerMat(new THREE.MeshBasicMaterial({ color: 0xfffbee }));
+  const ctDialNorth = new THREE.Mesh(ctDialGeo, ctDialMat);
+  ctDialNorth.position.set(0, 2.2, 0.13);
+  const ctDialSouth = new THREE.Mesh(ctDialGeo, ctDialMat);
+  ctDialSouth.rotation.y = Math.PI;
+  ctDialSouth.position.set(0, 2.2, -0.13);
+  clockTowerGroup.add(ctDialNorth, ctDialSouth);
+
+  const ctSpireGeo = registerGeo(new THREE.ConeGeometry(0.12, 0.35, 8));
+  const ctSpire = new THREE.Mesh(ctSpireGeo, brassMat);
+  ctSpire.position.y = 2.62;
+  clockTowerGroup.add(ctSpire);
+
+  stationGroup.add(clockTowerGroup);
+
   // Directional Tactile Paving Lines (high-contrast sun-yellow guide lines)
   for (const tx of [-1.15, 1.15]) {
     const tactileGeo = registerGeo(new THREE.BoxGeometry(0.08, 0.015, 7.6));
@@ -508,35 +600,150 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   }
   stationGroup.add(skylightGroup);
 
-  // Waiting Lounge (Wooden Benches & Planters in Southwest quadrant)
+  // =========================================================================
+  // 3.5 PERIMETER TERMINAL WALLS & MEZZANINE (Inspired by Grand Station reference art)
+  // Mint-green / seafoam walls, classical pilasters, daylight arched windows, staircase
+  // =========================================================================
+  const mintWallMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x428e82, roughness: 0.55 })); // Elegant seafoam mint
+  const sandTrimMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xe8ded0, roughness: 0.4 })); // Sand-beige classical stone
+  const windowGlassMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xa5e5ff, transparent: true, opacity: 0.35, roughness: 0.1 }));
+
+  // East & West Main Terminal Walls
+  for (const side of [-4.7, 4.7]) {
+    const wallGroup = new THREE.Group();
+    wallGroup.position.set(side, 0, 0.2);
+
+    // Wall base & surface
+    const wallGeo = registerGeo(new THREE.BoxGeometry(0.3, 5.2, 8.6));
+    const wallMesh = new THREE.Mesh(wallGeo, mintWallMat);
+    wallMesh.position.y = 2.6;
+    wallMesh.receiveShadow = true;
+    wallGroup.add(wallMesh);
+
+    // Classical Pilasters along wall
+    for (const pz of [-3.0, -1.0, 1.0, 3.0]) {
+      const pilasterGeo = registerGeo(new THREE.BoxGeometry(0.38, 5.2, 0.4));
+      const pilaster = new THREE.Mesh(pilasterGeo, sandTrimMat);
+      pilaster.position.set(0, 2.6, pz);
+      wallGroup.add(pilaster);
+
+      // Arched Window Bays between pilasters
+      if (pz < 3.0) {
+        const winGeo = registerGeo(new THREE.BoxGeometry(0.08, 2.2, 1.2));
+        const win = new THREE.Mesh(winGeo, windowGlassMat);
+        win.position.set(side < 0 ? 0.12 : -0.12, 3.2, pz + 1.0);
+        wallGroup.add(win);
+      }
+    }
+
+    stationGroup.add(wallGroup);
+  }
+
+  // West Grand Mezzanine Staircase & Balustrade (as in station reference photo)
+  const stairGroup = new THREE.Group();
+  stairGroup.position.set(-4.0, 0, 1.8);
+
+  // Stepped treads leading up to mezzanine
+  for (let step = 0; step < 7; step++) {
+    const stepGeo = registerGeo(new THREE.BoxGeometry(0.9, 0.18, 0.3));
+    const stepMesh = new THREE.Mesh(stepGeo, sandTrimMat);
+    stepMesh.position.set(0, 0.09 + step * 0.18, -step * 0.26);
+    stepMesh.receiveShadow = true;
+    stairGroup.add(stepMesh);
+  }
+
+  // Mezzanine Balcony Slab
+  const mezzSlabGeo = registerGeo(new THREE.BoxGeometry(1.2, 0.2, 2.4));
+  const mezzSlab = new THREE.Mesh(mezzSlabGeo, sandTrimMat);
+  mezzSlab.position.set(0, 1.35, -2.2);
+  stairGroup.add(mezzSlab);
+
+  // Balustrade Handrail
+  const railGeo = registerGeo(new THREE.BoxGeometry(0.06, 0.6, 2.4));
+  const railMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xd8c8b4, roughness: 0.3 }));
+  const handrail = new THREE.Mesh(railGeo, railMat);
+  handrail.position.set(0.5, 1.75, -2.2);
+  stairGroup.add(handrail);
+  stationGroup.add(stairGroup);
+
+  // Waiting Lounge (Teak Slat Benches with Sage-Green Cast-Iron Frames)
   const benchPositions = [
-    { x: -1.4, z: 2.1, rot: 0 },
-    { x: -1.4, z: 1.3, rot: 0 },
+    { x: -1.5, z: 2.2, rot: 0 },
+    { x: -1.5, z: 1.4, rot: 0 },
   ];
+  const teakMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x8d5b4c, roughness: 0.5 }));
+  const sageGreenIronMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x2e6040, roughness: 0.35, metalness: 0.4 })); // Sage-green cast iron as in reference
+
   for (const b of benchPositions) {
     const benchGroup = new THREE.Group();
     benchGroup.position.set(b.x, 0, b.z);
 
-    const seatGeo = registerGeo(new THREE.BoxGeometry(1.2, 0.08, 0.42));
-    const woodMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x8d5b4c, roughness: 0.6 }));
-    const seat = new THREE.Mesh(seatGeo, woodMat);
-    seat.position.y = 0.4;
-    benchGroup.add(seat);
+    // Individual Teak Slats for realistic look
+    for (let s = 0; s < 4; s++) {
+      const slatGeo = registerGeo(new THREE.BoxGeometry(1.3, 0.04, 0.08));
+      const slat = new THREE.Mesh(slatGeo, teakMat);
+      slat.position.set(0, 0.4, -0.15 + s * 0.1);
+      benchGroup.add(slat);
+    }
 
-    const backrestGeo = registerGeo(new THREE.BoxGeometry(1.2, 0.35, 0.06));
-    const backrest = new THREE.Mesh(backrestGeo, woodMat);
-    backrest.position.set(0, 0.62, -0.18);
-    benchGroup.add(backrest);
+    // Backrest slats
+    for (let r = 0; r < 3; r++) {
+      const bSlatGeo = registerGeo(new THREE.BoxGeometry(1.3, 0.08, 0.03));
+      const bSlat = new THREE.Mesh(bSlatGeo, teakMat);
+      bSlat.position.set(0, 0.55 + r * 0.1, -0.2);
+      benchGroup.add(bSlat);
+    }
 
-    // Iron Legs
-    for (const lx of [-0.5, 0.5]) {
-      const legGeo = registerGeo(new THREE.BoxGeometry(0.06, 0.4, 0.38));
-      const ironMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x17131f, metalness: 0.6 }));
-      const leg = new THREE.Mesh(legGeo, ironMat);
-      leg.position.set(lx, 0.2, 0);
-      benchGroup.add(leg);
+    // Sage-Green Cast-Iron Armrests & Legs (matching reference photo)
+    for (const lx of [-0.6, 0.6]) {
+      const legGeo = registerGeo(new THREE.BoxGeometry(0.05, 0.45, 0.45));
+      const leg = new THREE.Mesh(legGeo, sageGreenIronMat);
+      leg.position.set(lx, 0.22, 0);
+      leg.castShadow = true;
+
+      const armrestGeo = registerGeo(new THREE.TorusGeometry(0.12, 0.02, 6, 12, Math.PI));
+      const armrest = new THREE.Mesh(armrestGeo, sageGreenIronMat);
+      armrest.position.set(lx, 0.52, -0.05);
+      armrest.rotation.z = Math.PI / 2;
+
+      benchGroup.add(leg, armrest);
     }
     stationGroup.add(benchGroup);
+  }
+
+  // Potted Tropical Banana Palms & Ficus Urns (arranged around station)
+  const potMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xad5834, roughness: 0.65 })); // Terracotta urn
+  const leafMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.6 })); // Lush green palm leaf
+
+  const plantPositions = [
+    { x: -3.3, z: 2.2 },
+    { x: -3.3, z: 0.6 },
+    { x: 3.3, z: 2.2 },
+    { x: 3.3, z: 0.6 },
+    { x: 1.0, z: 2.3 },
+  ];
+
+  for (const p of plantPositions) {
+    const plantGroup = new THREE.Group();
+    plantGroup.position.set(p.x, 0, p.z);
+
+    const urnGeo = registerGeo(new THREE.CylinderGeometry(0.24, 0.18, 0.45, 12));
+    const urn = new THREE.Mesh(urnGeo, potMat);
+    urn.position.y = 0.225;
+    urn.castShadow = true;
+    plantGroup.add(urn);
+
+    // Broad tropical palm leaves arching out
+    for (let l = 0; l < 5; l++) {
+      const leafGeo = registerGeo(new THREE.PlaneGeometry(0.3, 0.65));
+      const leaf = new THREE.Mesh(leafGeo, leafMat);
+      const angle = (l / 5) * Math.PI * 2;
+      leaf.position.set(Math.sin(angle) * 0.12, 0.55, Math.cos(angle) * 0.12);
+      leaf.rotation.y = angle;
+      leaf.rotation.x = 0.45;
+      plantGroup.add(leaf);
+    }
+    stationGroup.add(plantGroup);
   }
 
   // =========================================================================
