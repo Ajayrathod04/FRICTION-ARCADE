@@ -30,14 +30,20 @@ While design guidelines (like Nielsen Norman heuristics and WCAG AA) document th
 
 ## 🚀 The Solution & Complete User Journey
 
-**FRICTION ARCADE** transforms abstract UX heuristics into an explorable, toy-like 3D railway station game where players encounter design flaws first-hand, discover the cognitive friction, repair the interface in Designer Mode, and witness the station itself transform through their solutions.
+**FRICTION ARCADE** completely decouples the marketing storytelling from the playable experience into two distinct top-level routes and architectural layers:
+- **Route A (`/`):** A high-end editorial storytelling website inspired by modern design publications. It features rich typography, an original handcrafted station poster illustration (zero WebGL overhead), in-depth breakdowns of cognitive friction, a 4-stage narrative timeline, core design principles, and an interactive Design Lab sandbox.
+- **Route B (`/#/play` or `/play`):** A dedicated, fullscreen 3D railway station game where players encounter design flaws first-hand, discover cognitive friction, repair the interface in Designer Mode, and witness the station concourse visually transform through their solutions.
 
 ### Complete User Journey:
-1. **Screen 01 — Landing Page:**
-   - Striking retro-arcade poster typography and glossy 3D station preview.
-   - Dual entry points: **Start the Mission →** (full 3D) or **Play Without 3D** (100% accessible 2D alternative).
-   - Instant access to Duo Jam Co-op mode.
-2. **Screen 02 — Character Selection Modal:**
+1. **Route A (`/`) — Editorial Storytelling Website:**
+   - Striking retro-arcade poster typography and handcrafted editorial station poster illustration.
+   - Narrative breakdown: "Small design problems. Real frustration." (Missing context, Confusing feedback, Unclear actions).
+   - 4-stage experience timeline: "From confused traveler to confident designer."
+   - Interactive Design Lab preview and educational takeaway principles.
+   - Primary Call to Action: **START THE MISSION →** (navigates cleanly to `/#/play`).
+   - Zero game canvas, zero player controllers, zero game timers mounted on `/`.
+2. **Route B (`/#/play`) — Character Selection & Briefing:**
+   - Fullscreen game layout with independent game top bar (`← Exit to Home`, `MISSION 01` pill, avatar indicator, `3D / 2D` toggle, `👥 Duo Jam`, `🗺 Map`, `❓ Guide`).
    - Choose between 3 original stylised traveler avatars:
      - **The Explorer:** Orange puffer jacket, bright yellow patched backpack, dark trousers, and rolling suitcase.
      - **The Creative:** Hot pink hoodie, topknot hairstyle, mint-green backpack, and lavender duffel.
