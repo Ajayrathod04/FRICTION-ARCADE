@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StationHeroIllustration } from './StationHeroIllustration';
+import { FrictionTriadInteractive } from './FrictionTriadInteractive';
+import { TheClaritySwitch } from './TheClaritySwitch';
 import { DesignLabSection } from '../repair-lab/DesignLabSection';
-import { DesignRulesSection } from '../../components/DesignRulesSection';
-import { Badge } from '../../components/ui/Badge';
+import { DESIGN_RULES } from '../../data/missionData';
 import { Icons } from '../../components/ui/Icons';
 import { Button } from '../../components/ui/Button';
 
@@ -27,10 +28,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="landing-website-root">
-      {/* ---------------- A. EDITORIAL HEADER ---------------- */}
+      {/* ---------------- 1. POLISHED COMPACT HEADER ---------------- */}
       <header className="site-header" role="banner">
         <div className="header-container">
-          <a href="#hero" className="header-brand" aria-label="Friction Arcade Home">
+          <a href="#hero" className="header-brand" aria-label="Friction Arcade Homepage">
             <div className="brand-logo-pill">
               <Icons.Train size={20} color="#FFD23F" />
             </div>
@@ -46,6 +47,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
             <button type="button" className="nav-link-btn" onClick={() => scrollToSection('the-experience')}>
               The Experience
+            </button>
+            <button type="button" className="nav-link-btn" onClick={() => scrollToSection('clarity-section')}>
+              The Clarity Switch
             </button>
             <button type="button" className="nav-link-btn" onClick={() => scrollToSection('principles')}>
               Design Principles
@@ -64,6 +68,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               size="sm"
               onClick={onStartMission}
               id="header-play-btn"
+              className="header-cta-btn"
             >
               PLAY THE MISSION →
             </Button>
@@ -72,6 +77,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="mobile-menu-toggle"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <Icons.Close size={22} /> : '☰'}
             </button>
@@ -86,6 +92,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
             <button type="button" className="mobile-nav-item" onClick={() => scrollToSection('the-experience')}>
               The Experience
+            </button>
+            <button type="button" className="mobile-nav-item" onClick={() => scrollToSection('clarity-section')}>
+              The Clarity Switch
             </button>
             <button type="button" className="mobile-nav-item" onClick={() => scrollToSection('principles')}>
               Design Principles
@@ -111,286 +120,338 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       <main id="main-content">
-        {/* ---------------- B. EDITORIAL POSTER HERO ---------------- */}
+        {/* ---------------- 2. HERO: PREMIUM I-POP POSTER MEETS RAILWAY ADVENTURE ---------------- */}
         <section className="hero-section" id="hero" aria-label="Hero Section">
-          <div className="hero-grid">
-            {/* Left Column: Typography, Story Hook & Mission CTAs */}
-            <div className="hero-content">
-              <div className="hero-pill-row">
-                <span className="hero-pill">
-                  AN INTERACTIVE UX GAME · 2 MINUTES · NO SIGN-UP
+          <div className="hero-editorial-container">
+            {/* Left Column: I-Pop Display Typography & Narrative */}
+            <div className="hero-editorial-left">
+              {/* Sticker Tag */}
+              <div className="hero-sticker-row">
+                <span className="hero-train-sticker">
+                  ⚡ THE LAST TRAIN IS WAITING.
                 </span>
-                <Badge variant="sticker" color="#FF8A1F" rotate={-2}>
-                  HYPERBLOOM OCTOBER
-                </Badge>
+                <span className="hero-meta-badge">
+                  2 MINUTES · 3 FRICTION POINTS · 1 CLEARER JOURNEY
+                </span>
               </div>
 
-              <h1 className="hero-brand-title">
-                <span className="hero-wordmark-gradient">FRICTION</span><br />
-                <span className="hero-wordmark-gradient">ARCADE</span>
+              {/* Glossy I-Pop Display Title */}
+              <h1 className="hero-ipop-display-title">
+                <span className="ipop-word-friction">FRICTION</span>
+                <br />
+                <span className="ipop-word-arcade">ARCADE</span>
               </h1>
 
-              <div className="hero-headline-group">
-                <h2 className="hero-headline">
-                  <span className="hero-headline-tag">
-                    SPOT THE FRICTION.
-                    <span className="hero-headline-squiggle" aria-hidden="true" />
-                  </span><br />
-                  <span className="hero-headline-flow">FIX THE FLOW.</span>
-                </h2>
+              {/* Sub-Brand Tagline */}
+              <div className="hero-tagline-strip">
+                <span className="tagline-spot">SPOT THE FRICTION.</span>{' '}
+                <span className="tagline-fix">FIX THE FLOW.</span>
               </div>
 
-              <p className="hero-lead-text">
-                Explore a colourful railway station. Discover three confusing design choices, solve a ticket-booking challenge, and transform the experience with better UX.
+              {/* Supporting Copy */}
+              <p className="hero-supporting-copy">
+                Three confusing design choices stand between you and your ticket. Discover why they frustrate people—and learn how to make the journey clearer.
               </p>
 
-              <div className="hero-cta-group">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={onStartMission}
-                  id="hero-start-mission-main-btn"
-                  className="hero-start-cta-btn"
-                >
-                  START THE MISSION →
-                </Button>
-
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onClick={onPlayWithout3D}
-                  className="hero-2d-mode-btn"
-                >
-                  PLAY WITHOUT 3D
-                </Button>
-              </div>
-
-              <div className="hero-trust-bar">
-                <span className="trust-icon">✨</span>
-                <span>A fictional booking challenge. Real interactions. Practical design lessons.</span>
+              {/* CTAs */}
+              <div className="hero-action-row">
                 <button
                   type="button"
-                  className="how-it-works-link"
-                  onClick={() => scrollToSection('story')}
+                  className="btn-hero-primary"
+                  onClick={onStartMission}
+                  id="hero-start-mission-main-btn"
                 >
-                  HOW IT WORKS ↓
+                  START THE MISSION →
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-hero-secondary"
+                  onClick={() => scrollToSection('story')}
+                  id="hero-see-how-btn"
+                >
+                  SEE HOW IT WORKS ↓
+                </button>
+              </div>
+
+              {/* 3 Compact Visual Tags */}
+              <div className="hero-tags-trio">
+                <div className="hero-tag-item tag-missing">
+                  <span className="tag-dot" />
+                  <span>MISSING CONTEXT</span>
+                </div>
+                <div className="hero-tag-item tag-feedback">
+                  <span className="tag-dot" />
+                  <span>CONFUSING FEEDBACK</span>
+                </div>
+                <div className="hero-tag-item tag-actions">
+                  <span className="tag-dot" />
+                  <span>UNCLEAR ACTIONS</span>
+                </div>
+              </div>
+
+              {/* 2D Accessible Alternative Link */}
+              <div className="hero-accessible-hint">
+                <span>Looking for a lightweight non-3D mode?</span>{' '}
+                <button
+                  type="button"
+                  className="accessible-mode-link"
+                  onClick={onPlayWithout3D}
+                >
+                  Play Full 2D Adventure →
                 </button>
               </div>
             </div>
 
-            {/* Right Column: High-Impact Editorial Station Illustration (NON-INTERACTIVE) */}
-            <div className="hero-station-col">
-              <StationHeroIllustration
-                onStartMission={onStartMission}
-                onPlayWithout3D={onPlayWithout3D}
-              />
+            {/* Right Column: Seamless Cinematic Illustration */}
+            <div className="hero-editorial-right">
+              <StationHeroIllustration />
             </div>
           </div>
         </section>
 
-        {/* ---------------- C. STORY SECTION: WHY FRICTION MATTERS ---------------- */}
-        <section className="editorial-story-section" id="story" aria-label="Why Friction Matters">
+        {/* ---------------- 3. SECTION A: SMALL DESIGN PROBLEMS. REAL FRUSTRATION. ---------------- */}
+        <section className="section-friction-story" id="story" aria-label="Small Design Problems">
           <div className="editorial-container">
             <div className="section-eyebrow-center">
-              <span className="eyebrow-badge">THE PROBLEM</span>
-              <h2 className="editorial-title">Small design problems. Real frustration.</h2>
-              <p className="editorial-subtitle">
-                Bad UX doesn't always announce itself with broken pages. It sneaks in as vanishing field context, cryptic error messages, and confusing buttons that make users second-guess themselves.
+              <span className="editorial-kicker">THE PROBLEM</span>
+              <h2 className="editorial-section-title">
+                SMALL DESIGN PROBLEMS. REAL FRUSTRATION.
+              </h2>
+              <p className="editorial-section-subtitle">
+                Bad UX doesn't always announce itself with broken code. It sneaks in as vanishing field context, cryptic error messages, and competing buttons that make travelers second-guess themselves.
               </p>
             </div>
 
-            <div className="friction-triad-grid">
-              {/* Feature Block 1 */}
-              <div className="friction-card">
-                <div className="friction-card-num">01</div>
-                <div className="friction-icon-wrap" style={{ backgroundColor: '#FFF3D6' }}>
-                  <Icons.Tag size={28} color="#FF8A1F" />
-                </div>
-                <h3 className="friction-card-title">Missing Context</h3>
-                <p className="friction-card-desc">
-                  Input fields that rely only on floating or placeholder text leave users stranded. The moment you start typing, the clue disappears, making review stressful and error-prone.
-                </p>
-                <div className="friction-card-quote">
-                  “Wait... was this field for Departure City or Passenger Name?”
-                </div>
-              </div>
-
-              {/* Feature Block 2 */}
-              <div className="friction-card">
-                <div className="friction-card-num">02</div>
-                <div className="friction-icon-wrap" style={{ backgroundColor: '#FFE4EE' }}>
-                  <Icons.Alert size={28} color="#FF3D8B" />
-                </div>
-                <h3 className="friction-card-title">Confusing Feedback</h3>
-                <p className="friction-card-desc">
-                  A field turning red without text fails color-blind users and leaves everyone guessing. Vague status flags tell you something broke without explaining what went wrong or how to fix it.
-                </p>
-                <div className="friction-card-quote">
-                  “The screen turned red, but which line has the error?”
-                </div>
-              </div>
-
-              {/* Feature Block 3 */}
-              <div className="friction-card">
-                <div className="friction-card-num">03</div>
-                <div className="friction-icon-wrap" style={{ backgroundColor: '#EFE8FF' }}>
-                  <Icons.Target size={28} color="#C7B5FF" />
-                </div>
-                <h3 className="friction-card-title">Unclear Actions</h3>
-                <p className="friction-card-desc">
-                  When primary, secondary, and destructive actions share identical weights and sizes, users hesitate. Interfaces must guide the traveler forward with a clear visual hierarchy.
-                </p>
-                <div className="friction-card-quote">
-                  “I just wanted to buy my ticket, but I clicked Cancel by mistake.”
-                </div>
-              </div>
-            </div>
+            {/* Interactive Triad with Real Heuristic Reveals */}
+            <FrictionTriadInteractive />
           </div>
         </section>
 
-        {/* ---------------- D. SECTION: THE EXPERIENCE ---------------- */}
-        <section className="experience-narrative-section" id="the-experience" aria-label="The Experience">
+        {/* ---------------- 4. SECTION B: THE JOURNEY (4 STAGES + PROGRESSIVE ROUTE) ---------------- */}
+        <section className="section-experience-journey" id="the-experience" aria-label="The Journey">
           <div className="editorial-container">
             <div className="section-eyebrow-center">
-              <span className="eyebrow-badge">THE USER JOURNEY</span>
-              <h2 className="editorial-title">From confused traveler to confident designer.</h2>
-              <p className="editorial-subtitle">
-                Friction Arcade doesn't just explain UX heuristics—it puts you in the shoes of someone trying to board the last train home.
+              <span className="editorial-kicker">THE PLAYER JOURNEY</span>
+              <h2 className="editorial-section-title">
+                FROM CONFUSED TRAVELER TO CONFIDENT DESIGNER.
+              </h2>
+              <p className="editorial-section-subtitle">
+                Friction Arcade doesn't just list heuristics—it puts you in the shoes of someone desperately trying to catch the last train home.
               </p>
             </div>
 
-            <div className="experience-timeline">
-              <div className="timeline-item">
-                <div className="timeline-marker">1</div>
-                <div className="timeline-content">
-                  <h3 className="timeline-title">Explore the 3D Station</h3>
-                  <p className="timeline-desc">
-                    Walk through a vibrant, miniature train concourse. Talk to commuter NPCs, inspect departure boards, and navigate the platform at your own pace.
-                  </p>
-                </div>
+            {/* Illustrated Progressive Railway Route */}
+            <div className="railway-route-map" aria-hidden="true">
+              <div className="route-track-line" />
+              <div className="route-train-token">🚆</div>
+            </div>
+
+            <div className="journey-stages-grid">
+              <div className="journey-stage-card stage-1">
+                <div className="stage-token">1</div>
+                <div className="stage-meta">STEP 01 · EXPLORATION</div>
+                <h3 className="stage-title">Discover the Problem</h3>
+                <p className="stage-desc">
+                  Explore a bustling railway station concourse in third person. Spot real interface bugs at the ticket kiosk, departure board, and help desk using Friction Vision.
+                </p>
               </div>
 
-              <div className="timeline-item">
-                <div className="timeline-marker">2</div>
-                <div className="timeline-content">
-                  <h3 className="timeline-title">Discover the Friction</h3>
-                  <p className="timeline-desc">
-                    Investigate three physical landmarks—the Ticket Kiosk, Departure Board, and Help Desk. Uncover forensic clues and collect souvenir ticket stamps.
-                  </p>
-                </div>
+              <div className="journey-stage-card stage-2">
+                <div className="stage-token">2</div>
+                <div className="stage-meta">STEP 02 · INVESTIGATION</div>
+                <h3 className="stage-title">Understand Why It Matters</h3>
+                <p className="stage-desc">
+                  Interview commuter NPCs—Arjun, Meera, and Kabir—to witness how vanishing labels, color-only errors, and missing hierarchy block real passengers from boarding.
+                </p>
               </div>
 
-              <div className="timeline-item">
-                <div className="timeline-marker">3</div>
-                <div className="timeline-content">
-                  <h3 className="timeline-title">Repair the Design</h3>
-                  <p className="timeline-desc">
-                    Switch to Designer Mode. Solve three answer-first usability puzzles to replace flawed patterns with human-centered, accessible components.
-                  </p>
-                </div>
+              <div className="journey-stage-card stage-3">
+                <div className="stage-token">3</div>
+                <div className="stage-meta">STEP 03 · REPAIR LAB</div>
+                <h3 className="stage-title">Apply the Repair</h3>
+                <p className="stage-desc">
+                  Enter Designer Mode. Solve three focused repair puzzles to swap confusing anti-patterns for WCAG-compliant, accessible design components.
+                </p>
               </div>
 
-              <div className="timeline-item">
-                <div className="timeline-marker">4</div>
-                <div className="timeline-content">
-                  <h3 className="timeline-title">See the Impact</h3>
-                  <p className="timeline-desc">
-                    Watch the station concourse itself transform into Clarity Mode! Replay the booking with persistent labels, clear inline errors, and prominent CTAs.
-                  </p>
-                </div>
+              <div className="journey-stage-card stage-4">
+                <div className="stage-token">4</div>
+                <div className="stage-meta">STEP 04 · TRANSFORMATION</div>
+                <h3 className="stage-title">See the Clearer Result</h3>
+                <p className="stage-desc">
+                  Replay the ticket booking with polished UI. Watch the station transform into Clarity Mode as relieved passengers safely board the 13:15 express train!
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ---------------- E. SECTION: DESIGN PRINCIPLES ---------------- */}
-        <section id="principles" aria-label="Design Principles">
-          <DesignRulesSection />
+        {/* ---------------- 5. SECTION C: THE CLARITY SWITCH (SIGNATURE INTERACTION) ---------------- */}
+        <section className="section-clarity-switch" id="clarity-section" aria-label="The Clarity Switch">
+          <div className="editorial-container">
+            <TheClaritySwitch />
+          </div>
         </section>
 
-        {/* ---------------- INTERACTIVE DESIGN LAB SANDBOX ---------------- */}
-        <section id="design-lab" aria-label="Interactive Design Lab">
+        {/* ---------------- 6. SECTION D: DESIGN PRINCIPLES ---------------- */}
+        <section className="section-design-principles" id="principles" aria-label="Design Principles">
+          <div className="editorial-container">
+            <div className="section-eyebrow-center">
+              <span className="editorial-kicker">CORE HEURISTICS</span>
+              <h2 className="editorial-section-title">8 Principles for Clearer Journeys</h2>
+              <p className="editorial-section-subtitle">
+                Keep these human-centered rules top-of-mind whenever you build forms, flows, and digital products people rely on.
+              </p>
+            </div>
+
+            <div className="principles-cards-grid">
+              {DESIGN_RULES.map((rule) => (
+                <div
+                  key={rule.id}
+                  className="principle-card"
+                  style={{ borderTop: `5px solid ${rule.color}` }}
+                >
+                  <div className="principle-card-head">
+                    <span className="principle-num" style={{ backgroundColor: rule.color }}>
+                      {rule.id}
+                    </span>
+                    <span className="principle-sub">{rule.subtitle}</span>
+                  </div>
+                  <h3 className="principle-title">{rule.title}</h3>
+                  <p className="principle-desc">{rule.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ---------------- 7. INTERACTIVE DESIGN LAB SANDBOX ---------------- */}
+        <section className="section-design-lab" id="design-lab" aria-label="Interactive Sandbox">
           <DesignLabSection />
         </section>
 
-        {/* ---------------- F. FINAL CALL TO ACTION ---------------- */}
-        <section className="final-cta-section" id="cta" aria-label="Call to Action">
-          <div className="final-cta-card">
-            <span className="cta-sparkle-left">✦</span>
-            <span className="cta-sparkle-right">✦</span>
+        {/* ---------------- 8. SECTION E: FINAL CALL TO ACTION ---------------- */}
+        <section className="section-final-cta" id="cta" aria-label="Final Call to Action">
+          <div className="final-cta-container">
+            <div className="final-cta-poster">
+              <span className="poster-sparkle sp-left">✦</span>
+              <span className="poster-sparkle sp-right">✦</span>
 
-            <span className="final-cta-badge">EXPERIENCE THE ARCADE</span>
-            <h2 className="final-cta-title">READY TO FIX THE FLOW?</h2>
-            <p className="final-cta-subtitle">
-              Jump into the Mumbai-to-Pune railway station. 2 minutes. No account needed. 100% accessible.
-            </p>
+              <span className="final-cta-kicker">YOUR TICKET IS WAITING</span>
+              <h2 className="final-cta-headline">MAKE THE JOURNEY CLEARER.</h2>
+              <p className="final-cta-subline">
+                Ready to find the friction and fix the flow? Jump straight into the railway concourse—2 minutes, no login, 100% accessible.
+              </p>
 
-            <div className="final-cta-buttons">
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={onStartMission}
-                className="final-cta-primary"
-              >
-                ENTER FRICTION ARCADE →
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={onPlayWithout3D}
-                className="final-cta-secondary"
-              >
-                PLAY WITHOUT 3D
-              </Button>
+              <div className="final-cta-btn-group">
+                <button
+                  type="button"
+                  className="btn-final-primary"
+                  onClick={onStartMission}
+                  id="final-cta-start-btn"
+                >
+                  START THE MISSION →
+                </button>
+                <button
+                  type="button"
+                  className="btn-final-secondary"
+                  onClick={onPlayWithout3D}
+                >
+                  PLAY 2D MODE
+                </button>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* ---------------- FOOTER ---------------- */}
-      <footer className="site-footer" id="about" role="contentinfo">
-        <div className="footer-container">
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <Icons.Train size={24} color="#FFD23F" />
-              <span className="footer-title">FRICTION ARCADE</span>
+      {/* ---------------- 9. REBUILT SIGNATURE CREATOR FOOTER ---------------- */}
+      <footer className="signature-creator-footer" id="about" role="contentinfo">
+        <div className="footer-cream-container">
+          {/* Top Editorial Row */}
+          <div className="footer-headline-row">
+            <div className="footer-title-block">
+              <h3 className="footer-graffiti-headline">BUILT BY AJAY RATHOD</h3>
+              <div className="footer-annotation-sticker">
+                <span className="sticker-icon">✍️</span>
+                <span>Made to make the web less frustrating.</span>
+              </div>
             </div>
-            <p className="footer-tagline">
-              “Spot the friction. Fix the flow.” A game that teaches human-centered interface design through active exploration.
-            </p>
+
             <div className="footer-badge-strip">
-              <span className="footer-pill">HYPERBLOOM OCTOBER 2026</span>
-              <span className="footer-pill">WCAG AA COMPLIANT</span>
-              <span className="footer-pill">ZERO-DEPENDENCY 3D</span>
+              <span className="footer-pill-tag">HYPERBLOOM OCTOBER 2026</span>
+              <span className="footer-pill-tag">WCAG AA CERTIFIED</span>
+              <span className="footer-pill-tag">ZERO DEPENDENCY 3D</span>
             </div>
           </div>
 
-          <div className="footer-links-group">
-            <div className="footer-col">
-              <h4 className="footer-heading">NAVIGATION</h4>
-              <ul className="footer-list">
+          {/* Middle Details Grid */}
+          <div className="footer-details-grid">
+            {/* Col 1: About the Mission */}
+            <div className="footer-info-col">
+              <div className="footer-brand-lockup">
+                <Icons.Train size={22} color="#FF8A1F" />
+                <span className="footer-brand-text">FRICTION ARCADE</span>
+              </div>
+              <p className="footer-mission-statement">
+                “Spot the friction. Fix the flow.” An interactive educational transit adventure teaching practical interface design, accessibility heuristics, and human-centered engineering.
+              </p>
+            </div>
+
+            {/* Col 2: Navigation Links */}
+            <div className="footer-nav-col">
+              <h4 className="footer-col-heading">EXPEDITION</h4>
+              <ul className="footer-clean-list">
                 <li><button type="button" onClick={() => scrollToSection('hero')}>Top of Page</button></li>
                 <li><button type="button" onClick={() => scrollToSection('story')}>Why Friction</button></li>
                 <li><button type="button" onClick={() => scrollToSection('the-experience')}>The Experience</button></li>
+                <li><button type="button" onClick={() => scrollToSection('clarity-section')}>The Clarity Switch</button></li>
                 <li><button type="button" onClick={() => scrollToSection('principles')}>Design Principles</button></li>
                 <li><button type="button" onClick={() => scrollToSection('design-lab')}>Interactive Lab</button></li>
               </ul>
             </div>
 
-            <div className="footer-col">
-              <h4 className="footer-heading">AUTHOR & CREATIVE</h4>
-              <ul className="footer-list">
-                <li><strong>Creator:</strong> AJRathod</li>
-                <li><strong>Email:</strong> <a href="mailto:ajaybr2021@gmail.com">ajaybr2021@gmail.com</a></li>
-                <li><strong>License:</strong> MIT</li>
-                <li><button type="button" onClick={onStartMission} className="footer-play-link">Start Solo Mission →</button></li>
-              </ul>
+            {/* Col 3: Creator & Contact */}
+            <div className="footer-author-col">
+              <h4 className="footer-col-heading">CREATOR & CONTACT</h4>
+              <div className="footer-author-details">
+                <div className="author-row">
+                  <span className="author-label">Creator:</span>
+                  <span className="author-val">Ajay Rathod</span>
+                </div>
+                <div className="author-row">
+                  <span className="author-label">Email:</span>
+                  <a href="mailto:ajaybr2021@gmail.com" className="author-email-link">
+                    ajaybr2021@gmail.com
+                  </a>
+                </div>
+                <div className="author-row">
+                  <span className="author-label">Context:</span>
+                  <span className="author-val">Hyperbloom October 2026</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="footer-start-pill"
+                onClick={onStartMission}
+              >
+                <span>Board The Train Now</span>
+                <Icons.ArrowRight size={16} />
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="footer-bottom-bar">
-          <p>© 2026 FRICTION ARCADE · Built for Hyperbloom October · Created by AJRathod</p>
+          {/* Bottom Copyright Bar */}
+          <div className="footer-bottom-strap">
+            <p className="strap-text">
+              © 2026 FRICTION ARCADE · Created by Ajay Rathod for Hyperbloom October · Fictional transit simulations for UX education.
+            </p>
+            <div className="strap-ticket-mark">
+              🎟️ <span>TICKET NO. 042 · CONFIRMED</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

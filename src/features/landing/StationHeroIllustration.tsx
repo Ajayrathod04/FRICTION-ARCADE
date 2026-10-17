@@ -1,240 +1,334 @@
 import React from 'react';
-import { Badge } from '../../components/ui/Badge';
-import { Icons } from '../../components/ui/Icons';
 
-interface StationHeroIllustrationProps {
-  onStartMission: () => void;
-  onPlayWithout3D: () => void;
-}
-
-export const StationHeroIllustration: React.FC<StationHeroIllustrationProps> = ({
-  onStartMission,
-  onPlayWithout3D,
-}) => {
+export const StationHeroIllustration: React.FC = () => {
   return (
-    <div className="editorial-station-poster" role="img" aria-label="Stylized 3D Railway Station Concourse Artwork">
-      {/* Background Station Concourse Artwork with warm station lighting */}
+    <div className="hero-cinematic-composition" role="img" aria-label="Cinematic illustration of the stylized traveler exploring the vibrant railway terminal">
+      {/* Decorative Layered Background SVG - seamlessly blends into the cream canvas */}
       <svg
-        className="station-poster-svg"
-        viewBox="0 0 800 520"
+        className="hero-cinematic-svg"
+        viewBox="0 0 760 620"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <linearGradient id="stationSky" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1E1435" />
-            <stop offset="50%" stopColor="#2D183E" />
-            <stop offset="100%" stopColor="#3E1A38" />
-          </linearGradient>
+          {/* Station Atmospheric Sky Gradient */}
+          <radialGradient id="stationGlow" cx="60%" cy="35%" r="65%">
+            <stop offset="0%" stopColor="#FFF8E7" stopOpacity="0.9" />
+            <stop offset="45%" stopColor="#FFECC7" stopOpacity="0.75" />
+            <stop offset="85%" stopColor="#FFF6E5" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#FFF6E5" stopOpacity="0" />
+          </radialGradient>
 
-          <linearGradient id="roofGlass" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#FFD23F" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#FF3D8B" stopOpacity="0.05" />
-          </linearGradient>
-
-          <linearGradient id="trainBody" x1="0%" y1="0%" x2="100%" y2="0%">
+          {/* Train Metallic Body Gradient */}
+          <linearGradient id="trainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#FF3D8B" />
-            <stop offset="50%" stopColor="#FF8A1F" />
+            <stop offset="35%" stopColor="#FF3B30" />
+            <stop offset="70%" stopColor="#FF8A1F" />
             <stop offset="100%" stopColor="#FFD23F" />
           </linearGradient>
 
-          <linearGradient id="platformFloor" x1="0%" y1="0%" x2="0%" y2="100%">
+          {/* Architectural Archway Gradient */}
+          <linearGradient id="archTruss" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#251F33" />
-            <stop offset="100%" stopColor="#17131F" />
+            <stop offset="100%" stopColor="#4A3F60" />
           </linearGradient>
 
-          <linearGradient id="warmLight" x1="50%" y1="0%" x2="50%" y2="100%">
-            <stop offset="0%" stopColor="#FFD23F" stopOpacity="0.45" />
+          {/* Golden Sunlit Window Beams */}
+          <linearGradient id="sunBeam" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFD23F" stopOpacity="0.35" />
             <stop offset="100%" stopColor="#FFD23F" stopOpacity="0" />
           </linearGradient>
 
-          <linearGradient id="kioskGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFD23F" />
+          {/* Golden Ticket Foil Gradient */}
+          <linearGradient id="ticketFoil" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFFDF8" />
+            <stop offset="50%" stopColor="#FFD23F" />
             <stop offset="100%" stopColor="#FF8A1F" />
           </linearGradient>
 
-          <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          {/* Drop Shadows */}
+          <filter id="softShadow" x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="4" dy="8" stdDeviation="6" floodColor="#17131F" floodOpacity="0.18" />
+          </filter>
+          <filter id="ticketGlow" x="-25%" y="-25%" width="150%" height="150%">
+            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#FF8A1F" floodOpacity="0.4" />
           </filter>
         </defs>
 
-        {/* Night Station Concourse Atmosphere */}
-        <rect width="800" height="520" fill="url(#stationSky)" />
+        {/* 1. Warm Atmospheric Base Oval */}
+        <ellipse cx="440" cy="300" rx="320" ry="260" fill="url(#stationGlow)" />
 
-        {/* Arching Victorian Truss & Glass Station Canopy */}
-        <path d="M 0 140 Q 400 30 800 140 L 800 0 L 0 0 Z" fill="url(#roofGlass)" />
-        <path d="M 0 140 Q 400 30 800 140" stroke="#FFD23F" strokeWidth="4" strokeOpacity="0.4" fill="none" />
-        <path d="M 0 170 Q 400 65 800 170" stroke="#FF8A1F" strokeWidth="2" strokeOpacity="0.3" fill="none" />
-
-        {/* Light Beams from high windows */}
-        <polygon points="120,0 260,0 340,360 80,360" fill="url(#warmLight)" />
-        <polygon points="540,0 680,0 760,360 480,360" fill="url(#warmLight)" />
-
-        {/* Concrete Platform Ground */}
-        <polygon points="0,320 800,320 800,520 0,520" fill="url(#platformFloor)" />
-        <line x1="0" y1="320" x2="800" y2="320" stroke="#FFD23F" strokeWidth="6" strokeDasharray="20 14" />
-
-        {/* Train Tracks in background */}
-        <line x1="0" y1="300" x2="800" y2="300" stroke="#483D62" strokeWidth="4" />
-        <line x1="0" y1="285" x2="800" y2="285" stroke="#372E4C" strokeWidth="3" />
-
-        {/* The Passenger Express Train (Right side) */}
-        <g transform="translate(460, 160)">
-          {/* Train Carriage */}
-          <rect x="0" y="20" width="340" height="130" rx="16" fill="url(#trainBody)" stroke="#17131F" strokeWidth="4" />
-          <rect x="0" y="110" width="340" height="24" fill="#17131F" />
-          {/* Windows */}
-          <rect x="25" y="45" width="55" height="40" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="3" />
-          <rect x="95" y="45" width="55" height="40" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="3" />
-          <rect x="165" y="45" width="55" height="40" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="3" />
-          <rect x="235" y="45" width="55" height="40" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="3" />
-          {/* Train Headcode Sign: PUNE EXPRESS */}
-          <rect x="70" y="28" width="160" height="12" rx="4" fill="#17131F" />
-          <text x="150" y="38" fill="#FFD23F" fontSize="9" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
-            PUNE EXPRESS · TRACK 1
-          </text>
+        {/* 2. Classical Victorian Arched Station Trusses & Glass Canopy */}
+        <g opacity="0.85">
+          <path
+            d="M 60 260 C 160 80, 520 80, 720 260"
+            stroke="url(#archTruss)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M 90 280 C 180 120, 500 120, 690 280"
+            stroke="#17131F"
+            strokeWidth="3.5"
+            strokeDasharray="14 8"
+            fill="none"
+          />
+          {/* Vertical Glass Ribs */}
+          <line x1="240" y1="135" x2="240" y2="400" stroke="#FFD23F" strokeWidth="2" strokeOpacity="0.4" />
+          <line x1="390" y1="110" x2="390" y2="400" stroke="#FFD23F" strokeWidth="2.5" strokeOpacity="0.5" />
+          <line x1="540" y1="135" x2="540" y2="400" stroke="#FFD23F" strokeWidth="2" strokeOpacity="0.4" />
         </g>
 
-        {/* Ticket Kiosk with glowing screen (Left Center) */}
-        <g transform="translate(140, 210)">
-          {/* Kiosk Pillar / Cabinet */}
-          <rect x="0" y="20" width="110" height="160" rx="12" fill="url(#kioskGradient)" stroke="#17131F" strokeWidth="4" />
-          <rect x="14" y="5" width="82" height="18" rx="6" fill="#17131F" />
-          <text x="55" y="18" fill="#FFD23F" fontSize="10" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
+        {/* 3. Diagonal Sunlit Window Beams */}
+        <polygon points="180,60 260,60 340,480 200,480" fill="url(#sunBeam)" />
+        <polygon points="460,60 540,60 620,480 480,480" fill="url(#sunBeam)" />
+
+        {/* 4. Concrete Station Platform & Track Area */}
+        <polygon points="40,430 740,430 760,600 20,600" fill="#E8DEC9" stroke="#17131F" strokeWidth="3" />
+        {/* Platform Tactile Yellow Safety Edge */}
+        <polygon points="40,430 740,430 744,444 36,444" fill="#FFD23F" stroke="#17131F" strokeWidth="2" />
+        <line x1="40" y1="444" x2="744" y2="444" stroke="#17131F" strokeWidth="2" strokeDasharray="12 10" />
+
+        {/* Railway Steel Track Rails */}
+        <line x1="40" y1="418" x2="740" y2="418" stroke="#5E5072" strokeWidth="5" />
+        <line x1="40" y1="402" x2="740" y2="402" stroke="#433754" strokeWidth="4" />
+
+        {/* 5. Approaching High-Speed Passenger Train (Right Flank) */}
+        <g transform="translate(420, 240)" filter="url(#softShadow)">
+          {/* Aerodynamic Locomotive Nose */}
+          <path
+            d="M 0 110 L 40 40 Q 90 20 220 20 L 320 20 L 320 170 L 60 170 Q 20 160 0 110 Z"
+            fill="url(#trainGradient)"
+            stroke="#17131F"
+            strokeWidth="4"
+          />
+          {/* Windshield / Cab Glass */}
+          <path
+            d="M 50 48 L 130 38 L 140 85 L 35 90 Z"
+            fill="#8DDCFF"
+            stroke="#17131F"
+            strokeWidth="3"
+          />
+          {/* Passenger Windows */}
+          <rect x="160" y="44" width="45" height="34" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="2.5" />
+          <rect x="220" y="44" width="45" height="34" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="2.5" />
+          <rect x="280" y="44" width="45" height="34" rx="8" fill="#8DDCFF" stroke="#17131F" strokeWidth="2.5" />
+          {/* Express Headcode Plate */}
+          <rect x="45" y="118" width="115" height="24" rx="6" fill="#17131F" />
+          <text x="102" y="134" fill="#FFD23F" fontSize="10" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
+            THE LAST TRAIN · 13:15
+          </text>
+          {/* Bright Train Headlight Beam */}
+          <circle cx="28" cy="115" r="12" fill="#FFFDF8" stroke="#FFD23F" strokeWidth="3" />
+          <polygon points="28,115 -180,80 -180,240 28,135" fill="url(#sunBeam)" opacity="0.6" />
+        </g>
+
+        {/* 6. Expressive Grand Departure Board (Top-Center) */}
+        <g transform="translate(190, 85)" filter="url(#softShadow)">
+          {/* Ceiling Suspension Cables */}
+          <line x1="50" y1="-85" x2="50" y2="0" stroke="#17131F" strokeWidth="3.5" />
+          <line x1="210" y1="-85" x2="210" y2="0" stroke="#17131F" strokeWidth="3.5" />
+          {/* Display Board Case */}
+          <rect x="0" y="0" width="260" height="105" rx="14" fill="#17131F" stroke="#FFD23F" strokeWidth="3.5" />
+          <rect x="10" y="10" width="240" height="22" rx="6" fill="#251F33" />
+          <text x="130" y="25" fill="#FFD23F" fontSize="11" fontWeight="900" fontFamily="sans-serif" textAnchor="middle" letterSpacing="0.08em">
+            ⚡ DEPARTURES · PLATFORM 1
+          </text>
+          {/* Departure Rows */}
+          <text x="20" y="52" fill="#FFFFFF" fontSize="10" fontWeight="700" fontFamily="monospace">13:15 PUNE EXP</text>
+          <text x="180" y="52" fill="#FF3D8B" fontSize="10" fontWeight="800" fontFamily="monospace">BOARDING</text>
+          <text x="20" y="72" fill="#FFFFFF" fontSize="10" fontWeight="700" fontFamily="monospace">13:45 GOA SF</text>
+          <text x="180" y="72" fill="#B6FFB2" fontSize="10" fontWeight="800" fontFamily="monospace">ON TIME</text>
+          <text x="20" y="92" fill="#FFFFFF" fontSize="10" fontWeight="700" fontFamily="monospace">14:10 DELHI RAJ</text>
+          <text x="180" y="92" fill="#B6FFB2" fontSize="10" fontWeight="800" fontFamily="monospace">ON TIME</text>
+        </g>
+
+        {/* 7. Self-Service Ticket Kiosk (Left Concourse) */}
+        <g transform="translate(70, 240)" filter="url(#softShadow)">
+          {/* Kiosk Body */}
+          <rect x="0" y="20" width="105" height="175" rx="14" fill="#FFD23F" stroke="#17131F" strokeWidth="4" />
+          <rect x="12" y="6" width="81" height="20" rx="6" fill="#17131F" />
+          <text x="52" y="20" fill="#FFD23F" fontSize="10" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
             TICKETS
           </text>
-          {/* Touchscreen with placeholder issue illustration */}
-          <rect x="16" y="38" width="78" height="96" rx="8" fill="#FFFFFF" stroke="#17131F" strokeWidth="3" />
-          <rect x="24" y="52" width="62" height="14" rx="4" fill="#F0EAE1" />
-          <rect x="24" y="74" width="62" height="14" rx="4" fill="#F0EAE1" />
-          <rect x="24" y="98" width="62" height="22" rx="6" fill="#FF3D8B" />
-          <text x="55" y="113" fill="#FFFFFF" fontSize="9" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
-            Book Now
+          {/* Screen with simulated ticket flow */}
+          <rect x="14" y="38" width="77" height="105" rx="8" fill="#FFFDF8" stroke="#17131F" strokeWidth="3" />
+          <rect x="22" y="52" width="61" height="16" rx="4" fill="#F0EAE1" />
+          <rect x="22" y="74" width="61" height="16" rx="4" fill="#FFE4EE" />
+          <rect x="22" y="100" width="61" height="24" rx="6" fill="#FF3B30" />
+          <text x="52" y="116" fill="#FFFFFF" fontSize="9" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
+            BOOK NOW
           </text>
         </g>
 
-        {/* Departure Board Suspended from ceiling (Center Top) */}
-        <g transform="translate(310, 55)">
-          <line x1="40" y1="-55" x2="40" y2="0" stroke="#FFD23F" strokeWidth="3" />
-          <line x1="160" y1="-55" x2="160" y2="0" stroke="#FFD23F" strokeWidth="3" />
-          <rect x="0" y="0" width="200" height="95" rx="10" fill="#17131F" stroke="#FFD23F" strokeWidth="3" />
-          <rect x="8" y="8" width="184" height="20" rx="4" fill="#251F33" />
-          <text x="100" y="22" fill="#FFD23F" fontSize="10" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
-            ⚡ DEPARTURES
+        {/* 8. THE PLAYABLE TRAVELER (Center Foreground, Energetic 3/4 Pose reaching for ticket) */}
+        <g transform="translate(260, 235)" filter="url(#softShadow)">
+          {/* Platform Cast Shadow */}
+          <ellipse cx="70" cy="270" rx="55" ry="14" fill="rgba(23, 19, 31, 0.28)" />
+
+          {/* Rolling Luggage / Suitcase */}
+          <g transform="translate(-15, 185)">
+            <rect x="0" y="20" width="36" height="58" rx="8" fill="#FF3D8B" stroke="#17131F" strokeWidth="3.5" />
+            {/* Telescopic Pull Handle */}
+            <line x1="18" y1="20" x2="18" y2="-20" stroke="#17131F" strokeWidth="3.5" />
+            <rect x="8" y="-26" width="20" height="8" rx="3" fill="#17131F" />
+            {/* Luggage Wheels */}
+            <circle cx="8" cy="80" r="5" fill="#17131F" />
+            <circle cx="28" cy="80" r="5" fill="#17131F" />
+            {/* Luggage Tag / Sticker */}
+            <rect x="8" y="35" width="20" height="12" rx="2" fill="#FFD23F" stroke="#17131F" strokeWidth="1.5" />
+          </g>
+
+          {/* Left Leg (Forward Stride) & Dark Indigo Trousers */}
+          <path
+            d="M 46 160 L 38 235 L 56 235 L 62 160 Z"
+            fill="#1E293B"
+            stroke="#17131F"
+            strokeWidth="3.5"
+          />
+          {/* Left Sneaker (Chunky white/teal running shoe) */}
+          <path
+            d="M 32 235 L 60 235 Q 68 245 60 256 L 28 256 Q 24 245 32 235 Z"
+            fill="#FFFFFF"
+            stroke="#17131F"
+            strokeWidth="3"
+          />
+          <rect x="36" y="244" width="18" height="6" rx="2" fill="#8DDCFF" />
+
+          {/* Right Leg (Pivoted Leg) */}
+          <path
+            d="M 72 160 L 88 230 L 106 230 L 88 160 Z"
+            fill="#1E293B"
+            stroke="#17131F"
+            strokeWidth="3.5"
+          />
+          {/* Right Sneaker */}
+          <path
+            d="M 82 230 L 112 230 Q 120 240 114 252 L 80 252 Q 76 242 82 230 Z"
+            fill="#FFFFFF"
+            stroke="#17131F"
+            strokeWidth="3"
+          />
+          <rect x="88" y="240" width="18" height="6" rx="2" fill="#FF8A1F" />
+
+          {/* Upper Body: Vivid Orange Puffer Jacket / Hoodie */}
+          <path
+            d="M 34 78 Q 20 120 38 165 L 94 165 Q 112 120 98 78 Q 66 65 34 78 Z"
+            fill="#FF8A1F"
+            stroke="#17131F"
+            strokeWidth="4"
+          />
+          {/* Jacket Quilting seams */}
+          <path d="M 38 108 Q 66 116 94 108" stroke="#D96E0D" strokeWidth="3" fill="none" />
+          <path d="M 40 138 Q 66 146 92 138" stroke="#D96E0D" strokeWidth="3" fill="none" />
+
+          {/* Bright Yellow Patched Backpack */}
+          <rect
+            x="44"
+            y="76"
+            width="58"
+            height="76"
+            rx="16"
+            fill="#FFD23F"
+            stroke="#17131F"
+            strokeWidth="4"
+          />
+          {/* Front Pocket */}
+          <rect
+            x="54"
+            y="105"
+            width="38"
+            height="34"
+            rx="8"
+            fill="#F4BF1A"
+            stroke="#17131F"
+            strokeWidth="2.5"
+          />
+          {/* Backpack Travel Patches */}
+          <circle cx="66" cy="118" r="6" fill="#FF3D8B" stroke="#17131F" strokeWidth="1.5" />
+          <polygon points="78,114 83,124 73,124" fill="#8DDCFF" stroke="#17131F" strokeWidth="1.5" />
+
+          {/* Left Arm: Resting naturally */}
+          <path
+            d="M 34 88 L 18 135 L 28 142 L 44 95 Z"
+            fill="#FF8A1F"
+            stroke="#17131F"
+            strokeWidth="3.5"
+          />
+
+          {/* Right Arm: Reaching dynamically up toward the floating ticket */}
+          <path
+            d="M 92 88 L 135 48 L 146 58 L 102 98 Z"
+            fill="#FF8A1F"
+            stroke="#17131F"
+            strokeWidth="3.5"
+          />
+          {/* Hand reaching out */}
+          <circle cx="145" cy="48" r="9" fill="#E8B58D" stroke="#17131F" strokeWidth="2.5" />
+
+          {/* Head & Neck */}
+          <circle cx="64" cy="50" r="26" fill="#E8B58D" stroke="#17131F" strokeWidth="3.5" />
+          {/* Tousled Dark Hair */}
+          <path
+            d="M 38 48 C 36 20, 88 16, 92 48 C 84 32, 44 32, 38 48 Z"
+            fill="#1E1435"
+            stroke="#17131F"
+            strokeWidth="3"
+          />
+          {/* Hair Tufts / Tousles */}
+          <path d="M 48 24 Q 54 12 62 20" stroke="#17131F" strokeWidth="3" fill="none" />
+          <path d="M 68 18 Q 76 8 82 22" stroke="#17131F" strokeWidth="3" fill="none" />
+          {/* Orange Hoodie Collar */}
+          <ellipse cx="64" cy="62" rx="28" ry="10" fill="#FF8A1F" stroke="#17131F" strokeWidth="3" />
+        </g>
+
+        {/* 9. Floating Golden Railway Ticket Collectible (Reaching Target) */}
+        <g transform="translate(420, 190)" filter="url(#ticketGlow)" className="hero-floating-ticket">
+          <g transform="rotate(-15)">
+            <rect
+              x="0"
+              y="0"
+              width="100"
+              height="58"
+              rx="10"
+              fill="url(#ticketFoil)"
+              stroke="#17131F"
+              strokeWidth="3.5"
+            />
+            {/* Cutout Notches */}
+            <circle cx="0" cy="29" r="7" fill="#FFF8E7" stroke="#17131F" strokeWidth="3" />
+            <circle cx="100" cy="29" r="7" fill="#FFF8E7" stroke="#17131F" strokeWidth="3" />
+            {/* Ticket Text */}
+            <text x="50" y="24" fill="#17131F" fontSize="9" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">
+              BOARDING PASS
+            </text>
+            <text x="50" y="42" fill="#FF3B30" fontSize="12" fontWeight="900" fontFamily="monospace" textAnchor="middle">
+              MUM ➔ PUN
+            </text>
+            <line x1="16" y1="48" x2="84" y2="48" stroke="#17131F" strokeWidth="1.5" strokeDasharray="3 3" />
+          </g>
+        </g>
+
+        {/* 10. Glossy Four-Point Sparkle Stars */}
+        <g className="hero-sparkle-star s1" transform="translate(180, 200)">
+          <path d="M 0 -14 Q 0 0 14 0 Q 0 0 0 14 Q 0 0 -14 0 Q 0 0 0 -14 Z" fill="#FFD23F" stroke="#17131F" strokeWidth="2" />
+        </g>
+        <g className="hero-sparkle-star s2" transform="translate(400, 110)">
+          <path d="M 0 -18 Q 0 0 18 0 Q 0 0 0 18 Q 0 0 -18 0 Q 0 0 0 -18 Z" fill="#FF3D8B" stroke="#17131F" strokeWidth="2" />
+        </g>
+        <g className="hero-sparkle-star s3" transform="translate(680, 260)">
+          <path d="M 0 -12 Q 0 0 12 0 Q 0 0 0 12 Q 0 0 -12 0 Q 0 0 0 -12 Z" fill="#B6FFB2" stroke="#17131F" strokeWidth="2" />
+        </g>
+
+        {/* 11. Playful Decorative Sticker: "FIX THE FLOW" */}
+        <g transform="translate(470, 460) rotate(-4)">
+          <rect x="0" y="0" width="135" height="34" rx="8" fill="#FF3D8B" stroke="#17131F" strokeWidth="3" />
+          <text x="67" y="22" fill="#FFFFFF" fontSize="11" fontWeight="900" fontFamily="sans-serif" textAnchor="middle" letterSpacing="0.08em">
+            ★ FIX THE FLOW
           </text>
-          {/* Train rows */}
-          <text x="16" y="44" fill="#FFFFFF" fontSize="9" fontWeight="700" fontFamily="monospace">12:30 MUMBAI</text>
-          <text x="145" y="44" fill="#B6FFB2" fontSize="9" fontWeight="800" fontFamily="monospace">ON TIME</text>
-          <text x="16" y="62" fill="#FFFFFF" fontSize="9" fontWeight="700" fontFamily="monospace">13:15 PUNE</text>
-          <text x="145" y="62" fill="#FF3B30" fontSize="9" fontWeight="800" fontFamily="monospace">DELAYED</text>
-          <text x="16" y="80" fill="#FFFFFF" fontSize="9" fontWeight="700" fontFamily="monospace">14:20 GOA</text>
-          <text x="145" y="80" fill="#B6FFB2" fontSize="9" fontWeight="800" fontFamily="monospace">ON TIME</text>
         </g>
-
-        {/* Station Clock */}
-        <g transform="translate(80, 80)">
-          <circle cx="28" cy="28" r="26" fill="#FFFDF8" stroke="#17131F" strokeWidth="4" />
-          <circle cx="28" cy="28" r="2" fill="#17131F" />
-          <line x1="28" y1="28" x2="28" y2="12" stroke="#17131F" strokeWidth="3" strokeLinecap="round" />
-          <line x1="28" y1="28" x2="39" y2="28" stroke="#FF3B30" strokeWidth="2.5" strokeLinecap="round" />
-        </g>
-
-        {/* The Traveler Avatar (Center Foreground, rear-facing composition based on 11.jpeg) */}
-        <g transform="translate(350, 240)">
-          {/* Shadow on platform */}
-          <ellipse cx="50" cy="210" rx="42" ry="12" fill="rgba(0,0,0,0.4)" />
-
-          {/* Rolling Suitcase */}
-          <rect x="-18" y="145" width="32" height="48" rx="8" fill="#FF3D8B" stroke="#17131F" strokeWidth="3" />
-          <line x1="-2" y1="145" x2="-2" y2="110" stroke="#17131F" strokeWidth="3" />
-          <rect x="-8" y="105" width="12" height="8" rx="2" fill="#17131F" />
-          <circle cx="-10" cy="195" r="4" fill="#17131F" />
-          <circle cx="6" cy="195" r="4" fill="#17131F" />
-
-          {/* Legs & Dark Trousers */}
-          <rect x="28" y="142" width="16" height="58" rx="7" fill="#17131F" />
-          <rect x="56" y="142" width="16" height="58" rx="7" fill="#17131F" />
-          {/* White Sneakers */}
-          <rect x="24" y="194" width="22" height="12" rx="5" fill="#FFFFFF" stroke="#17131F" strokeWidth="2" />
-          <rect x="54" y="194" width="22" height="12" rx="5" fill="#FFFFFF" stroke="#17131F" strokeWidth="2" />
-
-          {/* Orange Puffer Jacket Body */}
-          <rect x="18" y="55" width="64" height="92" rx="22" fill="#FF8A1F" stroke="#17131F" strokeWidth="4" />
-          {/* Jacket Quilting lines */}
-          <path d="M 20 85 Q 50 92 80 85" stroke="#D96E0D" strokeWidth="3" fill="none" />
-          <path d="M 20 115 Q 50 122 80 115" stroke="#D96E0D" strokeWidth="3" fill="none" />
-
-          {/* Big Yellow Patched Backpack */}
-          <rect x="26" y="60" width="48" height="66" rx="14" fill="#FFD23F" stroke="#17131F" strokeWidth="3.5" />
-          <rect x="34" y="85" width="32" height="30" rx="8" fill="#F4BF1A" stroke="#17131F" strokeWidth="2" />
-          {/* Backpack Stickers */}
-          <circle cx="44" cy="98" r="5" fill="#FF3D8B" />
-          <rect x="52" y="93" width="9" height="9" rx="2" fill="#8DDCFF" />
-
-          {/* Head & Dark Tousled Hair */}
-          <circle cx="50" cy="40" r="22" fill="#E8B58D" stroke="#17131F" strokeWidth="3" />
-          <path d="M 26 38 C 26 15, 74 15, 74 38 C 70 24, 30 24, 26 38 Z" fill="#251F33" stroke="#17131F" strokeWidth="2" />
-          {/* Orange Beanie / Hood collar */}
-          <ellipse cx="50" cy="48" rx="24" ry="9" fill="#FF8A1F" stroke="#17131F" strokeWidth="2.5" />
-        </g>
-
-        {/* Floating Glossy 3D Ticket Collectible */}
-        <g transform="translate(620, 310)" filter="url(#glowEffect)">
-          <rect x="0" y="0" width="70" height="42" rx="8" fill="#FFD23F" stroke="#17131F" strokeWidth="3" transform="rotate(-12)" />
-          <circle cx="0" cy="21" r="5" fill="#17131F" />
-          <circle cx="70" cy="21" r="5" fill="#17131F" />
-          <text x="35" y="24" fill="#17131F" fontSize="8" fontWeight="900" fontFamily="sans-serif" textAnchor="middle" transform="rotate(-12 35 24)">
-            MUM → PUN
-          </text>
-        </g>
-
-        {/* Sparkles */}
-        <polygon points="120,180 125,190 135,195 125,200 120,210 115,200 105,195 115,190" fill="#FFD23F" />
-        <polygon points="430,120 433,127 440,130 433,133 430,140 427,133 420,130 427,127" fill="#FF3D8B" />
-        <polygon points="680,180 683,187 690,190 683,193 680,200 677,193 670,190 677,187" fill="#B6FFB2" />
       </svg>
-
-      {/* Floating Tactical Callout Badges */}
-      <div className="poster-callout poster-callout--mission">
-        <Badge variant="sticker" color="#FFD23F" rotate={-3}>
-          MISSION 01: THE LAST TICKET
-        </Badge>
-      </div>
-
-      <div className="poster-callout poster-callout--flaws">
-        <Badge variant="sticker" color="#FF3D8B" rotate={3}>
-          3 INTERFACE FLAWS TO UNCOVER
-        </Badge>
-      </div>
-
-      {/* Hero Poster Overlay Action Strip */}
-      <div className="poster-action-overlay">
-        <div className="poster-overlay-card">
-          <div className="poster-overlay-meta">
-            <span className="poster-live-pill">● EXPLORABLE 3D CONCOURSE</span>
-            <span className="poster-route-label">MUMBAI ➔ PUNE EXPRESS</span>
-          </div>
-          <div className="poster-overlay-actions">
-            <button
-              type="button"
-              className="btn btn-primary poster-primary-cta"
-              onClick={onStartMission}
-              id="hero-start-mission-poster-btn"
-            >
-              <span>ENTER THE GAME</span>
-              <Icons.ArrowRight size={18} />
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline poster-secondary-cta"
-              onClick={onPlayWithout3D}
-            >
-              <span>PLAY WITHOUT 3D</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
