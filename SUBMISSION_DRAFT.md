@@ -171,6 +171,6 @@ Inspired by the complementary-role mechanics of cooperative browser games like *
 ### Hyperbloom Submission Metadata
 - **Hackathon:** Hyperbloom October 2026
 - **Submission Deadline:** October 19, 2026 at 5:00 PM EDT (October 20, 2026 at 2:30 AM IST)
-- **Author:** AJRathod (`ajaybr2021@gmail.com`)
+- **Author:** AJRathod (`https://github.com/Ajayrathod04`)
 - **License:** MIT
 - **Local Dev URL:** `http://127.0.0.1:5173/`

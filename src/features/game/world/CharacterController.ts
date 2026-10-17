@@ -18,7 +18,7 @@ export interface CharacterControllerHandles {
 }
 
 export function createCharacterController(options: CharacterControllerOptions): CharacterControllerHandles {
-  const { scene, avatarId, initialX = 0.0, initialZ = 3.2 } = options;
+  const { scene, avatarId, initialX = 0.0, initialZ = 6.0 } = options;
   const avatar = AVATAR_CHOICES.find((a) => a.id === avatarId) || AVATAR_CHOICES[0];
   const disposables: Array<{ dispose: () => void }> = [];
 
@@ -248,8 +248,8 @@ export function createCharacterController(options: CharacterControllerOptions): 
       const moveX = (dx / len) * speed * delta;
       const moveZ = (dz / len) * speed * delta;
 
-      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -4.0, 4.0);
-      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -2.6, 3.8);
+      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -5.2, 5.2);
+      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -3.1, 7.2);
 
       // Collision checks with Station Obstacles
       // 1. Central Kiosk at (0, 0.2)
@@ -258,8 +258,8 @@ export function createCharacterController(options: CharacterControllerOptions): 
       const hitDesk = Math.abs(nextX - -2.6) < 1.15 && Math.abs(nextZ - 0.4) < 0.85;
       // 3. Departure Board Post at (2.6, -1.2)
       const hitBoard = Math.abs(nextX - 2.6) < 0.45 && Math.abs(nextZ - -1.2) < 0.45;
-      // 4. Train Platform Boundary (cannot fall onto tracks)
-      const hitTracks = nextZ < -2.9;
+      // 4. Train Platform Boundary (safety tactile line, cannot fall onto active tracks)
+      const hitTracks = nextZ < -3.1;
 
       if (!hitKiosk && !hitDesk && !hitBoard && !hitTracks) {
         pos.x = nextX;

@@ -421,9 +421,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="author-val">Ajay Rathod</span>
                 </div>
                 <div className="author-row">
-                  <span className="author-label">Email:</span>
-                  <a href="mailto:ajaybr2021@gmail.com" className="author-email-link">
-                    ajaybr2021@gmail.com
+                  <span className="author-label">GitHub:</span>
+                  <a href="https://github.com/Ajayrathod04" target="_blank" rel="noopener noreferrer" className="author-email-link">
+                    Ajayrathod04
                   </a>
                 </div>
                 <div className="author-row">

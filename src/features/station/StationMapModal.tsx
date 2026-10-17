@@ -31,14 +31,14 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
 }) => {
   const [selectedWpId, setSelectedWpId] = useState<string>(activeWaypointId);
 
-  // World coordinates [-4.2, 4.2] -> [5, 95] % X
+  // World coordinates [-5.5, 5.5] X -> [6, 94] % X
   const toSvgX = (x: number) => {
-    return Math.max(6, Math.min(94, ((x + 4.2) / 8.4) * 100));
+    return Math.max(6, Math.min(94, ((x + 5.5) / 11.0) * 84 + 8));
   };
 
-  // World coordinates [-3.8, 3.8] -> [8, 92] % Y
+  // World coordinates [-3.5, 7.5] Z -> [8, 92] % Y
   const toSvgY = (z: number) => {
-    return Math.max(8, Math.min(92, ((z + 3.8) / 7.6) * 100));
+    return Math.max(8, Math.min(92, ((z + 3.5) / 11.0) * 78 + 10));
   };
 
   const pSvgX = toSvgX(playerX);

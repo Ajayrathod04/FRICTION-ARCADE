@@ -26,12 +26,14 @@ export const Footer: React.FC = () => {
             Created with passion by <strong>AJRathod</strong>
           </p>
           <p className="footer-email">
-            Contact:{' '}
+            GitHub:{' '}
             <a
-              href="mailto:ajaybr2021@gmail.com"
+              href="https://github.com/Ajayrathod04"
+              target="_blank"
+              rel="noopener noreferrer"
               className="footer-email-link"
             >
-              ajaybr2021@gmail.com
+              github.com/Ajayrathod04
             </a>
           </p>
           <div className="footer-a11y-notice">

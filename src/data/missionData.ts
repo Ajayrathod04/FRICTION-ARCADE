@@ -360,6 +360,14 @@ export const STATION_NPCS: StationNPC[] = [
     dialogue: 'The Deccan Express to Pune is on Platform 1! We depart promptly at 07:15. Once you solve the concourse design friction and book your ticket, I will welcome you aboard!',
     tip: 'A smooth booking experience gets travelers to their platforms calmly and on time.',
   },
+  {
+    id: 'rohan',
+    name: 'Rohan',
+    role: 'Transit Arcade Commuter',
+    position: { x: -4.2, z: 2.8 },
+    dialogue: 'Excuse me! This handwritten note says "Go to the far train", but Platform 1 and Platform 2 are on opposite sides! Do you know which track leads to the Pune Express?',
+    tip: 'Unambiguous wayfinding signs prevent missed connections and reduce passenger anxiety.',
+  },
 ];
 
 // --- FRICTION ECHO: SIGNATURE GAMEPLAY MECHANIC ---
@@ -512,11 +520,199 @@ export const STATION_ECHOES: Record<'kiosk' | 'board' | 'desk', FrictionEchoData
   },
 };
 
+// --- SIGNATURE COLLECTIBLE REWARD SYSTEM: FRICTION TOKENS ---
+export interface FrictionTokenItem {
+  id: string;
+  name: string;
+  zone: 'city' | 'atrium' | 'concourse' | 'board' | 'desk' | 'lounge' | 'lab' | 'platform';
+  x: number;
+  z: number;
+  value: number;
+  description: string;
+  lore: string;
+}
+
+export const FRICTION_TOKENS: FrictionTokenItem[] = [
+  {
+    id: 'tok-city',
+    name: 'City Arrival Token',
+    zone: 'city',
+    x: 1.6,
+    z: 5.8,
+    value: 5,
+    description: 'Found near the colorful Mumbai street approach and Victorian plaza facade.',
+    lore: 'Minted to celebrate the opening of Mumbai Central Station pedestrian plaza.',
+  },
+  {
+    id: 'tok-atrium',
+    name: 'Atrium Clock Token',
+    zone: 'atrium',
+    x: -1.6,
+    z: 2.6,
+    value: 5,
+    description: 'Resting by the grand mezzanine staircase and vintage pedestal clock.',
+    lore: 'Features the twin-dial station clock with Roman numerals.',
+  },
+  {
+    id: 'tok-kiosk',
+    name: 'Kiosk Queue Token',
+    zone: 'concourse',
+    x: 1.0,
+    z: 0.6,
+    value: 10,
+    description: 'Discovered along the royal blue carpet queue stanchions.',
+    lore: 'Awarded for inspecting the missing context in the self-service kiosk.',
+  },
+  {
+    id: 'tok-board',
+    name: 'Solari Departure Token',
+    zone: 'board',
+    x: 5.2,
+    z: -0.4,
+    value: 10,
+    description: 'Located in the Departure Gallery beneath the timetable display.',
+    lore: 'Stamped with the mechanical split-flap timetable symbol.',
+  },
+  {
+    id: 'tok-desk',
+    name: 'Concierge Help Token',
+    zone: 'desk',
+    x: -5.2,
+    z: 0.4,
+    value: 10,
+    description: 'Placed at the customer service wing near Agent Priya.',
+    lore: 'Honors human-centered transit assistance and accessible advocacy.',
+  },
+  {
+    id: 'tok-lounge',
+    name: 'Transit Arcade Token',
+    zone: 'lounge',
+    x: -4.8,
+    z: 3.4,
+    value: 10,
+    description: 'Tucked inside the Waiting Lounge near the tropical banana palms.',
+    lore: 'A souvenir from the commuter rest pavilion and snack arcade.',
+  },
+  {
+    id: 'tok-lab',
+    name: 'Clarity Designer Token',
+    zone: 'lab',
+    x: 4.8,
+    z: 3.4,
+    value: 15,
+    description: 'Found atop the Designer Workshop repair workbench.',
+    lore: 'Earned by designers who turn friction into flow.',
+  },
+  {
+    id: 'tok-platform',
+    name: 'Platform 1 Express Token',
+    zone: 'platform',
+    x: 2.2,
+    z: -3.2,
+    value: 15,
+    description: 'Waiting along the tactile platform safety line near Conductor Rajiv.',
+    lore: 'Commemorates the 12127 Deccan Express departure to Pune.',
+  },
+];
+
+// --- BADGES & ACHIEVEMENTS ---
+export interface BadgeItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+  color: string;
+  category: 'mission' | 'exploration' | 'repair' | 'mastery';
+}
+
+export const GAME_BADGES: BadgeItem[] = [
+  {
+    id: 'badge-context',
+    title: 'Context Finder',
+    subtitle: 'Kiosk Investigation',
+    description: 'Discovered why disappearing placeholder labels cause recall friction.',
+    icon: 'search',
+    color: '#FFD23F',
+    category: 'mission',
+  },
+  {
+    id: 'badge-error',
+    title: 'Error Hunter',
+    subtitle: 'Departure Gallery',
+    description: 'Uncovered color-only status flags and ambiguous error codes.',
+    icon: 'alert',
+    color: '#FF3B30',
+    category: 'mission',
+  },
+  {
+    id: 'badge-flow',
+    title: 'Flow Fixer',
+    subtitle: 'Help Desk Wing',
+    description: 'Diagnosed competing visual button weights and missing action hierarchy.',
+    icon: 'wrench',
+    color: '#8DDCFF',
+    category: 'mission',
+  },
+  {
+    id: 'badge-explorer',
+    title: 'Station Explorer',
+    subtitle: 'Connected World',
+    description: 'Explored all 5 interior areas, the city plaza, and Platform 1.',
+    icon: 'compass',
+    color: '#B6FFB2',
+    category: 'exploration',
+  },
+  {
+    id: 'badge-boarding',
+    title: 'First Boarding',
+    subtitle: 'Deccan Express',
+    description: 'Guided passengers to Platform 1 and watched them board the train.',
+    icon: 'train',
+    color: '#FF8A1F',
+    category: 'mastery',
+  },
+  {
+    id: 'badge-champion',
+    title: 'Clarity Champion',
+    subtitle: 'Full Flow Rescue',
+    description: 'Completed all 3 repair puzzles with 100% accuracy and clarity.',
+    icon: 'star',
+    color: '#C7B5FF',
+    category: 'mastery',
+  },
+];
+
+// --- OPTIONAL SIDE QUESTS ---
+export interface SideQuest {
+  id: string;
+  npcId: string;
+  title: string;
+  location: string;
+  prompt: string;
+  solutionChoice: string;
+  rewardTokens: number;
+  explanation: string;
+}
+
+export const SIDE_QUESTS: SideQuest[] = [
+  {
+    id: 'sq-rohan-wayfinding',
+    npcId: 'rohan',
+    title: 'Rohan\'s Wayfinding Query',
+    location: 'Waiting Lounge & Transit Arcade',
+    prompt: 'Rohan has an ambiguous note saying "Board on the right". Which explicit sign directs him safely to the Pune Deccan Express?',
+    solutionChoice: 'Follow the overhead directional sign: "Platform 1 → Deccan Express (Pune)"',
+    rewardTokens: 10,
+    explanation: 'Clear directional wayfinding removes reliance on vague relative directions like "left" or "right".',
+  },
+];
+
 // --- AUTHORED STATION WAYPOINTS & WALKABLE NAVIGATION GRAPH ---
 export interface StationWaypoint {
   id: string;
   name: string;
-  category: 'entrance' | 'kiosk' | 'board' | 'desk' | 'platform' | 'lounge' | 'concourse';
+  category: 'city' | 'atrium' | 'kiosk' | 'board' | 'desk' | 'lounge' | 'lab' | 'platform' | 'concourse';
   x: number;
   z: number;
   hotspotId?: 'kiosk' | 'board' | 'desk';
@@ -525,107 +721,131 @@ export interface StationWaypoint {
 }
 
 export const STATION_WAYPOINTS: StationWaypoint[] = [
+  // 1. City Arrival Plaza & Approach
   {
-    id: 'wp-entrance',
-    name: 'Main Entrance & Foyer',
-    category: 'entrance',
-    x: 0.2,
-    z: 2.8,
-    description: 'Station concourse entrance with wayfinding overhead marquee.',
-    connectedIds: ['wp-center', 'wp-lounge'],
-  },
-  {
-    id: 'wp-center',
-    name: 'Central Concourse Plaza',
-    category: 'concourse',
+    id: 'wp-city-plaza',
+    name: 'City Arrival Plaza',
+    category: 'city',
     x: 0.0,
-    z: 1.2,
-    description: 'Central hub connecting ticketing, departure boards, and customer service.',
-    connectedIds: ['wp-entrance', 'wp-kiosk', 'wp-lounge', 'wp-board-path'],
+    z: 6.2,
+    description: 'Colorful pastel Victorian city street approach and pedestrian plaza.',
+    connectedIds: ['wp-city-approach'],
   },
+  {
+    id: 'wp-city-approach',
+    name: 'Station Pedestrian Approach',
+    category: 'city',
+    x: 0.0,
+    z: 4.4,
+    description: 'Grand stone steps and station marquee entrance facade.',
+    connectedIds: ['wp-city-plaza', 'wp-atrium'],
+  },
+
+  // 2. Grand Station Entrance & Victorian Atrium
+  {
+    id: 'wp-atrium',
+    name: 'Grand Station Atrium',
+    category: 'atrium',
+    x: 0.0,
+    z: 2.6,
+    description: 'Double-height vaulted atrium with skylights, mezzanine stairs, and vintage clock tower.',
+    connectedIds: ['wp-city-approach', 'wp-kiosk', 'wp-lounge', 'wp-lab'],
+  },
+
+  // 3. Area 1: Ticket Concourse & Kiosk
   {
     id: 'wp-kiosk',
-    name: 'Ticket Kiosk (Checkpoint 1)',
+    name: 'Ticket Concourse & Kiosk (Area 1)',
     category: 'kiosk',
     x: 0.0,
     z: 0.2,
     hotspotId: 'kiosk',
-    description: 'Self-service automated ticketing terminals.',
-    connectedIds: ['wp-center', 'wp-platform-path', 'wp-board-path', 'wp-desk-path'],
+    description: 'Self-service automated ticketing terminals and blue carpet queue runner.',
+    connectedIds: ['wp-atrium', 'wp-board', 'wp-desk', 'wp-platform-gate'],
   },
-  {
-    id: 'wp-board-path',
-    name: 'East Corridor',
-    category: 'concourse',
-    x: 1.4,
-    z: -0.4,
-    description: 'Walkway leading to the Solari departure board.',
-    connectedIds: ['wp-center', 'wp-kiosk', 'wp-board'],
-  },
+
+  // 4. Area 2: Departure Gallery
   {
     id: 'wp-board',
-    name: 'Departure Board (Checkpoint 2)',
+    name: 'Departure Gallery (Area 2)',
     category: 'board',
-    x: 2.4,
-    z: -1.2,
+    x: 4.2,
+    z: -0.6,
     hotspotId: 'board',
-    description: 'Overhead LED Solari timetable board.',
-    connectedIds: ['wp-board-path', 'wp-platform-east'],
+    description: 'Solari split-flap timetable gallery, destination status hierarchy, and platform signs.',
+    connectedIds: ['wp-kiosk', 'wp-lab', 'wp-platform-east'],
   },
-  {
-    id: 'wp-desk-path',
-    name: 'West Walkway',
-    category: 'concourse',
-    x: -1.4,
-    z: 0.6,
-    description: 'Passage towards Agent Priya customer service desk.',
-    connectedIds: ['wp-kiosk', 'wp-lounge', 'wp-desk'],
-  },
+
+  // 5. Area 3: Passenger Services & Help Desk Wing
   {
     id: 'wp-desk',
-    name: 'Help Desk (Checkpoint 3)',
+    name: 'Passenger Services & Help Desk (Area 3)',
     category: 'desk',
-    x: -2.4,
-    z: 0.4,
+    x: -4.2,
+    z: 0.2,
     hotspotId: 'desk',
-    description: 'Staffed customer service desk and accessibility support.',
-    connectedIds: ['wp-desk-path'],
+    description: 'Staffed customer service desk, Agent Priya, and accessible assistance terminal.',
+    connectedIds: ['wp-kiosk', 'wp-lounge', 'wp-platform-west'],
   },
+
+  // 6. Area 4: Waiting Lounge & Transit Arcade
   {
     id: 'wp-lounge',
-    name: 'Waiting Lounge & Benches',
+    name: 'Waiting Lounge & Transit Arcade (Area 4)',
     category: 'lounge',
-    x: -1.4,
-    z: 1.8,
-    description: 'Rest area with wooden benches, planters, and commuter Rajiv.',
-    connectedIds: ['wp-entrance', 'wp-center', 'wp-desk-path'],
+    x: -4.2,
+    z: 3.0,
+    description: 'Sunny rest area with teak benches, potted palms, snack counter, and commuter Rohan.',
+    connectedIds: ['wp-atrium', 'wp-desk'],
   },
+
+  // 7. Area 5: Designer Workshop & Clarity Lab
   {
-    id: 'wp-platform-path',
-    name: 'Central Platform Gate',
+    id: 'wp-lab',
+    name: 'Designer Workshop & Clarity Lab (Area 5)',
+    category: 'lab',
+    x: 4.2,
+    z: 3.0,
+    description: 'Interactive UX repair stations, interface design workbench, and before/after previews.',
+    connectedIds: ['wp-atrium', 'wp-board'],
+  },
+
+  // 8. Grand Platform 1 & Tracks
+  {
+    id: 'wp-platform-gate',
+    name: 'Platform 1 Access Gate',
     category: 'concourse',
     x: 0.0,
-    z: -1.4,
-    description: 'Turnstile gate opening onto the passenger platform.',
-    connectedIds: ['wp-kiosk', 'wp-platform-main', 'wp-platform-east'],
+    z: -1.6,
+    description: 'Turnstile portal leading onto the passenger train platform.',
+    connectedIds: ['wp-kiosk', 'wp-platform-main'],
   },
   {
     id: 'wp-platform-main',
-    name: 'Platform 1 (Deccan Express)',
+    name: 'Grand Platform 1 (Boarding Area)',
     category: 'platform',
     x: 0.0,
-    z: -2.8,
-    description: 'Passenger train tracks and yellow safety tactile line.',
-    connectedIds: ['wp-platform-path', 'wp-platform-east'],
+    z: -3.0,
+    description: 'Deccan Express boarding doors, tactile safety edge, and Conductor Rajiv.',
+    connectedIds: ['wp-platform-gate', 'wp-platform-west', 'wp-platform-east'],
+  },
+  {
+    id: 'wp-platform-west',
+    name: 'Platform 1 West Ramp',
+    category: 'platform',
+    x: -3.5,
+    z: -3.0,
+    description: 'West platform walkway connecting to Customer Services.',
+    connectedIds: ['wp-desk', 'wp-platform-main'],
   },
   {
     id: 'wp-platform-east',
     name: 'Platform 1 East Ramp',
     category: 'platform',
-    x: 1.8,
-    z: -2.6,
-    description: 'East platform walkway connecting to departures.',
-    connectedIds: ['wp-board', 'wp-platform-path', 'wp-platform-main'],
+    x: 3.5,
+    z: -3.0,
+    description: 'East platform walkway connecting to Departure Gallery.',
+    connectedIds: ['wp-board', 'wp-platform-main'],
   },
 ];
 

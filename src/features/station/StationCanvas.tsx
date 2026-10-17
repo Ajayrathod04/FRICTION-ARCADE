@@ -9,6 +9,7 @@ import { SoundEffects, VoiceNarration } from '../../lib/audio';
 import { buildStationEnvironment } from '../game/world/StationEnvironment';
 import { createCharacterController } from '../game/world/CharacterController';
 import { createPassengerActors } from '../game/world/PassengerActors';
+import { RewardLedger } from '../game/state/RewardLedger';
 
 interface StationCanvasProps {
   onSelectHotspot: (hotspotId: 'kiosk' | 'board' | 'desk') => void;
@@ -64,7 +65,33 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   const [voiceNarration, setVoiceNarration] = useState<boolean>(true);
   const [graphicsMode, setGraphicsMode] = useState<'fast' | 'high'>('high');
   const [activeRoleView, setActiveRoleView] = useState<'traveler' | 'designer' | 'evidence'>('traveler');
-  const [playerCoords, setPlayerCoords] = useState({ x: 0.0, z: 3.2, angle: 0 });
+  const [playerCoords, setPlayerCoords] = useState({ x: 0.0, z: 6.0, angle: 0 });
+  const [rewardState, setRewardState] = useState(RewardLedger.getState());
+
+  useEffect(() => {
+    return RewardLedger.subscribe((state) => {
+      setRewardState(state);
+    });
+  }, []);
+
+  // Unlock badges on core mission progress
+  useEffect(() => {
+    if (cluesFound.includes('kiosk')) RewardLedger.unlockBadge('badge-context');
+    if (cluesFound.includes('board')) RewardLedger.unlockBadge('badge-error');
+    if (cluesFound.includes('desk')) RewardLedger.unlockBadge('badge-flow');
+  }, [cluesFound]);
+
+  useEffect(() => {
+    if (repairsComplete) {
+      RewardLedger.unlockBadge('badge-champion');
+    }
+  }, [repairsComplete]);
+
+  useEffect(() => {
+    if (isBoarding) {
+      RewardLedger.unlockBadge('badge-boarding');
+    }
+  }, [isBoarding]);
 
   const isPausedRef = useRef(false);
   isPausedRef.current = isPaused;
@@ -100,6 +127,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     } else if (nearbyNPC) {
       if (voiceNarrationRef.current) {
         VoiceNarration.speak(`Speaking with ${nearbyNPC.name}`);
+      }
+      if (nearbyNPC.id === 'rohan') {
+        RewardLedger.completeSideQuest('sq-rohan-wayfinding', 15);
       }
       onTalkToNPC?.(nearbyNPC);
     }
@@ -243,7 +273,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       scene,
       avatarId: selectedAvatarId,
       initialX: 0.0,
-      initialZ: 3.2,
+      initialZ: 6.0,
     });
 
     // --- 7. BUILD SCRIPTED PASSENGER NPCS & GHOST TRAILS ---
@@ -281,8 +311,30 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       const playerPos = charController.getPosition();
       const playerAngle = charController.getAngle();
 
-      // Tick Station Environment & Train
-      envHandles.update(time, delta);
+      // Tick Station Environment, Collectibles & Train
+      const { collectedTokenId } = envHandles.update(charController.group.position, time, delta);
+      if (collectedTokenId) {
+        SoundEffects.playCollect();
+      }
+
+      // Record Visited Zone for Station Explorer Badge
+      if (playerPos.z > 5.2) {
+        RewardLedger.recordZoneVisit('city');
+      } else if (playerPos.z > 2.0 && Math.abs(playerPos.x) <= 2.2) {
+        RewardLedger.recordZoneVisit('atrium');
+      } else if (Math.abs(playerPos.x) <= 1.8 && playerPos.z >= -0.5 && playerPos.z <= 2.0) {
+        RewardLedger.recordZoneVisit('concourse');
+      } else if (playerPos.x > 1.6 && playerPos.z <= 0.8 && playerPos.z >= -2.0) {
+        RewardLedger.recordZoneVisit('board');
+      } else if (playerPos.x < -1.6 && playerPos.z <= 1.5 && playerPos.z >= -1.5) {
+        RewardLedger.recordZoneVisit('desk');
+      } else if (playerPos.x < -2.2 && playerPos.z > 1.5) {
+        RewardLedger.recordZoneVisit('lounge');
+      } else if (playerPos.x > 2.2 && playerPos.z > 1.5) {
+        RewardLedger.recordZoneVisit('lab');
+      } else if (playerPos.z < -2.0) {
+        RewardLedger.recordZoneVisit('platform');
+      }
 
       // Tick Scripted Passengers
       passengerHandles.update(time, delta, isFrictionVisionRef.current, isBoarding);
@@ -297,6 +349,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       const meeraDist = playerVec.distanceTo(new THREE.Vector2(2.3, -0.85));
       const kabirDist = playerVec.distanceTo(new THREE.Vector2(-2.1, 0.55));
       const rajivDist = playerVec.distanceTo(new THREE.Vector2(-0.8, -2.9));
+      const rohanDist = playerVec.distanceTo(new THREE.Vector2(-4.2, 2.8));
 
       const PROX_THRESHOLD = 1.45;
       if (kioskDist < PROX_THRESHOLD || arjunDist < PROX_THRESHOLD) {
@@ -314,6 +367,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       } else if (rajivDist < PROX_THRESHOLD) {
         setNearbyHotspot(null);
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'rajiv') || null);
+      } else if (rohanDist < PROX_THRESHOLD) {
+        setNearbyHotspot(null);
+        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'rohan') || null);
       } else {
         setNearbyHotspot(null);
         setNearbyNPC(null);
@@ -337,13 +393,13 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         camera.lookAt(playerPos.x, 1.0, playerPos.z - 1.2);
       } else {
         // High-clarity 3/4 isometric follow camera with subtle parallax
-        const camTargetX = playerPos.x * 0.45 + 2.8 + pointerPos.current.x * 0.2;
+        const camTargetX = playerPos.x * 0.7 + 2.4 + pointerPos.current.x * 0.2;
         const camTargetY = 3.8;
-        const camTargetZ = playerPos.z * 0.35 + 5.0 + pointerPos.current.y * 0.15;
+        const camTargetZ = playerPos.z + 4.2 + pointerPos.current.y * 0.15;
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.08);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
-        camera.lookAt(playerPos.x * 0.35, 0.7, playerPos.z * 0.2);
+        camera.lookAt(playerPos.x * 0.7, 0.75, playerPos.z);
       }
 
       renderer.render(scene, camera);
@@ -448,7 +504,62 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
                 : 'Zone C: Launch Ticket Booking Drill'}
             </strong>
           </div>
+          <div
+            className="campus-hud-tokens"
+            title="Collected Friction Tokens · Discover across the station and platform"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#ffd23f',
+              color: '#17131f',
+              padding: '2px 10px',
+              borderRadius: '20px',
+              border: '2px solid #17131f',
+              fontWeight: 800,
+              fontSize: '12px',
+              boxShadow: '2px 2px 0 #17131f',
+              marginTop: '4px',
+              width: 'fit-content',
+            }}
+          >
+            <span>🪙</span>
+            <span>{rewardState.tokenBalance} TOKENS</span>
+            <span style={{ opacity: 0.6 }}>·</span>
+            <span>{rewardState.unlockedBadgeIds.length}/6 BADGES</span>
+          </div>
         </div>
+
+        {/* Dynamic Token / Badge Toast Notice */}
+        {rewardState.lastEarnedNotice && Date.now() - rewardState.lastEarnedNotice.time < 3500 && (
+          <div
+            className="token-hud-toast animate-pop-in"
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              top: '68px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              background: '#ff3d8b',
+              color: '#ffffff',
+              padding: '6px 18px',
+              borderRadius: '24px',
+              border: '3px solid #17131f',
+              fontWeight: 800,
+              fontSize: '13px',
+              boxShadow: '0 4px 0 #17131f',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              pointerEvents: 'none',
+            }}
+          >
+            <span>✨</span>
+            <span>{rewardState.lastEarnedNotice.title}</span>
+          </div>
+        )}
 
         <div className="campus-hud-right">
           {/* Friction Vision Toggle Button */}

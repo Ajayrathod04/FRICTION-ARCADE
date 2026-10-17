@@ -18,23 +18,24 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
   onExpandMap,
   activeWaypointId = 'wp-kiosk',
 }) => {
-  // Map world coordinates [-4.2, 4.2] -> [8, 92] % in SVG
+  // Map world coordinates [-5.5, 5.5] X -> [8, 92] % in SVG
   const toSvgX = (x: number) => {
-    return Math.max(6, Math.min(94, ((x + 4.2) / 8.4) * 100));
+    return Math.max(6, Math.min(94, ((x + 5.5) / 11.0) * 84 + 8));
   };
 
+  // Map world coordinates [-3.5, 7.5] Z -> [12, 88] % in SVG
   const toSvgY = (z: number) => {
-    return Math.max(8, Math.min(92, ((z + 3.8) / 7.6) * 100));
+    return Math.max(8, Math.min(92, ((z + 3.5) / 11.0) * 76 + 12));
   };
 
   // Hotspots
   const kioskX = toSvgX(0);
-  const kioskY = toSvgY(0);
+  const kioskY = toSvgY(0.2);
 
-  const boardX = toSvgX(2.4);
+  const boardX = toSvgX(2.6);
   const boardY = toSvgY(-1.2);
 
-  const deskX = toSvgX(-2.4);
+  const deskX = toSvgX(-2.6);
   const deskY = toSvgY(0.4);
 
   const pX = toSvgX(playerX);

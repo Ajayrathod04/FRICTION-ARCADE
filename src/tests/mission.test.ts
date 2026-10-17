@@ -64,8 +64,8 @@ test('Walkable station route calculator outputs connected waypoints', async () =
 
   const kioskToBoard = calculateWalkableRoute(0.0, 0.2, 'wp-board');
   assert.ok(kioskToBoard.length >= 2, 'Route from kiosk to board should have at least 2 nodes');
-  assert.equal(kioskToBoard[kioskToBoard.length - 1].x, 2.4);
-  assert.equal(kioskToBoard[kioskToBoard.length - 1].z, -1.2);
+  assert.equal(kioskToBoard[kioskToBoard.length - 1].x, 4.2);
+  assert.equal(kioskToBoard[kioskToBoard.length - 1].z, -0.6);
 });
 
 test('Mission State Machine transitions and objective progression', async () => {

@@ -96,6 +96,6 @@ npm run build
 ## 👤 Credits & Authorship
 
 - **Author:** `AJRathod`
-- **Email:** [`ajaybr2021@gmail.com`](mailto:ajaybr2021@gmail.com)
+- **GitHub:** [`Ajayrathod04`](https://github.com/Ajayrathod04)
 - **License:** MIT
 - **Hackathon:** Hyperbloom October 2026

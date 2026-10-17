@@ -122,6 +122,10 @@ export const StationContainer: React.FC<StationContainerProps> = ({
             cluesFound={cluesFound}
             repairsComplete={repairsComplete}
             activeHotspot={activeHotspot}
+            onLaunchBookingChallenge={onLaunchBookingChallenge}
+            onOpenDesignLab={onOpenDesignLab}
+            onTalkToNPC={onTalkToNPC}
+            isBoarding={isBoarding}
           />
         )}
       </div>
