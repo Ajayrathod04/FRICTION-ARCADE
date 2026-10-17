@@ -36,14 +36,14 @@ const STATION_ZONES: ZoneDetail[] = [
     name: 'City Arrival Plaza',
     category: 'Exterior Approach',
     description: 'Pastel Victorian city streets, arrival plaza, streetlights, and travelers walking with rolling luggage toward the station facade.',
-    tokenId: 'tok-city-plaza',
+    tokenId: 'tok-city',
   },
   {
     id: 'atrium',
     name: 'Grand Station Entrance & Atrium',
     category: 'Architectural Centerpiece',
     description: 'Cathedral glass skylights, turquoise walls, warm cream stone colonnades, central clock, and brass wayfinding arches.',
-    tokenId: 'tok-atrium-arch',
+    tokenId: 'tok-atrium',
   },
   {
     id: 'concourse',
@@ -53,7 +53,7 @@ const STATION_ZONES: ZoneDetail[] = [
     description: 'Self-service ticketing terminal. Commuter Arjun is stranded because input placeholder labels disappeared upon typing.',
     associatedClue: 'kiosk',
     npcId: 'arjun',
-    tokenId: 'tok-kiosk-token',
+    tokenId: 'tok-kiosk',
   },
   {
     id: 'board',
@@ -63,7 +63,7 @@ const STATION_ZONES: ZoneDetail[] = [
     description: 'Overhead Solari departures display. Passenger Meera froze at a red color-only alert with no plain-text explanation.',
     associatedClue: 'board',
     npcId: 'meera',
-    tokenId: 'tok-board-token',
+    tokenId: 'tok-board',
   },
   {
     id: 'desk',
@@ -73,7 +73,7 @@ const STATION_ZONES: ZoneDetail[] = [
     description: 'Customer service desk. Kabir was terrified of hitting "Cancel Booking" because it looked identical to "Confirm Assistance".',
     associatedClue: 'desk',
     npcId: 'priya',
-    tokenId: 'tok-desk-token',
+    tokenId: 'tok-desk',
   },
   {
     id: 'lounge',
@@ -81,14 +81,14 @@ const STATION_ZONES: ZoneDetail[] = [
     category: 'Area 4 · Side Exploration',
     description: 'Spacious lounge with seating clusters, plants, and commuter Rohan asking for help with ambiguous wayfinding.',
     npcId: 'rohan',
-    tokenId: 'tok-lounge-token',
+    tokenId: 'tok-lounge',
   },
   {
     id: 'lab',
     name: 'Designer Workshop & Clarity Lab',
     category: 'Area 5 · Repair Workbench',
     description: 'Physical workshop space for testing interface solutions: floating persistent labels, actionable error text, and clear button hierarchy.',
-    tokenId: 'tok-lab-token',
+    tokenId: 'tok-lab',
   },
   {
     id: 'platform',
@@ -96,7 +96,7 @@ const STATION_ZONES: ZoneDetail[] = [
     category: 'Rail Destination',
     description: 'Dual railway tracks with safety tactile line, multi-coach Deccan Express train, conductor Rajiv, and scheduled passenger boarding.',
     npcId: 'rajiv',
-    tokenId: 'tok-platform-token',
+    tokenId: 'tok-platform',
   },
 ];
 
@@ -185,6 +185,27 @@ export const StationFallback: React.FC<StationFallbackProps> = ({
             >
               ★ {rewardState.unlockedBadgeIds.length}/{GAME_BADGES.length} BADGES
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Reset all tokens and badges back to 0 for a fresh playthrough?')) {
+                  RewardLedger.resetLifetimeRewards();
+                }
+              }}
+              style={{
+                background: '#fff0f0',
+                color: '#e11d48',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                border: '1.5px dashed #e11d48',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+              title="Reset earned tokens, visited zones, and badges to start fresh"
+            >
+              🔄 Reset (0 Tokens)
+            </button>
           </div>
         </div>
       </div>

@@ -18,7 +18,7 @@ export interface CharacterControllerHandles {
 }
 
 export function createCharacterController(options: CharacterControllerOptions): CharacterControllerHandles {
-  const { scene, avatarId, initialX = 0.0, initialZ = 6.0 } = options;
+  const { scene, avatarId, initialX = 0.0, initialZ = 7.5 } = options;
   const avatar = AVATAR_CHOICES.find((a) => a.id === avatarId) || AVATAR_CHOICES[0];
   const disposables: Array<{ dispose: () => void }> = [];
 
@@ -33,10 +33,11 @@ export function createCharacterController(options: CharacterControllerOptions): 
 
   const group = new THREE.Group();
   group.position.set(initialX, 0, initialZ);
+  group.rotation.y = Math.PI; // Face North towards station entrance
   scene.add(group);
 
   const pos = { x: initialX, z: initialZ };
-  let currentAngle = 0;
+  let currentAngle = Math.PI;
 
   // =========================================================================
   // 1. ANATOMY & STYLIZED OUTFIT
@@ -248,20 +249,65 @@ export function createCharacterController(options: CharacterControllerOptions): 
       const moveX = (dx / len) * speed * delta;
       const moveZ = (dz / len) * speed * delta;
 
-      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -5.2, 5.2);
-      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -3.1, 7.2);
+      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -7.8, 7.8);
+      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -3.1, 10.5);
 
-      // Collision checks with Station Obstacles
-      // 1. Central Kiosk at (0, 0.2)
-      const hitKiosk = Math.abs(nextX) < 0.72 && Math.abs(nextZ - 0.2) < 0.62;
-      // 2. Help Desk at (-2.6, 0.4)
-      const hitDesk = Math.abs(nextX - -2.6) < 1.15 && Math.abs(nextZ - 0.4) < 0.85;
-      // 3. Departure Board Post at (2.6, -1.2)
-      const hitBoard = Math.abs(nextX - 2.6) < 0.45 && Math.abs(nextZ - -1.2) < 0.45;
-      // 4. Train Platform Boundary (safety tactile line, cannot fall onto active tracks)
+      // Traversal zones through open doorways / archways:
+      // Doorway: Atrium <-> Room 4 (West): x around -3.0, z in [2.5, 3.9]
+      const inDoorAtriumLounge = Math.abs(nextX - -3.0) < 0.45 && nextZ >= 2.5 && nextZ <= 3.9;
+      // Doorway: Atrium <-> Room 5 (East): x around 3.0, z in [2.5, 3.9]
+      const inDoorAtriumLab = Math.abs(nextX - 3.0) < 0.45 && nextZ >= 2.5 && nextZ <= 3.9;
+      // Doorway: Room 1 <-> Room 3 (West): x around -3.0, z in [-0.5, 0.9]
+      const inDoorConcourseDesk = Math.abs(nextX - -3.0) < 0.45 && nextZ >= -0.5 && nextZ <= 0.9;
+      // Doorway: Room 1 <-> Room 2 (East): x around 3.0, z in [-0.5, 0.9]
+      const inDoorConcourseBoard = Math.abs(nextX - 3.0) < 0.45 && nextZ >= -0.5 && nextZ <= 0.9;
+      // Doorway: Room 4 <-> Room 3: z around 1.8, x in [-6.5, -4.7]
+      const inDoorLoungeDesk = Math.abs(nextZ - 1.8) < 0.35 && nextX >= -6.5 && nextX <= -4.7;
+      // Doorway: Room 5 <-> Room 2: z around 1.8, x in [4.7, 6.5]
+      const inDoorLabBoard = Math.abs(nextZ - 1.8) < 0.35 && nextX >= 4.7 && nextX <= 6.5;
+      // Platform Turnstiles from Room 1: z around -1.4, x in [-1.8, 1.8]
+      const inPlatformGate = Math.abs(nextZ - -1.4) < 0.35 && Math.abs(nextX) <= 1.8;
+      // Platform Ramp from Room 3: z around -1.4, x in [-7.5, -5.0]
+      const inPlatformWest = Math.abs(nextZ - -1.4) < 0.35 && nextX >= -7.5 && nextX <= -5.0;
+      // Platform Ramp from Room 2: z around -1.4, x in [5.0, 7.5]
+      const inPlatformEast = Math.abs(nextZ - -1.4) < 0.35 && nextX >= 5.0 && nextX <= 7.5;
+
+      // Solid dividing wall collisions:
+      // Dividing wall x = -3.0 (between Room 1/Atrium and Room 3/Room 4)
+      const hitWestDividingWall = Math.abs(nextX - -3.0) < 0.22 && !inDoorAtriumLounge && !inDoorConcourseDesk;
+      // Dividing wall x = 3.0 (between Room 1/Atrium and Room 2/Room 5)
+      const hitEastDividingWall = Math.abs(nextX - 3.0) < 0.22 && !inDoorAtriumLab && !inDoorConcourseBoard;
+      // Dividing horizontal wall z = 1.8 (between Lounge/Desk and Lab/Board)
+      const hitHorizWallWest = Math.abs(nextZ - 1.8) < 0.22 && nextX < -3.0 && !inDoorLoungeDesk;
+      const hitHorizWallEast = Math.abs(nextZ - 1.8) < 0.22 && nextX > 3.0 && !inDoorLabBoard;
+      // Facade wall at z = 4.4
+      const hitFacadeWall = Math.abs(nextZ - 4.4) < 0.28 && Math.abs(nextX) > 2.5;
+      // Platform dividing wall at z = -1.4
+      const hitPlatformWall = Math.abs(nextZ - -1.4) < 0.22 && !inPlatformGate && !inPlatformWest && !inPlatformEast;
+
+      // Specific Furniture & Prop collisions
+      const hitKiosk = Math.abs(nextX) < 0.72 && Math.abs(nextZ - 0.2) < 0.55;
+      const hitDesk = Math.abs(nextX - -5.6) < 1.3 && Math.abs(nextZ - 0.2) < 0.55;
+      const hitBoard = Math.abs(nextX - 5.4) < 0.45 && Math.abs(nextZ - -1.2) < 0.45;
+      const hitClock = Math.abs(nextX - 1.8) < 0.35 && Math.abs(nextZ - 2.4) < 0.35;
+      const hitGate = (Math.abs(nextX - -2.5) < 0.35 || Math.abs(nextX - 2.5) < 0.35) && Math.abs(nextZ - 4.4) < 0.35;
       const hitTracks = nextZ < -3.1;
 
-      if (!hitKiosk && !hitDesk && !hitBoard && !hitTracks) {
+      const isBlocked =
+        hitWestDividingWall ||
+        hitEastDividingWall ||
+        hitHorizWallWest ||
+        hitHorizWallEast ||
+        hitFacadeWall ||
+        hitPlatformWall ||
+        hitKiosk ||
+        hitDesk ||
+        hitBoard ||
+        hitClock ||
+        hitGate ||
+        hitTracks;
+
+      if (!isBlocked) {
         pos.x = nextX;
         pos.z = nextZ;
       }

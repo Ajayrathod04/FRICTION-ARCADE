@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { SoundEffects } from '../../lib/audio';
+import { RewardLedger } from '../game/state/RewardLedger';
 
 interface PauseMenuModalProps {
   isOpen: boolean;
@@ -70,6 +71,23 @@ export const PauseMenuModal: React.FC<PauseMenuModalProps> = ({
         >
           <span>RESTART MISSION</span>
           <span className="campus-btn-sub">FROM THE ENTRANCE</span>
+        </button>
+
+        {/* Safe Profile & Token Reset */}
+        <button
+          type="button"
+          className="campus-pause-btn"
+          style={{ background: '#fff0f0', border: '2px dashed #e11d48', color: '#e11d48', fontWeight: 700 }}
+          onClick={() => {
+            if (window.confirm('Reset all earned tokens and badges back to 0 for a fresh playthrough?')) {
+              RewardLedger.resetLifetimeRewards();
+              SoundEffects.playCollect();
+              onRestartDrill();
+            }
+          }}
+          title="Reset earned tokens, visited zones, and badges"
+        >
+          <span>🔄 RESET PROFILE & TOKENS (START FRESH)</span>
         </button>
 
         {/* Camera Setting */}

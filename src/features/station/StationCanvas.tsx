@@ -65,7 +65,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   const [voiceNarration, setVoiceNarration] = useState<boolean>(true);
   const [graphicsMode, setGraphicsMode] = useState<'fast' | 'high'>('high');
   const [activeRoleView, setActiveRoleView] = useState<'traveler' | 'designer' | 'evidence'>('traveler');
-  const [playerCoords, setPlayerCoords] = useState({ x: 0.0, z: 6.0, angle: 0 });
+  const [playerCoords, setPlayerCoords] = useState({ x: 0.0, z: 8.5, angle: Math.PI });
   const [rewardState, setRewardState] = useState(RewardLedger.getState());
 
   useEffect(() => {
@@ -105,11 +105,11 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   const keysDown = useRef<{ [key: string]: boolean }>({});
   const pointerPos = useRef({ x: 0, y: 0 });
 
-  // Landmark coordinates in world
+  // Landmark coordinates in world (Room 1, Room 2, Room 3)
   const hotspotPositions = {
     kiosk: new THREE.Vector3(0, 0, 0.2),
-    board: new THREE.Vector3(2.6, 0, -1.2),
-    desk: new THREE.Vector3(-2.6, 0, 0.4),
+    board: new THREE.Vector3(5.4, 0, -1.25),
+    desk: new THREE.Vector3(-5.6, 0, 0.2),
   };
 
   const handleInteract = useCallback(() => {
@@ -219,9 +219,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     );
 
     // --- 2. CAMERA ---
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(2.8, 3.8, 5.2);
-    camera.lookAt(0, 0.65, 0.2);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0.0, 3.8, 12.2);
+    camera.lookAt(0.0, 0.85, 8.0);
 
     // --- 3. RENDERER ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -273,7 +273,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       scene,
       avatarId: selectedAvatarId,
       initialX: 0.0,
-      initialZ: 6.0,
+      initialZ: 8.5,
     });
 
     // --- 7. BUILD SCRIPTED PASSENGER NPCS & GHOST TRAILS ---
@@ -318,38 +318,39 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       }
 
       // Record Visited Zone for Station Explorer Badge
-      if (playerPos.z > 5.2) {
+      if (playerPos.z > 4.4) {
         RewardLedger.recordZoneVisit('city');
-      } else if (playerPos.z > 2.0 && Math.abs(playerPos.x) <= 2.2) {
+      } else if (playerPos.z > 1.8 && Math.abs(playerPos.x) <= 2.8) {
         RewardLedger.recordZoneVisit('atrium');
-      } else if (Math.abs(playerPos.x) <= 1.8 && playerPos.z >= -0.5 && playerPos.z <= 2.0) {
+      } else if (Math.abs(playerPos.x) <= 2.8 && playerPos.z >= -1.4 && playerPos.z <= 1.8) {
         RewardLedger.recordZoneVisit('concourse');
-      } else if (playerPos.x > 1.6 && playerPos.z <= 0.8 && playerPos.z >= -2.0) {
+      } else if (playerPos.x > 2.8 && playerPos.z <= 1.8 && playerPos.z >= -1.4) {
         RewardLedger.recordZoneVisit('board');
-      } else if (playerPos.x < -1.6 && playerPos.z <= 1.5 && playerPos.z >= -1.5) {
+      } else if (playerPos.x < -2.8 && playerPos.z <= 1.8 && playerPos.z >= -1.4) {
         RewardLedger.recordZoneVisit('desk');
-      } else if (playerPos.x < -2.2 && playerPos.z > 1.5) {
+      } else if (playerPos.x < -2.8 && playerPos.z > 1.8) {
         RewardLedger.recordZoneVisit('lounge');
-      } else if (playerPos.x > 2.2 && playerPos.z > 1.5) {
+      } else if (playerPos.x > 2.8 && playerPos.z > 1.8) {
         RewardLedger.recordZoneVisit('lab');
-      } else if (playerPos.z < -2.0) {
+      } else if (playerPos.z < -1.8) {
         RewardLedger.recordZoneVisit('platform');
       }
 
       // Tick Scripted Passengers
       passengerHandles.update(time, delta, isFrictionVisionRef.current, isBoarding);
 
-      // PROXIMITY DETECTION TO HOTSPOTS & NPCS
+      // PROXIMITY DETECTION TO HOTSPOTS & NPCS ACROSS ALL 5 ROOMS
       const playerVec = new THREE.Vector2(playerPos.x, playerPos.z);
       const kioskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.kiosk.x, hotspotPositions.kiosk.z));
       const boardDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.board.x, hotspotPositions.board.z));
       const deskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.desk.x, hotspotPositions.desk.z));
 
       const arjunDist = playerVec.distanceTo(new THREE.Vector2(0.0, 0.65));
-      const meeraDist = playerVec.distanceTo(new THREE.Vector2(2.3, -0.85));
-      const kabirDist = playerVec.distanceTo(new THREE.Vector2(-2.1, 0.55));
+      const meeraDist = playerVec.distanceTo(new THREE.Vector2(5.4, -0.4));
+      const kabirDist = playerVec.distanceTo(new THREE.Vector2(-5.0, 0.55));
+      const priyaDist = playerVec.distanceTo(new THREE.Vector2(-5.6, 0.1));
       const rajivDist = playerVec.distanceTo(new THREE.Vector2(-0.8, -2.9));
-      const rohanDist = playerVec.distanceTo(new THREE.Vector2(-4.2, 2.8));
+      const rohanDist = playerVec.distanceTo(new THREE.Vector2(-5.4, 3.2));
 
       const PROX_THRESHOLD = 1.45;
       if (kioskDist < PROX_THRESHOLD || arjunDist < PROX_THRESHOLD) {
@@ -358,7 +359,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       } else if (boardDist < PROX_THRESHOLD || meeraDist < PROX_THRESHOLD) {
         setNearbyHotspot('board');
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'meera') || null);
-      } else if (deskDist < PROX_THRESHOLD) {
+      } else if (deskDist < PROX_THRESHOLD || priyaDist < PROX_THRESHOLD) {
         setNearbyHotspot('desk');
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'priya') || null);
       } else if (kabirDist < PROX_THRESHOLD) {
@@ -385,21 +386,21 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
 
       // Camera handling: 3/4 Isometric Follow Camera framing traveler, landmarks, and Platform 1
       if (cameraModeRef.current === 'over_the_shoulder') {
-        const camTargetX = playerPos.x - Math.sin(playerAngle) * 0.4 + 0.3;
-        const camTargetZ = playerPos.z + Math.cos(playerAngle) * 2.4;
+        const camTargetX = playerPos.x - Math.sin(playerAngle) * 0.35;
+        const camTargetZ = playerPos.z + Math.cos(playerAngle) * 2.6;
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.09);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.09);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.2, 0.09);
-        camera.lookAt(playerPos.x, 1.0, playerPos.z - 1.2);
+        camera.lookAt(playerPos.x, 0.9, playerPos.z - 1.2);
       } else {
-        // High-clarity 3/4 isometric follow camera with subtle parallax
-        const camTargetX = playerPos.x * 0.7 + 2.4 + pointerPos.current.x * 0.2;
-        const camTargetY = 3.8;
-        const camTargetZ = playerPos.z + 4.2 + pointerPos.current.y * 0.15;
+        // High-clarity 3/4 isometric follow camera centered behind player
+        const camTargetX = THREE.MathUtils.clamp(playerPos.x * 0.82 + pointerPos.current.x * 0.2, -7.2, 7.2);
+        const camTargetY = 3.65;
+        const camTargetZ = Math.min(playerPos.z + 3.8 + pointerPos.current.y * 0.15, 11.8);
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.08);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
-        camera.lookAt(playerPos.x * 0.7, 0.75, playerPos.z);
+        camera.lookAt(playerPos.x * 0.82, 0.85, playerPos.z - 0.9);
       }
 
       renderer.render(scene, camera);
@@ -495,13 +496,15 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
           <div className="campus-hud-target">
             Next Objective:{' '}
             <strong>
-              {!cluesFound.includes('kiosk')
-                ? 'Zone C: Investigate Arjun at Ticket Kiosk'
+              {playerCoords.z > 4.2
+                ? 'Reach Friction Central — enter the station through the grand gate'
+                : !cluesFound.includes('kiosk')
+                ? 'Ticket Concourse: Investigate Arjun at Ticket Kiosk'
                 : !cluesFound.includes('board')
-                ? 'Zone D: Investigate Meera at Departure Board'
+                ? 'Departure Gallery: Investigate Meera at Departure Board'
                 : !cluesFound.includes('desk')
-                ? 'Zone E: Investigate Kabir at Help Desk'
-                : 'Zone C: Launch Ticket Booking Drill'}
+                ? 'Passenger Services: Investigate Kabir at Help Desk'
+                : 'Ticket Concourse: Launch Ticket Booking Drill'}
             </strong>
           </div>
           <div

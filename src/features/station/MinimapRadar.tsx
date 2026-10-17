@@ -18,25 +18,25 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
   onExpandMap,
   activeWaypointId = 'wp-kiosk',
 }) => {
-  // Map world coordinates [-5.5, 5.5] X -> [8, 92] % in SVG
+  // Map world coordinates [-8.8, 8.8] X -> [6, 94] % in SVG
   const toSvgX = (x: number) => {
-    return Math.max(6, Math.min(94, ((x + 5.5) / 11.0) * 84 + 8));
+    return Math.max(6, Math.min(94, ((x + 8.8) / 17.6) * 84 + 8));
   };
 
-  // Map world coordinates [-3.5, 7.5] Z -> [12, 88] % in SVG
+  // Map world coordinates [-4.6, 11.4] Z -> [6, 94] % in SVG
   const toSvgY = (z: number) => {
-    return Math.max(8, Math.min(92, ((z + 3.5) / 11.0) * 76 + 12));
+    return Math.max(6, Math.min(94, ((z + 4.6) / 16.0) * 84 + 8));
   };
 
-  // Hotspots
+  // Hotspots: Kiosk (R1), Board (R2), Desk (R3)
   const kioskX = toSvgX(0);
   const kioskY = toSvgY(0.2);
 
-  const boardX = toSvgX(2.6);
-  const boardY = toSvgY(-1.2);
+  const boardX = toSvgX(5.4);
+  const boardY = toSvgY(-0.4);
 
-  const deskX = toSvgX(-2.6);
-  const deskY = toSvgY(0.4);
+  const deskX = toSvgX(-5.4);
+  const deskY = toSvgY(0.2);
 
   const pX = toSvgX(playerX);
   const pY = toSvgY(playerZ);
@@ -52,7 +52,7 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
 
   const routePoints = calculateWalkableRoute(playerX, playerZ, currentTargetWp.id);
   const routePathD = routePoints
-    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x)} ${toSvgY(pt.z)}`)
+    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x).toFixed(1)} ${toSvgY(pt.z).toFixed(1)}`)
     .join(' ');
 
   return (
@@ -72,16 +72,34 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
     >
       <div className="radar-header">
         <span className="radar-live-blip" />
-        <span className="radar-title">CONCOURSE MAP · M</span>
+        <span className="radar-title">WORLD RADAR · M</span>
       </div>
 
       <svg className="radar-svg" viewBox="0 0 100 100">
-        {/* Background platform floor */}
-        <rect x="5" y="8" width="90" height="84" fill="#241b34" rx="4" />
+        {/* Background container */}
+        <rect x="0" y="0" width="100" height="100" fill="#14101e" rx="4" />
 
         {/* Platform 1 track & train area at top */}
-        <rect x="5" y="8" width="90" height="16" fill="#14101e" />
-        <line x1="5" y1="24" x2="95" y2="24" stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+        <rect x={toSvgX(-8.4)} y={toSvgY(-4.6)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(-1.8) - toSvgY(-4.6)} fill="#1a1524" />
+        <line x1={toSvgX(-8.4)} y1={toSvgY(-3.2)} x2={toSvgX(8.4)} y2={toSvgY(-3.2)} stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+
+        {/* 5 Physical Rooms schematic outlines */}
+        {/* Room 3: Passenger Services */}
+        <rect x={toSvgX(-8.4)} y={toSvgY(-1.6)} width={toSvgX(-3.0) - toSvgX(-8.4)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#281a24" stroke="#ec4899" strokeWidth="0.8" />
+        {/* Room 1: Ticket Concourse */}
+        <rect x={toSvgX(-2.8)} y={toSvgY(-1.6)} width={toSvgX(2.8) - toSvgX(-2.8)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#1c1b30" stroke="#ffd23f" strokeWidth="1.0" />
+        {/* Room 2: Departure Gallery */}
+        <rect x={toSvgX(3.0)} y={toSvgY(-1.6)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#162238" stroke="#3b82f6" strokeWidth="0.8" />
+        {/* Grand Atrium */}
+        <rect x={toSvgX(-2.8)} y={toSvgY(1.8)} width={toSvgX(2.8) - toSvgX(-2.8)} height={toSvgY(4.4) - toSvgY(1.8)} fill="#192c27" stroke="#10b981" strokeWidth="0.8" />
+        {/* Room 4: Waiting Lounge */}
+        <rect x={toSvgX(-8.4)} y={toSvgY(1.8)} width={toSvgX(-3.0) - toSvgX(-8.4)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1f18" stroke="#f97316" strokeWidth="0.8" />
+        {/* Room 5: Designer Lab */}
+        <rect x={toSvgX(3.0)} y={toSvgY(1.8)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1832" stroke="#a855f7" strokeWidth="0.8" />
+        {/* Arrival Plaza */}
+        <rect x={toSvgX(-8.4)} y={toSvgY(4.4)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(8.8) - toSvgY(4.4)} fill="#201b2a" stroke="#3d3356" strokeWidth="0.6" />
+        {/* City Street */}
+        <rect x={toSvgX(-8.4)} y={toSvgY(8.8)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(11.4) - toSvgY(8.8)} fill="#16131c" stroke="#ffd23f" strokeWidth="0.6" strokeDasharray="2 2" />
 
         {/* Live Route Guide Line */}
         {routePathD && (
@@ -95,22 +113,22 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
           />
         )}
 
-        {/* Checkpoint 1: Kiosk */}
+        {/* Checkpoint 1: Kiosk (Room 1) */}
         <circle
           cx={kioskX}
           cy={kioskY}
-          r="4.2"
+          r="4.0"
           className={`radar-pin radar-pin--kiosk ${cluesFound.includes('kiosk') ? 'is-done' : 'is-active'}`}
         />
         <text x={kioskX} y={kioskY + 1.2} className="radar-pin-text">
           1
         </text>
 
-        {/* Checkpoint 2: Departure Board */}
+        {/* Checkpoint 2: Departure Board (Room 2) */}
         <circle
           cx={boardX}
           cy={boardY}
-          r="4.2"
+          r="4.0"
           className={`radar-pin radar-pin--board ${
             cluesFound.includes('board') ? 'is-done' : cluesFound.includes('kiosk') ? 'is-active' : ''
           }`}
@@ -119,11 +137,11 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
           2
         </text>
 
-        {/* Checkpoint 3: Help Desk */}
+        {/* Checkpoint 3: Help Desk (Room 3) */}
         <circle
           cx={deskX}
           cy={deskY}
-          r="4.2"
+          r="4.0"
           className={`radar-pin radar-pin--desk ${
             cluesFound.includes('desk') ? 'is-done' : cluesFound.includes('board') ? 'is-active' : ''
           }`}

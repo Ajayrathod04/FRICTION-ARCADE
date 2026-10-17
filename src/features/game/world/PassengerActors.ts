@@ -131,8 +131,8 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   // Stylish magenta trench coat, ponytail, dark trousers, holding timetable brochure
   // =========================================================================
   const meeraGroup = new THREE.Group();
-  meeraGroup.position.set(2.3, 0, -0.85);
-  meeraGroup.rotation.y = Math.PI * 0.85; // Gazes up at departure board
+  meeraGroup.position.set(5.4, 0, -0.4);
+  meeraGroup.rotation.y = Math.PI * 0.9; // Gazes up at departure board in Room 2
 
   const meeraCoatMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xd946ef, roughness: 0.4 }));
   const meeraPantsMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x1f192b, roughness: 0.6 }));
@@ -198,8 +198,8 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   // Electric blue puffer jacket, beige chinos, white sneakers, phone in hand
   // =========================================================================
   const kabirGroup = new THREE.Group();
-  kabirGroup.position.set(-2.1, 0, 0.55);
-  kabirGroup.rotation.y = -Math.PI / 3; // Faces northwest towards Help Desk counter
+  kabirGroup.position.set(-5.0, 0, 0.55);
+  kabirGroup.rotation.y = -Math.PI / 3; // Faces northwest towards Help Desk counter in Room 3
 
   const kabirJacketMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.4 }));
   const kabirPantsMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.6 }));
@@ -249,7 +249,7 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   // Purple railway vest over white shirt, ID badge, welcoming pose behind counter
   // =========================================================================
   const priyaGroup = new THREE.Group();
-  priyaGroup.position.set(-2.6, 0, 0.1);
+  priyaGroup.position.set(-5.6, 0, 0.1);
   priyaGroup.rotation.y = Math.PI / 4;
 
   const priyaVestMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x6b21a8, roughness: 0.4 }));
@@ -348,7 +348,25 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   group.add(rajivGroup);
 
   // =========================================================================
-  // 6. FRICTION VISION: GHOST FORENSIC REPLAY TRAILS & BEACONS
+  // 6. PASSENGER 6: ROHAN (Waiting Lounge — x: -5.4, z: 3.2)
+  // Commuter with mustard polo, asking for wayfinding guidance
+  // =========================================================================
+  const rohanGroup = new THREE.Group();
+  rohanGroup.position.set(-5.4, 0, 3.2);
+  rohanGroup.rotation.y = Math.PI / 4;
+  const rohanMat = registerMat(new THREE.MeshStandardMaterial({ color: 0xca8a04, roughness: 0.5 }));
+  const rohanTorso = new THREE.Mesh(registerGeo(new THREE.CylinderGeometry(0.19, 0.22, 0.56, 12)), rohanMat);
+  rohanTorso.position.y = 0.68;
+  const rohanHead = new THREE.Mesh(registerGeo(new THREE.SphereGeometry(0.14, 12, 12)), skinMat);
+  rohanHead.position.y = 1.1;
+  const rohanHair = new THREE.Mesh(registerGeo(new THREE.BoxGeometry(0.22, 0.1, 0.22)), darkHairMat);
+  rohanHair.position.set(0, 1.2, 0);
+  createArticulatedLegs(registerMat(new THREE.MeshStandardMaterial({ color: 0x1f2937 })), rohanGroup);
+  rohanGroup.add(rohanTorso, rohanHead, rohanHair);
+  group.add(rohanGroup);
+
+  // =========================================================================
+  // 7. FRICTION VISION: GHOST FORENSIC REPLAY TRAILS & BEACONS
   // =========================================================================
   const ghostArjunPoints = [
     new THREE.Vector3(0.0, 0.04, 3.2),
@@ -358,17 +376,19 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   ];
 
   const ghostMeeraPoints = [
-    new THREE.Vector3(0.6, 0.04, 1.2),
-    new THREE.Vector3(1.6, 0.04, 0.2),
-    new THREE.Vector3(2.3, 0.04, -0.3),
-    new THREE.Vector3(2.3, 0.04, -0.85), // Confusion Pacing
+    new THREE.Vector3(0.0, 0.04, 2.8),
+    new THREE.Vector3(2.0, 0.04, 1.8),
+    new THREE.Vector3(3.0, 0.04, 0.4),
+    new THREE.Vector3(4.5, 0.04, 0.2),
+    new THREE.Vector3(5.4, 0.04, -0.4), // Confusion Pacing
   ];
 
   const ghostKabirPoints = [
-    new THREE.Vector3(-0.6, 0.04, 2.0),
-    new THREE.Vector3(-1.4, 0.04, 1.4),
-    new THREE.Vector3(-2.1, 0.04, 0.8),
-    new THREE.Vector3(-2.1, 0.04, 0.55), // Button Ambiguity Freeze
+    new THREE.Vector3(0.0, 0.04, 2.8),
+    new THREE.Vector3(-2.0, 0.04, 1.8),
+    new THREE.Vector3(-3.0, 0.04, 0.4),
+    new THREE.Vector3(-4.5, 0.04, 0.3),
+    new THREE.Vector3(-5.0, 0.04, 0.55), // Button Ambiguity Freeze
   ];
 
   const allGhostPaths = [

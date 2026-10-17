@@ -31,14 +31,14 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
 }) => {
   const [selectedWpId, setSelectedWpId] = useState<string>(activeWaypointId);
 
-  // World coordinates [-5.5, 5.5] X -> [6, 94] % X
+  // World coordinates [-8.8, 8.8] X -> [6, 94] % X
   const toSvgX = (x: number) => {
-    return Math.max(6, Math.min(94, ((x + 5.5) / 11.0) * 84 + 8));
+    return Math.max(6, Math.min(94, ((x + 8.8) / 17.6) * 84 + 8));
   };
 
-  // World coordinates [-3.5, 7.5] Z -> [8, 92] % Y
+  // World coordinates [-4.6, 11.4] Z -> [6, 94] % Y
   const toSvgY = (z: number) => {
-    return Math.max(8, Math.min(92, ((z + 3.5) / 11.0) * 78 + 10));
+    return Math.max(6, Math.min(94, ((z + 4.6) / 16.0) * 84 + 8));
   };
 
   const pSvgX = toSvgX(playerX);
@@ -50,7 +50,7 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
   // Calculate live route from player to selected waypoint
   const routePoints = calculateWalkableRoute(playerX, playerZ, currentWp.id);
   const svgPathD = routePoints
-    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x)} ${toSvgY(pt.z)}`)
+    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x).toFixed(1)} ${toSvgY(pt.z).toFixed(1)}`)
     .join(' ');
 
   const handleSelectWp = (wp: StationWaypoint) => {
@@ -70,37 +70,140 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="STATION CONCOURSE TOP-DOWN MAP"
+      title="FRICTION CENTRAL · 5-ROOM WORLD MAP"
       badge="OVERHEAD NAVIGATION · KEY M"
-      maxWidth="780px"
+      maxWidth="840px"
     >
       <div className="station-map-modal-content">
         <div className="station-map-meta-strip">
           <span>
-            Click any landmark to set it as your <strong>Active Waypoint</strong>. Route guidance displays along safe walkable paths.
+            Click any landmark to set <strong>Active Waypoint</strong>. Walk through open doors between the 5 physical rooms, plaza and platform.
           </span>
           <Badge variant="sticker" color="#FFD23F">
             {cluesFound.length}/3 STAMPS COLLECTED
           </Badge>
         </div>
 
-        {/* 2D Overhead Schematic Plan matching 3D world geometry */}
-        <div className="schematic-map" style={{ position: 'relative', height: '360px', background: '#1c1729', borderRadius: '12px', border: '3px solid #17131f', overflow: 'hidden' }}>
+        {/* 2D Overhead Schematic Plan matching the 5-room 3D world geometry */}
+        <div className="schematic-map" style={{ position: 'relative', height: '420px', background: '#120f1b', borderRadius: '12px', border: '3px solid #17131f', overflow: 'hidden' }}>
           <svg className="schematic-svg-grid" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-            {/* Background platform floor */}
-            <rect x="5" y="8" width="90" height="84" fill="#261d36" rx="4" />
+            {/* Base Background */}
+            <rect x="0" y="0" width="100" height="100" fill="#120f1b" />
 
-            {/* Platform 1 Track Bed and Rails (Top area: z = -4.6 to -3.0) */}
-            <rect x="5" y="8" width="90" height="18" fill="#14101e" />
-            <line x1="5" y1="12" x2="95" y2="12" stroke="#4a4060" strokeWidth="0.8" />
-            <line x1="5" y1="17" x2="95" y2="17" stroke="#4a4060" strokeWidth="0.8" />
-            <line x1="5" y1="24" x2="95" y2="24" stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
-
-            {/* Train representation on Platform 1 */}
-            <rect x="8" y="9.5" width="84" height="6" fill="#ff8a1f" rx="1.5" />
-            <text x="50" y="14" fill="#17131f" fontSize="3" fontWeight="bold" textAnchor="middle">
-              PLATFORM 01 · DECCAN EXPRESS (TO PUNE)
+            {/* Zone 0: Mumbai City Street (Bottom: z = 8.8 to 11.4) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(8.8)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(11.4) - toSvgY(8.8)} fill="#1a1824" stroke="#2e273f" strokeWidth="0.8" />
+            <line x1={toSvgX(-8.4)} y1={toSvgY(10.1)} x2={toSvgX(8.4)} y2={toSvgY(10.1)} stroke="#ffd23f" strokeWidth="0.7" strokeDasharray="3 2" />
+            {/* Zebra Crossing */}
+            <rect x={toSvgX(-1.5)} y={toSvgY(8.8)} width={toSvgX(1.5) - toSvgX(-1.5)} height={toSvgY(10.8) - toSvgY(8.8)} fill="#252136" />
+            <line x1={toSvgX(-1.2)} y1={toSvgY(9.2)} x2={toSvgX(1.2)} y2={toSvgY(9.2)} stroke="#ffffff" strokeWidth="1.0" />
+            <line x1={toSvgX(-1.2)} y1={toSvgY(9.8)} x2={toSvgX(1.2)} y2={toSvgY(9.8)} stroke="#ffffff" strokeWidth="1.0" />
+            <line x1={toSvgX(-1.2)} y1={toSvgY(10.4)} x2={toSvgX(1.2)} y2={toSvgY(10.4)} stroke="#ffffff" strokeWidth="1.0" />
+            <text x={toSvgX(0)} y={toSvgY(11.0)} fill="#8c829e" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              CITY STREET · VEHICLE ROUTE & START SPAWN
             </text>
+
+            {/* Zone 1: Arrival Plaza (z = 4.4 to 8.8) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(4.4)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(8.8) - toSvgY(4.4)} fill="#221c30" stroke="#3d3356" strokeWidth="0.8" />
+            <text x={toSvgX(0)} y={toSvgY(6.8)} fill="#a79ac0" fontSize="2.4" fontWeight="bold" textAnchor="middle">
+              ARRIVAL FORECOURT & GARDEN PLAZA
+            </text>
+
+            {/* Entrance Facade Gate (z = 4.4, open gate at x = -2.4 to 2.4) */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(4.4)} x2={toSvgX(-2.4)} y2={toSvgY(4.4)} stroke="#ffaa33" strokeWidth="1.8" />
+            <line x1={toSvgX(2.4)} y1={toSvgY(4.4)} x2={toSvgX(8.4)} y2={toSvgY(4.4)} stroke="#ffaa33" strokeWidth="1.8" />
+            {/* Open Gate Doorway Indicator */}
+            <rect x={toSvgX(-2.4)} y={toSvgY(4.2)} width={toSvgX(2.4) - toSvgX(-2.4)} height={toSvgY(4.6) - toSvgY(4.2)} fill="#059669" opacity="0.4" />
+            <text x={toSvgX(0)} y={toSvgY(4.3)} fill="#10b981" fontSize="2.0" fontWeight="bold" textAnchor="middle">
+              OPEN GATE: FRICTION CENTRAL
+            </text>
+
+            {/* Zone 2: Grand Victorian Atrium (Center Hub: x = -2.8 to 2.8, z = 1.8 to 4.4) */}
+            <rect x={toSvgX(-2.8)} y={toSvgY(1.8)} width={toSvgX(2.8) - toSvgX(-2.8)} height={toSvgY(4.4) - toSvgY(1.8)} fill="#192c27" stroke="#10b981" strokeWidth="1.0" />
+            <text x={toSvgX(0)} y={toSvgY(3.1)} fill="#34d399" fontSize="2.3" fontWeight="bold" textAnchor="middle">
+              GRAND ATRIUM (HUB)
+            </text>
+            <text x={toSvgX(1.8)} y={toSvgY(2.7)} fill="#ffd23f" fontSize="1.8" fontWeight="bold">
+              CLOCK
+            </text>
+
+            {/* Room 4: Waiting Lounge & Transit Arcade (SW: x = -8.4 to -3.0, z = 1.8 to 5.0) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(1.8)} width={toSvgX(-3.0) - toSvgX(-8.4)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1f18" stroke="#f97316" strokeWidth="1.0" />
+            <text x={toSvgX(-5.7)} y={toSvgY(2.6)} fill="#fb923c" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              ROOM 4: WAITING LOUNGE
+            </text>
+            <text x={toSvgX(-5.7)} y={toSvgY(4.2)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
+              Chai Counter · Rohan · Benches
+            </text>
+            {/* Doorway R4 <-> Atrium (x = -3.0, z = 2.8 to 4.0) */}
+            <rect x={toSvgX(-3.1)} y={toSvgY(2.8)} width={toSvgX(-2.7) - toSvgX(-3.1)} height={toSvgY(4.0) - toSvgY(2.8)} fill="#f97316" opacity="0.5" />
+
+            {/* Room 5: Designer Workshop & Clarity Lab (SE: x = 3.0 to 8.4, z = 1.8 to 5.0) */}
+            <rect x={toSvgX(3.0)} y={toSvgY(1.8)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1832" stroke="#a855f7" strokeWidth="1.0" />
+            <text x={toSvgX(5.7)} y={toSvgY(2.6)} fill="#c084fc" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              ROOM 5: DESIGNER LAB
+            </text>
+            <text x={toSvgX(5.7)} y={toSvgY(4.2)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
+              Repair Pedestals · Clarity Lab
+            </text>
+            {/* Doorway R5 <-> Atrium (x = 3.0, z = 2.8 to 4.0) */}
+            <rect x={toSvgX(2.7)} y={toSvgY(2.8)} width={toSvgX(3.1) - toSvgX(2.7)} height={toSvgY(4.0) - toSvgY(2.8)} fill="#a855f7" opacity="0.5" />
+
+            {/* Room 3: Passenger Services Wing (NW: x = -8.4 to -3.0, z = -1.6 to 1.8) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(-1.6)} width={toSvgX(-3.0) - toSvgX(-8.4)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#281a24" stroke="#ec4899" strokeWidth="1.0" />
+            <text x={toSvgX(-5.7)} y={toSvgY(-0.8)} fill="#f472b6" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              ROOM 3: PASSENGER SERVICES
+            </text>
+            <text x={toSvgX(-5.7)} y={toSvgY(1.1)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
+              Agent Priya · Kabir · Desk (CP 3)
+            </text>
+            {/* Doorway R3 <-> Room 1 (x = -3.0, z = -0.6 to 0.6) */}
+            <rect x={toSvgX(-3.1)} y={toSvgY(-0.6)} width={toSvgX(-2.7) - toSvgX(-3.1)} height={toSvgY(0.6) - toSvgY(-0.6)} fill="#ec4899" opacity="0.5" />
+            {/* Doorway R3 <-> Room 4 (z = 1.8, x = -6.2 to -5.0) */}
+            <rect x={toSvgX(-6.2)} y={toSvgY(1.6)} width={toSvgX(-5.0) - toSvgX(-6.2)} height={toSvgY(2.0) - toSvgY(1.6)} fill="#fb923c" opacity="0.5" />
+
+            {/* Room 1: Ticket Concourse (Center: x = -2.8 to 2.8, z = -1.6 to 1.8) */}
+            <rect x={toSvgX(-2.8)} y={toSvgY(-1.6)} width={toSvgX(2.8) - toSvgX(-2.8)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#1c1b30" stroke="#ffd23f" strokeWidth="1.2" />
+            {/* Royal blue carpet runner */}
+            <rect x={toSvgX(-0.8)} y={toSvgY(-0.8)} width={toSvgX(0.8) - toSvgX(-0.8)} height={toSvgY(1.8) - toSvgY(-0.8)} fill="#1e3a8a" opacity="0.7" />
+            <text x={toSvgX(0)} y={toSvgY(-1.0)} fill="#ffd23f" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              ROOM 1: TICKET CONCOURSE
+            </text>
+            <text x={toSvgX(0)} y={toSvgY(1.2)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
+              Kiosk (CP 1) · Arjun · Blue Carpet
+            </text>
+            {/* Opening Room 1 <-> Atrium (z = 1.8, x = -1.6 to 1.6) */}
+            <rect x={toSvgX(-1.6)} y={toSvgY(1.6)} width={toSvgX(1.6) - toSvgX(-1.6)} height={toSvgY(2.0) - toSvgY(1.6)} fill="#10b981" opacity="0.4" />
+
+            {/* Room 2: Departure Gallery (NE: x = 3.0 to 8.4, z = -1.6 to 1.8) */}
+            <rect x={toSvgX(3.0)} y={toSvgY(-1.6)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(1.8) - toSvgY(-1.6)} fill="#162238" stroke="#3b82f6" strokeWidth="1.0" />
+            <text x={toSvgX(5.7)} y={toSvgY(-0.8)} fill="#60a5fa" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              ROOM 2: DEPARTURE GALLERY
+            </text>
+            <text x={toSvgX(5.7)} y={toSvgY(1.1)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
+              Solari Board (CP 2) · Meera
+            </text>
+            {/* Doorway R2 <-> Room 1 (x = 3.0, z = -0.6 to 0.6) */}
+            <rect x={toSvgX(2.7)} y={toSvgY(-0.6)} width={toSvgX(3.1) - toSvgX(2.7)} height={toSvgY(0.6) - toSvgY(-0.6)} fill="#3b82f6" opacity="0.5" />
+            {/* Doorway R2 <-> Room 5 (z = 1.8, x = 5.0 to 6.2) */}
+            <rect x={toSvgX(5.0)} y={toSvgY(1.6)} width={toSvgX(6.2) - toSvgX(5.0)} height={toSvgY(2.0) - toSvgY(1.6)} fill="#a855f7" opacity="0.5" />
+
+            {/* Grand Platform 1 & Railway Tracks (Top: z = -4.6 to -1.8) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(-4.6)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(-1.8) - toSvgY(-4.6)} fill="#120e1a" stroke="#4a4060" strokeWidth="0.8" />
+            {/* Tracks */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-4.2)} x2={toSvgX(8.4)} y2={toSvgY(-4.2)} stroke="#4a4060" strokeWidth="0.8" />
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-3.7)} x2={toSvgX(8.4)} y2={toSvgY(-3.7)} stroke="#4a4060" strokeWidth="0.8" />
+            {/* Platform Yellow Safety Tactile Edge */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-3.2)} x2={toSvgX(8.4)} y2={toSvgY(-3.2)} stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+            {/* Train Carriage */}
+            <rect x={toSvgX(-7.5)} y={toSvgY(-4.5)} width={toSvgX(7.5) - toSvgX(-7.5)} height={toSvgY(-3.5) - toSvgY(-4.5)} fill="#ff8a1f" rx="1.5" />
+            <text x={toSvgX(0)} y={toSvgY(-3.8)} fill="#17131f" fontSize="2.3" fontWeight="bold" textAnchor="middle">
+              PLATFORM 01 · DECCAN EXPRESS (SIMULATED SERVICE)
+            </text>
+            <text x={toSvgX(0)} y={toSvgY(-2.3)} fill="#c7b5ff" fontSize="2.0" fontWeight="bold" textAnchor="middle">
+              PASSENGER BOARDING PLATFORM · CONDUCTOR RAJIV
+            </text>
+            {/* Turnstile Passage Room 1 -> Platform (z = -1.6, x = -1.2 to 1.2) */}
+            <rect x={toSvgX(-1.2)} y={toSvgY(-1.8)} width={toSvgX(1.2) - toSvgX(-1.2)} height={toSvgY(-1.4) - toSvgY(-1.8)} fill="#ffd23f" opacity="0.6" />
 
             {/* Walking Path Connectors (Graph edges) */}
             {STATION_WAYPOINTS.map((wp) =>
@@ -114,8 +217,8 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
                     y1={toSvgY(wp.z)}
                     x2={toSvgX(target.x)}
                     y2={toSvgY(target.z)}
-                    stroke="#382e4f"
-                    strokeWidth="1.2"
+                    stroke="#44395d"
+                    strokeWidth="1.0"
                     strokeDasharray="2 1.5"
                   />
                 );
@@ -128,7 +231,7 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
                 d={svgPathD}
                 fill="none"
                 stroke="#ffd23f"
-                strokeWidth="2.2"
+                strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeDasharray="4 2"
@@ -136,8 +239,17 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
               />
             )}
 
-            {/* In-World NPCs Markers */}
-            {/* Waypoints / Landmarks (Rendered first with crisp pill labels) */}
+            {/* Collectible Tokens in R4 & R5 */}
+            <g transform={`translate(${toSvgX(-6.2)}, ${toSvgY(3.6)})`}>
+              <circle r="2.2" fill="#ffd23f" stroke="#17131f" strokeWidth="0.8" />
+              <text y="0.8" fontSize="2.0" fill="#17131f" fontWeight="bold" textAnchor="middle">🪙</text>
+            </g>
+            <g transform={`translate(${toSvgX(6.4)}, ${toSvgY(3.6)})`}>
+              <circle r="2.2" fill="#ffd23f" stroke="#17131f" strokeWidth="0.8" />
+              <text y="0.8" fontSize="2.0" fill="#17131f" fontWeight="bold" textAnchor="middle">🪙</text>
+            </g>
+
+            {/* Waypoints / Landmarks */}
             {STATION_WAYPOINTS.map((wp) => {
               const wx = toSvgX(wp.x);
               const wy = toSvgY(wp.z);
@@ -155,15 +267,14 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
 
               // Dynamic label offset based on landmark location to prevent overlapping
               let labelOffsetX = 0;
-              let labelOffsetY = isCheckpoint ? 7.0 : 5.5;
-              let textAnchor: 'middle' | 'start' | 'end' = 'middle';
+              let labelOffsetY = isCheckpoint ? 6.5 : 5.0;
 
               if (wp.id === 'wp-desk') {
                 labelOffsetX = -2;
-                labelOffsetY = 6.5;
+                labelOffsetY = 5.5;
               } else if (wp.id === 'wp-board') {
                 labelOffsetX = 2;
-                labelOffsetY = 6.5;
+                labelOffsetY = 5.5;
               } else if (wp.id === 'wp-gate' || wp.id === 'wp-train') {
                 labelOffsetY = -5.0;
               }
@@ -177,35 +288,35 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
                 >
                   {/* Pin Circle */}
                   <circle
-                    r={isSelected ? 4.2 : isCheckpoint ? 3.4 : 2.2}
+                    r={isSelected ? 4.0 : isCheckpoint ? 3.2 : 2.0}
                     fill={pinColor}
                     stroke="#17131f"
                     strokeWidth={isSelected ? 1.6 : 1.0}
                   />
                   {isCheckpoint && (
-                    <text y="1.2" fontSize="2.6" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                    <text y="1.2" fontSize="2.4" fill="#17131f" fontWeight="bold" textAnchor="middle">
                       {wp.hotspotId === 'kiosk' ? '1' : wp.hotspotId === 'board' ? '2' : '3'}
                     </text>
                   )}
 
-                  {/* High-Contrast Pill Background for Text (prevents overlapping clutter) */}
+                  {/* Pill Background for Text */}
                   <g transform={`translate(${labelOffsetX}, ${labelOffsetY})`}>
                     <rect
-                      x={-wp.name.length * 1.3}
-                      y="-2.8"
-                      width={wp.name.length * 2.6}
-                      height="4.2"
-                      rx="2.1"
+                      x={-wp.name.length * 1.1}
+                      y="-2.5"
+                      width={wp.name.length * 2.2}
+                      height="3.8"
+                      rx="1.9"
                       fill="#17131f"
                       stroke={isSelected ? '#ffd23f' : isCheckpoint ? pinColor : '#4a4060'}
                       strokeWidth={isSelected ? '0.9' : '0.5'}
                     />
                     <text
                       y="0.3"
-                      fontSize="2.2"
+                      fontSize="1.9"
                       fill={isSelected ? '#ffd23f' : isCheckpoint ? '#fff6e5' : '#c7b5ff'}
                       fontWeight="700"
-                      textAnchor={textAnchor}
+                      textAnchor="middle"
                     >
                       {wp.name}
                     </text>
@@ -214,27 +325,27 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
               );
             })}
 
-            {/* In-World NPCs Markers (Placed with distinct cyan badges and non-overlapping tags) */}
+            {/* In-World NPCs Markers */}
             {STATION_NPCS.map((npc) => {
               const nx = toSvgX(npc.position.x);
               const ny = toSvgY(npc.position.z);
               return (
                 <g key={npc.id} transform={`translate(${nx}, ${ny})`}>
-                  <circle r="2.0" fill="#8ddcff" stroke="#17131f" strokeWidth="0.8" />
-                  <text y="0.8" fontSize="1.8" fill="#17131f" fontWeight="bold" textAnchor="middle">
+                  <circle r="1.8" fill="#8ddcff" stroke="#17131f" strokeWidth="0.8" />
+                  <text y="0.8" fontSize="1.6" fill="#17131f" fontWeight="bold" textAnchor="middle">
                     👤
                   </text>
                   <rect
-                    x={-npc.name.length * 1.1}
-                    y="-5.4"
-                    width={npc.name.length * 2.2}
-                    height="3.6"
-                    rx="1.8"
+                    x={-npc.name.length * 0.9}
+                    y="-4.8"
+                    width={npc.name.length * 1.8}
+                    height="3.2"
+                    rx="1.6"
                     fill="#17131f"
                     stroke="#8ddcff"
                     strokeWidth="0.5"
                   />
-                  <text y="-3.0" fontSize="1.8" fill="#8ddcff" fontWeight="bold" textAnchor="middle">
+                  <text y="-2.7" fontSize="1.6" fill="#8ddcff" fontWeight="bold" textAnchor="middle">
                     {npc.name}
                   </text>
                 </g>
