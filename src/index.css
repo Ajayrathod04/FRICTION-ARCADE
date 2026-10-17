@@ -7175,6 +7175,208 @@ body {
   background-size: 20px 20px;
 }
 
+/* =========================================================================
+   EDITORIAL ZINE POLISH (Pink & Coral Panels, Zigzag Dividers, Cobalt Accent)
+   ========================================================================= */
+
+/* Bold Black Zigzag Section Dividers */
+.zine-zigzag-divider {
+  width: 100%;
+  height: 22px;
+  background-image: 
+    linear-gradient(135deg, #17131f 25%, transparent 25%),
+    linear-gradient(225deg, #17131f 25%, transparent 25%),
+    linear-gradient(315deg, #17131f 25%, transparent 25%),
+    linear-gradient(45deg, #17131f 25%, transparent 25%);
+  background-size: 20px 20px;
+  background-repeat: repeat-x;
+  background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
+  opacity: 0.95;
+  margin: 0;
+  display: block;
+}
+
+/* Restrained Cobalt-Blue Accent */
+.zine-cobalt-accent {
+  background: #1e40af !important;
+  color: #ffffff !important;
+  border-color: #17131f !important;
+}
+
+.route-marker-cobalt {
+  background: #1e40af;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border: 1.5px solid #17131f;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Controlled Glossy Title Sheen Animation */
+@keyframes titleSheenMove {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.hero-ipop-display-title .ipop-word-friction {
+  background: linear-gradient(
+    110deg,
+    #17131f 20%,
+    #ffd23f 40%,
+    #ffffff 50%,
+    #ffd23f 60%,
+    #17131f 80%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleSheenMove 4.5s ease-in-out infinite;
+}
+
+/* Floating Decorative Ticket / Star Artwork */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+
+.zine-floating-star {
+  display: inline-block;
+  color: #ff3d8b;
+  font-size: 1.4rem;
+  animation: floatGentle 3s ease-in-out infinite;
+  user-select: none;
+}
+
+.zine-floating-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff0eb;
+  border: 2px dashed #ff3d8b;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ff3d8b;
+  transform: rotate(-2deg);
+  animation: floatGentle 3.5s ease-in-out infinite reverse;
+}
+
+/* Coral-Pink & Peach Editorial Story Panels with Fine Grid-Paper */
+.section-friction-story {
+  background: #fff1f2;
+  background-image: 
+    linear-gradient(rgba(244, 63, 94, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 63, 94, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+}
+
+.section-experience-journey {
+  background: #fff7ed;
+  background-image: 
+    radial-gradient(circle, rgba(234, 88, 12, 0.08) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  position: relative;
+}
+
+.section-clarity-switch {
+  background: #fdf2f8;
+  background-image: 
+    linear-gradient(rgba(219, 39, 119, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(219, 39, 119, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.section-design-principles {
+  background: #fffbeb;
+  background-image: 
+    linear-gradient(rgba(217, 119, 6, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(217, 119, 6, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Slightly Tilted Feature Posters with Chunky Outlines & Offset Shadows */
+.friction-poster-card:nth-child(1) {
+  transform: rotate(-1.2deg);
+}
+
+.friction-poster-card:nth-child(2) {
+  transform: rotate(1.4deg);
+}
+
+.friction-poster-card:nth-child(3) {
+  transform: rotate(-0.8deg);
+}
+
+.friction-poster-card:hover {
+  transform: rotate(0deg) translateY(-4px) !important;
+  box-shadow: 8px 8px 0px #17131f !important;
+}
+
+/* Scroll-linked Route Line Drawing */
+.route-track-line {
+  height: 8px;
+  background: #17131f;
+  position: relative;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.route-track-line::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #ffd23f 0px,
+    #ffd23f 12px,
+    #17131f 12px,
+    #17131f 24px
+  );
+  animation: routeTrackDraw 2s linear infinite;
+}
+
+@keyframes routeTrackDraw {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 48px 0;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-ipop-display-title .ipop-word-friction {
+    animation: none !important;
+    background: none !important;
+    -webkit-text-fill-color: #17131f !important;
+  }
+  .zine-floating-star,
+  .zine-floating-ticket,
+  .route-track-line::before {
+    animation: none !important;
+  }
+  .friction-poster-card {
+    transform: none !important;
+  }
+}
+
 
 
 

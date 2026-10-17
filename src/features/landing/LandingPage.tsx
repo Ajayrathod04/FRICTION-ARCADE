@@ -210,6 +210,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
+        {/* Section Divider 1 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
+
         {/* ---------------- 3. SECTION A: SMALL DESIGN PROBLEMS. REAL FRUSTRATION. ---------------- */}
         <section className="section-friction-story" id="story" aria-label="Small Design Problems">
           <div className="editorial-container">
@@ -228,6 +231,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
+        {/* Section Divider 2 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
+
         {/* ---------------- 4. SECTION B: THE JOURNEY (4 STAGES + PROGRESSIVE ROUTE) ---------------- */}
         <section className="section-experience-journey" id="the-experience" aria-label="The Journey">
           <div className="editorial-container">
@@ -236,6 +242,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <h2 className="editorial-section-title">
                 FROM CONFUSED TRAVELER TO CONFIDENT DESIGNER.
               </h2>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', margin: '10px 0 16px 0', flexWrap: 'wrap' }}>
+                <span className="route-marker-cobalt">● EXPRESS ROUTE · 4 STAGES</span>
+                <span className="editorial-sticker-badge">🎟️ INTERACTIVE CASE STUDY</span>
+              </div>
               <p className="editorial-section-subtitle">
                 Friction Arcade doesn't just list heuristics—it puts you in the shoes of someone desperately trying to catch the last train home.
               </p>
@@ -249,7 +259,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="journey-stages-grid">
               <div className="journey-stage-card stage-1">
-                <div className="stage-token">1</div>
+                <div className="stage-token zine-cobalt-accent">1</div>
                 <div className="stage-meta">STEP 01 · EXPLORATION</div>
                 <h3 className="stage-title">Discover the Problem</h3>
                 <p className="stage-desc">
@@ -276,7 +286,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               <div className="journey-stage-card stage-4">
-                <div className="stage-token">4</div>
+                <div className="stage-token zine-cobalt-accent">4</div>
                 <div className="stage-meta">STEP 04 · TRANSFORMATION</div>
                 <h3 className="stage-title">See the Clearer Result</h3>
                 <p className="stage-desc">
@@ -287,12 +297,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
+        {/* Section Divider 3 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
+
         {/* ---------------- 5. SECTION C: THE CLARITY SWITCH (SIGNATURE INTERACTION) ---------------- */}
         <section className="section-clarity-switch" id="clarity-section" aria-label="The Clarity Switch">
           <div className="editorial-container">
             <TheClaritySwitch />
           </div>
         </section>
+
+        {/* Section Divider 4 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
 
         {/* ---------------- 6. SECTION D: DESIGN PRINCIPLES ---------------- */}
         <section className="section-design-principles" id="principles" aria-label="Design Principles">
@@ -326,10 +342,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
+        {/* Section Divider 5 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
+
         {/* ---------------- 7. INTERACTIVE DESIGN LAB SANDBOX ---------------- */}
         <section className="section-design-lab" id="design-lab" aria-label="Interactive Sandbox">
           <DesignLabSection />
         </section>
+
+        {/* Section Divider 6 */}
+        <div className="zine-zigzag-divider" aria-hidden="true" />
 
         {/* ---------------- 8. SECTION E: FINAL CALL TO ACTION ---------------- */}
         <section className="section-final-cta" id="cta" aria-label="Final Call to Action">

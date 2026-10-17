@@ -35,6 +35,58 @@ export interface StationEnvironmentHandles {
   dispose: () => void;
 }
 
+function createStationMarqueeCanvasTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  // Deep architectural navy/charcoal background
+  ctx.fillStyle = '#0b0e14';
+  ctx.fillRect(0, 0, 1024, 256);
+
+  // Polished Brass / Gold double border
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(6, 6, 1012, 244);
+  ctx.strokeStyle = '#fde047';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(14, 14, 996, 228);
+
+  // Header ribbon
+  ctx.fillStyle = '#172554';
+  ctx.fillRect(16, 16, 992, 40);
+  ctx.fillStyle = '#93c5fd';
+  ctx.font = 'bold 20px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('◄ WEST ENTRANCE · GRAND CENTRAL TERMINAL · EAST ENTRANCE ►', 512, 43);
+
+  // Primary Station Name: FRICTION CENTRAL
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = '900 66px sans-serif';
+  ctx.shadowColor = '#ff8a1f';
+  ctx.shadowBlur = 14;
+  ctx.fillText('★ FRICTION CENTRAL ★', 512, 126);
+  ctx.shadowBlur = 0;
+
+  // Supporting Signage: MUMBAI CENTRAL · DECCAN EXPRESS · PLATFORMS 1 & 2
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('MUMBAI CENTRAL · DECCAN EXPRESS · PLATFORMS 1 & 2', 512, 180);
+
+  // Bottom wayfinding indicator strip
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(16, 202, 992, 38);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 18px monospace';
+  ctx.fillText('WAYFINDING: CONCOURSE STRAIGHT AHEAD · TICKET TERMINALS 1-5', 512, 227);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function createPlatform2BoardCanvasTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
@@ -462,6 +514,10 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     })
   );
 
+  // Teak Wood & Benches
+  const teakWoodMat = regMat(new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.42 }));
+  const teakBenchMat = teakWoodMat;
+
   // Distinct Floor Materials for all 5 Rooms
   const departureFloorMat = regMat(new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35 })); // Midnight-blue & cream
   const helpDeskFloorMat = regMat(new THREE.MeshStandardMaterial({ color: 0xc2785c, roughness: 0.45 })); // Terracotta & sandstone
@@ -469,73 +525,211 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   const labFloorMat = regMat(new THREE.MeshStandardMaterial({ color: 0x2e1065, roughness: 0.25 })); // Deep violet high-gloss terrazzo
 
   // =========================================================================
-  // 1. ZONE 0: CITY STREET & ARRIVAL PLAZA (z = 4.4 to 11.5)
+  // 1. ZONE 0: CITY STREET & ARRIVAL PLAZA (z = 4.4 to 12.5)
   // Character starts outside on the sidewalk, facing north toward the station
   // =========================================================================
   const cityPlazaGroup = new THREE.Group();
 
-  // Asphalt Roadway (z = 9.2 to 11.2, running East-West)
-  const roadGeo = regGeo(new THREE.BoxGeometry(24.0, 0.2, 2.4));
+  // Wide 2-Lane Asphalt Roadway (z = 8.4 to 12.4, spanning 28m East-West)
+  const roadGeo = regGeo(new THREE.BoxGeometry(28.0, 0.2, 4.0));
   const roadMesh = new THREE.Mesh(roadGeo, asphaltRoadMat);
-  roadMesh.position.set(0, -0.22, 10.0);
+  roadMesh.position.set(0, -0.22, 10.4);
   roadMesh.receiveShadow = true;
   cityPlazaGroup.add(roadMesh);
 
-  // Road Lane Dividers (Dashed yellow centerlines)
-  for (let rx = -10.0; rx <= 10.0; rx += 2.2) {
-    const laneGeo = regGeo(new THREE.BoxGeometry(1.1, 0.01, 0.12));
+  // Road Lane Dividers (Dashed yellow centerlines at z = 10.4)
+  for (let rx = -12.0; rx <= 12.0; rx += 2.4) {
+    const laneGeo = regGeo(new THREE.BoxGeometry(1.2, 0.015, 0.14));
     const laneMat = regMat(new THREE.MeshBasicMaterial({ color: 0xffd23f }));
     const lane = new THREE.Mesh(laneGeo, laneMat);
-    lane.position.set(rx, -0.11, 10.0);
+    lane.position.set(rx, -0.11, 10.4);
     cityPlazaGroup.add(lane);
   }
 
-  // Pedestrian Zebra Crossing leading to station entrance (x: -1.8 to 1.8)
+  // Painted Lane Directional Arrows on Asphalt
+  // Eastbound lane (z = 11.4) arrows pointing East (+X)
+  for (const ax of [-6.0, 4.0]) {
+    const arrowShaft = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.2, 0.016, 0.2)), regMat(new THREE.MeshBasicMaterial({ color: 0xffffff })));
+    arrowShaft.position.set(ax, -0.108, 11.4);
+    const arrowHead = new THREE.Mesh(regGeo(new THREE.ConeGeometry(0.35, 0.6, 3)), regMat(new THREE.MeshBasicMaterial({ color: 0xffffff })));
+    arrowHead.rotation.x = Math.PI / 2;
+    arrowHead.rotation.z = -Math.PI / 2;
+    arrowHead.position.set(ax + 0.8, -0.108, 11.4);
+    cityPlazaGroup.add(arrowShaft, arrowHead);
+  }
+
+  // Westbound lane (z = 9.4) arrows pointing West (-X)
+  for (const ax of [-3.0, 7.0]) {
+    const arrowShaft = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.2, 0.016, 0.2)), regMat(new THREE.MeshBasicMaterial({ color: 0xffffff })));
+    arrowShaft.position.set(ax, -0.108, 9.4);
+    const arrowHead = new THREE.Mesh(regGeo(new THREE.ConeGeometry(0.35, 0.6, 3)), regMat(new THREE.MeshBasicMaterial({ color: 0xffffff })));
+    arrowHead.rotation.x = Math.PI / 2;
+    arrowHead.rotation.z = Math.PI / 2;
+    arrowHead.position.set(ax - 0.8, -0.108, 9.4);
+    cityPlazaGroup.add(arrowShaft, arrowHead);
+  }
+
+  // Pedestrian Zebra Crossing leading to station entrance (x: -1.8 to 1.8, across both lanes)
   for (let zx = -1.6; zx <= 1.6; zx += 0.55) {
-    const zebraGeo = regGeo(new THREE.BoxGeometry(0.35, 0.015, 2.0));
+    const zebraGeo = regGeo(new THREE.BoxGeometry(0.35, 0.018, 3.6));
     const zebraMat = regMat(new THREE.MeshBasicMaterial({ color: 0xffffff }));
     const zebra = new THREE.Mesh(zebraGeo, zebraMat);
-    zebra.position.set(zx, -0.105, 10.0);
+    zebra.position.set(zx, -0.105, 10.4);
     cityPlazaGroup.add(zebra);
   }
 
-  // Sidewalk Curb Stone separating road from plaza
-  const curbGeo = regGeo(new THREE.BoxGeometry(24.0, 0.14, 0.3));
+  // North Sidewalk Curb Stone (separating road z=8.4 from arrival plaza)
+  const northCurbGeo = regGeo(new THREE.BoxGeometry(28.0, 0.16, 0.3));
   const curbMat = regMat(new THREE.MeshStandardMaterial({ color: 0x8c857b, roughness: 0.6 }));
-  const curbMesh = new THREE.Mesh(curbGeo, curbMat);
-  curbMesh.position.set(0, -0.13, 8.7);
-  cityPlazaGroup.add(curbMesh);
+  const northCurb = new THREE.Mesh(northCurbGeo, curbMat);
+  northCurb.position.set(0, -0.12, 8.35);
+  cityPlazaGroup.add(northCurb);
 
-  // Arrival Plaza Stone Pavers Slab (z = 4.4 to 8.6)
-  const plazaFloorGeo = regGeo(new THREE.BoxGeometry(18.0, 0.3, 4.4));
+  // South Sidewalk Curb Stone (z = 12.45)
+  const southCurb = new THREE.Mesh(regGeo(new THREE.BoxGeometry(28.0, 0.16, 0.3)), curbMat);
+  southCurb.position.set(0, -0.12, 12.45);
+  cityPlazaGroup.add(southCurb);
+
+  // Pedestrian Arrival Plaza Paver Slab (x in [-7.6, 7.6], z in [4.4, 8.2])
+  const plazaFloorGeo = regGeo(new THREE.BoxGeometry(16.0, 0.3, 4.0));
   const plazaFloor = new THREE.Mesh(plazaFloorGeo, plazaPaverMat);
-  plazaFloor.position.set(0, -0.15, 6.5);
+  plazaFloor.position.set(0, -0.15, 6.3);
   plazaFloor.receiveShadow = true;
   cityPlazaGroup.add(plazaFloor);
 
-  // Animated Street Vehicles
-  // 1. Classic Yellow & Black Mumbai Taxi (Traveling East on lane z = 9.5)
-  const taxiGroup = new THREE.Group();
-  taxiGroup.position.set(-6.0, 0, 9.5);
-  const taxiBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.55, 0.8)), regMat(new THREE.MeshStandardMaterial({ color: 0x111111 })));
-  taxiBody.position.y = 0.35;
-  const taxiRoof = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.9, 0.45, 0.74)), regMat(new THREE.MeshStandardMaterial({ color: 0xfacc15 })));
-  taxiRoof.position.set(-0.1, 0.75, 0);
-  taxiGroup.add(taxiBody, taxiRoof);
-  cityPlazaGroup.add(taxiGroup);
+  // Traffic Signal Stanchions at North Curbs (flanking the zebra crossing)
+  const trafficLightGreenMat = regMat(new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+  const trafficLightAmberMat = regMat(new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+  const trafficLightRedMat = regMat(new THREE.MeshBasicMaterial({ color: 0xef4444 }));
 
-  // 2. Red BEST Transit Bus (Traveling West on lane z = 10.5)
-  const busGroup = new THREE.Group();
-  busGroup.position.set(6.0, 0, 10.5);
-  const busBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.2, 1.1, 1.1)), regMat(new THREE.MeshStandardMaterial({ color: 0xdc2626 })));
-  busBody.position.y = 0.65;
-  const busStripe = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.22, 0.16, 1.12)), regMat(new THREE.MeshStandardMaterial({ color: 0xffffff })));
-  busStripe.position.y = 0.65;
-  busGroup.add(busBody, busStripe);
-  cityPlazaGroup.add(busGroup);
+  for (const sx of [-2.8, 2.8]) {
+    const signalPost = new THREE.Group();
+    signalPost.position.set(sx, 0, 8.25);
+    const pole = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.05, 0.06, 3.2, 12)), castIronMat);
+    pole.position.y = 1.6;
+    const housing = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.3, 0.85, 0.25)), castIronMat);
+    housing.position.set(0, 2.7, 0);
+
+    const redLens = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.08, 12, 12)), trafficLightRedMat);
+    redLens.position.set(0, 2.95, 0.12);
+    const amberLens = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.08, 12, 12)), trafficLightAmberMat);
+    amberLens.position.set(0, 2.7, 0.12);
+    const greenLens = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.08, 12, 12)), trafficLightGreenMat);
+    greenLens.position.set(0, 2.45, 0.12);
+
+    signalPost.add(pole, housing, redLens, amberLens, greenLens);
+    cityPlazaGroup.add(signalPost);
+  }
+
+  // -------------------------------------------------------------------------
+  // COMMERCIAL BUILDINGS FLANKING THE PLAZA (Glass-and-steel architecture)
+  // -------------------------------------------------------------------------
+  // 1. WEST COMMERCIAL BUILDING: "METRO ARCADE & CAFE" (x in [-13.2, -7.6], z in [4.6, 9.6])
+  const westCommGroup = new THREE.Group();
+  westCommGroup.position.set(-10.4, 0, 7.1);
+
+  // Sandstone structural piers & walls
+  const westCommMain = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.4, 4.8, 4.8)), sandstoneMat);
+  westCommMain.position.y = 2.4;
+  westCommMain.castShadow = true;
+  westCommGroup.add(westCommMain);
+
+  // Large Glazed Shopfront Windows with steel mullions facing the plaza (+X)
+  const westShopGlass = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.12, 2.6, 4.2)), glassWindowMat);
+  westShopGlass.position.set(2.72, 1.6, 0);
+  const westMullionH = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 0.1, 4.3)), castIronMat);
+  westMullionH.position.set(2.72, 1.6, 0);
+  const westMullionV1 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 2.6, 0.1)), castIronMat);
+  westMullionV1.position.set(2.72, 1.6, -1.2);
+  const westMullionV2 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 2.6, 0.1)), castIronMat);
+  westMullionV2.position.set(2.72, 1.6, 1.2);
+  westCommGroup.add(westShopGlass, westMullionH, westMullionV1, westMullionV2);
+
+  // Illuminated Storefront Signs on West Arcade
+  const cafeSign = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.16, 0.45, 1.8)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x78350f, emissive: 0xffa040, emissiveIntensity: 0.65 }))
+  );
+  cafeSign.position.set(2.78, 3.2, -1.0);
+  const booksSign = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.16, 0.45, 1.8)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x1e3a8a, emissive: 0x60a5fa, emissiveIntensity: 0.65 }))
+  );
+  booksSign.position.set(2.78, 3.2, 1.1);
+  westCommGroup.add(cafeSign, booksSign);
+
+  // Outdoor Cafe Patio Table and Two Chairs
+  const cafeTable = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.35, 0.35, 0.7, 12)), brassMat);
+  cafeTable.position.set(3.4, 0.35, -1.0);
+  const chair1 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.3, 0.4, 0.3)), teakBenchMat);
+  chair1.position.set(3.4, 0.2, -1.6);
+  const chair2 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.3, 0.4, 0.3)), teakBenchMat);
+  chair2.position.set(3.4, 0.2, -0.4);
+  westCommGroup.add(cafeTable, chair1, chair2);
+  cityPlazaGroup.add(westCommGroup);
+
+  // 2. EAST COMMERCIAL BUILDING: "STATION SQUARE GALLERIA" (x in [7.6, 13.2], z in [4.6, 9.6])
+  const eastCommGroup = new THREE.Group();
+  eastCommGroup.position.set(10.4, 0, 7.1);
+
+  const eastCommMain = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.4, 4.8, 4.8)), sandstoneMat);
+  eastCommMain.position.y = 2.4;
+  eastCommMain.castShadow = true;
+  eastCommGroup.add(eastCommMain);
+
+  // Large Glazed Windows facing West into the plaza (-X)
+  const eastShopGlass = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.12, 2.6, 4.2)), glassWindowMat);
+  eastShopGlass.position.set(-2.72, 1.6, 0);
+  const eastMullionH = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 0.1, 4.3)), castIronMat);
+  eastMullionH.position.set(-2.72, 1.6, 0);
+  const eastMullionV1 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 2.6, 0.1)), castIronMat);
+  eastMullionV1.position.set(-2.72, 1.6, -1.2);
+  const eastMullionV2 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.14, 2.6, 0.1)), castIronMat);
+  eastMullionV2.position.set(-2.72, 1.6, 1.2);
+  eastCommGroup.add(eastShopGlass, eastMullionH, eastMullionV1, eastMullionV2);
+
+  // Storefront Signs: "STATION PHARMACY" and "DECCAN TRAVEL GOODS"
+  const pharmSign = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.16, 0.45, 1.8)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x065f46, emissive: 0x34d399, emissiveIntensity: 0.65 }))
+  );
+  pharmSign.position.set(-2.78, 3.2, -1.0);
+  const travelSign = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.16, 0.45, 1.8)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x991b1b, emissive: 0xf87171, emissiveIntensity: 0.65 }))
+  );
+  travelSign.position.set(-2.78, 3.2, 1.1);
+  eastCommGroup.add(pharmSign, travelSign);
+  cityPlazaGroup.add(eastCommGroup);
+
+  // -------------------------------------------------------------------------
+  // STREET FURNITURE: BENCHES, SHRUBS, STREETLAMPS & HANGING BANNERS
+  // -------------------------------------------------------------------------
+  // Sidewalk Teak Benches along the plaza
+  for (const bx of [-3.8, 3.8]) {
+    const plazaBench = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.42, 0.5)), teakBenchMat);
+    plazaBench.position.set(bx, 0.21, 7.0);
+    cityPlazaGroup.add(plazaBench);
+  }
+
+  // Decorative Planter Boxes with Flowering Shrubs
+  const flowerBoxMat = regMat(new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.6 }));
+  const blossomMat = regMat(new THREE.MeshBasicMaterial({ color: 0xff3d8b }));
+  for (const fx of [-2.4, 2.4]) {
+    const boxG = new THREE.Group();
+    boxG.position.set(fx, 0, 5.8);
+    const planterBox = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.8, 0.4, 0.8)), flowerBoxMat);
+    planterBox.position.y = 0.2;
+    const foliage = new THREE.Mesh(regGeo(new THREE.DodecahedronGeometry(0.35, 1)), regMat(new THREE.MeshStandardMaterial({ color: 0x16a34a })));
+    foliage.position.y = 0.55;
+    const flowers = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.16, 8, 8)), blossomMat);
+    flowers.position.y = 0.7;
+    boxG.add(planterBox, foliage, flowers);
+    cityPlazaGroup.add(boxG);
+  }
 
   // Street Trees in circular sidewalk planters
-  for (const tx of [-4.5, 4.5]) {
+  for (const tx of [-5.2, 5.2]) {
     const treeGroup = new THREE.Group();
     treeGroup.position.set(tx, 0, 7.8);
     const trunk = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.08, 0.1, 1.4, 8)), regMat(new THREE.MeshStandardMaterial({ color: 0x4a2e1b })));
@@ -548,10 +742,15 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     cityPlazaGroup.add(treeGroup);
   }
 
-  // Victorian Streetlamps along plaza
+  // Victorian Streetlamps with Hanging Vertical Banners
   const lampPostGeo = regGeo(new THREE.CylinderGeometry(0.04, 0.05, 2.6, 12));
   const lampGlobeGeo = regGeo(new THREE.SphereGeometry(0.18, 16, 16));
   const lampGlobeMat = regMat(new THREE.MeshBasicMaterial({ color: 0xfff3d6 }));
+
+  const bannerMat1 = regMat(new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.5 }));
+  const bannerMat2 = regMat(new THREE.MeshStandardMaterial({ color: 0xff3d8b, roughness: 0.5 }));
+
+  const plazaBanners: THREE.Mesh[] = [];
 
   for (const lx of [-5.5, 5.5]) {
     for (const lz of [6.0, 8.0]) {
@@ -562,38 +761,107 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
       const globe = new THREE.Mesh(lampGlobeGeo, lampGlobeMat);
       globe.position.y = 2.6;
       lampG.add(post, globe);
+
+      // Hanging decorative banner on the 6.0 lamp
+      if (lz === 6.0) {
+        const bannerArm = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 8)), castIronMat);
+        bannerArm.rotation.z = Math.PI / 2;
+        bannerArm.position.set(lx < 0 ? 0.4 : -0.4, 2.2, 0);
+
+        const bannerFabric = new THREE.Mesh(
+          regGeo(new THREE.PlaneGeometry(0.55, 1.1)),
+          lx < 0 ? bannerMat1 : bannerMat2
+        );
+        bannerFabric.position.set(lx < 0 ? 0.4 : -0.4, 1.6, 0);
+        plazaBanners.push(bannerFabric);
+        lampG.add(bannerArm, bannerFabric);
+      }
+
       cityPlazaGroup.add(lampG);
     }
   }
 
-  // Plaza Direction Signpost: "FRICTION CENTRAL ➔"
+  // Plaza Wayfinding Information Kiosk: "FRICTION CENTRAL · WAYFINDING" (x = -2.6, z = 7.0)
   const signpostGroup = new THREE.Group();
-  signpostGroup.position.set(2.4, 0, 7.2);
+  signpostGroup.position.set(-2.6, 0, 7.0);
   const signPole = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 8)), castIronMat);
   signPole.position.y = 0.9;
   const signBoard = new THREE.Mesh(
-    regGeo(new THREE.BoxGeometry(1.6, 0.45, 0.06)),
-    regMat(new THREE.MeshStandardMaterial({ color: 0x1e3a8a, emissive: 0x3b82f6, emissiveIntensity: 0.3 }))
+    regGeo(new THREE.BoxGeometry(1.6, 0.5, 0.08)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x1e3a8a, emissive: 0x3b82f6, emissiveIntensity: 0.4 }))
   );
   signBoard.position.set(0, 1.6, 0);
   signpostGroup.add(signPole, signBoard);
   cityPlazaGroup.add(signpostGroup);
 
-  // Distant Pastel City Buildings (South at z >= 13.0 and flanks x <= -9.0, x >= 9.0)
+  // -------------------------------------------------------------------------
+  // ANIMATED STREET VEHICLES & AMBIENT PEDESTRIANS
+  // -------------------------------------------------------------------------
+  // 1. Classic Yellow & Black Mumbai Taxi (Traveling East on lane z = 11.4)
+  const taxiGroup = new THREE.Group();
+  taxiGroup.position.set(-6.0, 0, 11.4);
+  const taxiBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.55, 0.8)), regMat(new THREE.MeshStandardMaterial({ color: 0x111111 })));
+  taxiBody.position.y = 0.35;
+  const taxiRoof = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.9, 0.45, 0.74)), regMat(new THREE.MeshStandardMaterial({ color: 0xfacc15 })));
+  taxiRoof.position.set(-0.1, 0.75, 0);
+  taxiGroup.add(taxiBody, taxiRoof);
+  cityPlazaGroup.add(taxiGroup);
+
+  // 2. Red BEST Transit Bus (Traveling West on lane z = 9.4)
+  const busGroup = new THREE.Group();
+  busGroup.position.set(6.0, 0, 9.4);
+  const busBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.2, 1.1, 1.1)), regMat(new THREE.MeshStandardMaterial({ color: 0xdc2626 })));
+  busBody.position.y = 0.65;
+  const busStripe = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.22, 0.16, 1.12)), regMat(new THREE.MeshStandardMaterial({ color: 0xffffff })));
+  busStripe.position.y = 0.65;
+  busGroup.add(busBody, busStripe);
+  cityPlazaGroup.add(busGroup);
+
+  // 3. Green & Yellow Auto-Rickshaw (Traveling East on lane z = 11.4)
+  const rickshawGroup = new THREE.Group();
+  rickshawGroup.position.set(-14.0, 0, 11.4);
+  const rickshawBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.2, 0.5, 0.7)), regMat(new THREE.MeshStandardMaterial({ color: 0x15803d })));
+  rickshawBody.position.y = 0.32;
+  const rickshawCanopy = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.1, 0.45, 0.68)), regMat(new THREE.MeshStandardMaterial({ color: 0xfacc15 })));
+  rickshawCanopy.position.set(0, 0.68, 0);
+  rickshawGroup.add(rickshawBody, rickshawCanopy);
+  cityPlazaGroup.add(rickshawGroup);
+
+  // Ambient Sidewalk Pedestrians
+  const pedMatA = regMat(new THREE.MeshStandardMaterial({ color: 0x3b82f6 }));
+  const pedMatB = regMat(new THREE.MeshStandardMaterial({ color: 0xec4899 }));
+  const pedestrianAGroup = new THREE.Group();
+  pedestrianAGroup.position.set(-5.0, 0, 8.0);
+  const pedABody = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.18, 0.18, 0.9, 8)), pedMatA);
+  pedABody.position.y = 0.45;
+  const pedAHead = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.12, 8, 8)), regMat(new THREE.MeshStandardMaterial({ color: 0xf5d0b0 })));
+  pedAHead.position.y = 1.0;
+  pedestrianAGroup.add(pedABody, pedAHead);
+  cityPlazaGroup.add(pedestrianAGroup);
+
+  const pedestrianBGroup = new THREE.Group();
+  pedestrianBGroup.position.set(5.0, 0, 8.0);
+  const pedBBody = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.18, 0.18, 0.9, 8)), pedMatB);
+  pedBBody.position.y = 0.45;
+  const pedBHead = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.12, 8, 8)), regMat(new THREE.MeshStandardMaterial({ color: 0xf5d0b0 })));
+  pedBHead.position.y = 1.0;
+  pedestrianBGroup.add(pedBBody, pedBHead);
+  cityPlazaGroup.add(pedestrianBGroup);
+
+  // Distant Pastel City Buildings (South at z >= 13.2)
   const pastelColors = [0xfca5a5, 0xfde047, 0x93c5fd, 0xc4b5fd, 0x86efac];
-  for (let bx = -11.0; bx <= 11.0; bx += 2.8) {
+  for (let bx = -13.0; bx <= 13.0; bx += 2.8) {
     const bColor = pastelColors[Math.abs(Math.round(bx * 2)) % pastelColors.length];
-    const bHeight = 5.4 + (Math.abs(bx) % 1.5) * 1.0;
+    const bHeight = 5.6 + (Math.abs(bx) % 1.5) * 1.0;
     const bGeo = regGeo(new THREE.BoxGeometry(2.6, bHeight, 1.8));
     const bMat = regMat(new THREE.MeshStandardMaterial({ color: bColor, roughness: 0.7 }));
     const building = new THREE.Mesh(bGeo, bMat);
-    building.position.set(bx, bHeight / 2 - 0.15, 13.2);
+    building.position.set(bx, bHeight / 2 - 0.15, 13.5);
     cityPlazaGroup.add(building);
   }
 
   stationGroup.add(cityPlazaGroup);
 
-  // =========================================================================
   // =========================================================================
   // 2. ZONE 1: STATION ENTRANCE GATE & ARCHITECTURAL FACADE (z = 4.4)
   // Preserves commit db44156 approved entrance with interactive turnstiles
@@ -620,18 +888,40 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   entranceLintel.castShadow = true;
   entranceFacadeGroup.add(entranceLintel);
 
-  // Station Marquee Signboard: "FRICTION CENTRAL · MUMBAI"
-  const stationMarquee = new THREE.Mesh(
-    regGeo(new THREE.BoxGeometry(5.2, 0.55, 0.12)),
-    regMat(new THREE.MeshStandardMaterial({
-      color: 0x17131f,
-      emissive: 0xff8a1f,
-      emissiveIntensity: 0.55,
+  // PROMINENT MAIN STATION IDENTITY MARQUEE
+  // "FRICTION CENTRAL" · "MUMBAI CENTRAL · DECCAN EXPRESS · PLATFORMS 1 & 2"
+  const marqueeMat = regMat(
+    new THREE.MeshStandardMaterial({
+      map: createStationMarqueeCanvasTexture(),
+      emissive: 0xffffff,
+      emissiveIntensity: 0.85,
       roughness: 0.25,
-    }))
+      metalness: 0.15,
+    })
   );
-  stationMarquee.position.set(0, 4.2, 0.42);
-  entranceFacadeGroup.add(stationMarquee);
+  const stationMarquee = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(5.4, 0.95, 0.14)),
+    marqueeMat
+  );
+  stationMarquee.position.set(0, 4.3, 0.44);
+
+  // Polished Brass Frame & Architectural Bracket Supports
+  const marqueeFrame = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(5.5, 1.05, 0.08)),
+    brassMat
+  );
+  marqueeFrame.position.set(0, 4.3, 0.38);
+
+  for (const bx of [-2.4, 0, 2.4]) {
+    const bracket = new THREE.Mesh(
+      regGeo(new THREE.BoxGeometry(0.12, 0.5, 0.4)),
+      castIronMat
+    );
+    bracket.position.set(bx, 3.65, 0.2);
+    entranceFacadeGroup.add(bracket);
+  }
+
+  entranceFacadeGroup.add(marqueeFrame, stationMarquee);
   allWallMeshes.push(leftTower, rightTower, entranceLintel, stationMarquee);
 
   // Flank Entrance Pylons with warm globe lanterns (db44156 approved design)
@@ -818,8 +1108,6 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   // Teak wood slats, Victorian dark-green metal frames, brass finials,
   // and comfortable muted mint-cream upholstered seat cushions.
   // -------------------------------------------------------------------------
-  const teakWoodMat = regMat(new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.42 }));
-  const teakBenchMat = teakWoodMat;
   const darkGreenFrameMat = regMat(new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.35, metalness: 0.45 }));
   const mintCushionMat = regMat(new THREE.MeshStandardMaterial({ color: 0xd1fae5, roughness: 0.55, metalness: 0.05 }));
 
@@ -1822,10 +2110,25 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
 
     // Move City Street Vehicles
     taxiGroup.position.x += delta * 3.2;
-    if (taxiGroup.position.x > 12.0) taxiGroup.position.x = -12.0;
+    if (taxiGroup.position.x > 14.0) taxiGroup.position.x = -14.0;
 
     busGroup.position.x -= delta * 2.4;
-    if (busGroup.position.x < -12.0) busGroup.position.x = 12.0;
+    if (busGroup.position.x < -14.0) busGroup.position.x = 14.0;
+
+    rickshawGroup.position.x += delta * 2.7;
+    if (rickshawGroup.position.x > 14.0) rickshawGroup.position.x = -14.0;
+
+    // Ambient Pedestrians
+    pedestrianAGroup.position.x += delta * 0.5;
+    if (pedestrianAGroup.position.x > -3.6) pedestrianAGroup.position.x = -6.6;
+
+    pedestrianBGroup.position.x -= delta * 0.45;
+    if (pedestrianBGroup.position.x < 3.6) pedestrianBGroup.position.x = 6.6;
+
+    // Gently wave streetlamp banners
+    for (let bi = 0; bi < plazaBanners.length; bi++) {
+      plazaBanners[bi].rotation.y = Math.sin(time * 2.2 + bi * 1.5) * 0.1;
+    }
 
     // Animate 5 Architectural Room Doors based on player proximity
     let nearbyDoorName: string | null = null;

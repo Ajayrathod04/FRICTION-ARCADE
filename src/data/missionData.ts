@@ -368,6 +368,14 @@ export const STATION_NPCS: StationNPC[] = [
     dialogue: 'Excuse me! This handwritten note says "Go to the far train", but Platform 1 and Platform 2 are on opposite sides! Do you know which track leads to the Pune Express?',
     tip: 'Unambiguous wayfinding signs prevent missed connections and reduce passenger anxiety.',
   },
+  {
+    id: 'dev',
+    name: 'Officer Dev',
+    role: 'Station Forecourt Attendant',
+    position: { x: 2.2, z: 6.8 },
+    dialogue: 'Welcome to Friction Central! Head straight past the pedestrian plaza through the grand entrance gates to reach the Central Concourse, Ticket Kiosks, and Platforms 1 & 2.',
+    tip: 'Clear physical orientation from street to platform ensures travelers arrive at their trains with zero hesitation.',
+  },
 ];
 
 // --- FRICTION ECHO: SIGNATURE GAMEPLAY MECHANIC ---

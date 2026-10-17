@@ -30,6 +30,50 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
   onSetWaypoint,
 }) => {
   const [selectedWpId, setSelectedWpId] = useState<string>(activeWaypointId);
+  const [zoom, setZoom] = useState<number>(1.0);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const dragStartRef = React.useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const handleZoomIn = () => {
+    SoundEffects.playBlip();
+    setZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)));
+  };
+
+  const handleZoomOut = () => {
+    SoundEffects.playBlip();
+    setZoom((z) => {
+      const next = Math.max(1.0, +(z - 0.25).toFixed(2));
+      if (next === 1.0) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    SoundEffects.playBlip();
+    setZoom(1.0);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1.0) {
+      setIsDragging(true);
+      dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1.0) {
+      const maxPan = (zoom - 1.0) * 160;
+      const nextX = Math.max(-maxPan, Math.min(maxPan, e.clientX - dragStartRef.current.x));
+      const nextY = Math.max(-maxPan, Math.min(maxPan, e.clientY - dragStartRef.current.y));
+      setPan({ x: nextX, y: nextY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   // World coordinates [-8.8, 8.8] X -> [6, 94] % X
   const toSvgX = (x: number) => {
@@ -79,14 +123,116 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
           <span>
             Click any landmark to set <strong>Active Waypoint</strong>. Walk through open doors between the 5 physical rooms, plaza and platform.
           </span>
-          <Badge variant="sticker" color="#FFD23F">
-            {cluesFound.length}/3 STAMPS COLLECTED
-          </Badge>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Badge variant="sticker" color="#FFD23F">
+              {cluesFound.length}/3 STAMPS COLLECTED
+            </Badge>
+          </div>
         </div>
 
         {/* 2D Overhead Schematic Plan matching the 5-room 3D world geometry */}
-        <div className="schematic-map" style={{ position: 'relative', height: '420px', background: '#120f1b', borderRadius: '12px', border: '3px solid #17131f', overflow: 'hidden' }}>
-          <svg className="schematic-svg-grid" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+        <div
+          className="schematic-map"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{
+            position: 'relative',
+            height: '420px',
+            background: '#120f1b',
+            borderRadius: '12px',
+            border: '3px solid #17131f',
+            overflow: 'hidden',
+            cursor: zoom > 1.0 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          }}
+        >
+          {/* Floating Zoom & Pan Controls */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              zIndex: 10,
+              display: 'flex',
+              gap: '6px',
+              background: 'rgba(23, 19, 31, 0.88)',
+              padding: '4px',
+              borderRadius: '8px',
+              border: '2px solid #ffd23f',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              style={{
+                width: '32px',
+                height: '32px',
+                background: '#ffd23f',
+                color: '#17131f',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 900,
+                fontSize: '18px',
+                cursor: 'pointer',
+              }}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              style={{
+                width: '32px',
+                height: '32px',
+                background: '#ffd23f',
+                color: '#17131f',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 900,
+                fontSize: '18px',
+                cursor: 'pointer',
+              }}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              onClick={handleResetZoom}
+              style={{
+                padding: '0 10px',
+                height: '32px',
+                background: '#1e293b',
+                color: '#ffd23f',
+                border: '1px solid #ffd23f',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                cursor: 'pointer',
+              }}
+              title="Reset Zoom"
+            >
+              {(zoom * 100).toFixed(0)}%
+            </button>
+          </div>
+
+          <svg
+            className="schematic-svg-grid"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+              transformOrigin: 'center center',
+              transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+            }}
+          >
             {/* Base Background */}
             <rect x="0" y="0" width="100" height="100" fill="#120f1b" />
 
@@ -273,6 +419,25 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
             </text>
             {/* Turnstile Passage Room 1 -> Platform (z = -1.6, x = -1.2 to 1.2) */}
             <rect x={toSvgX(-1.2)} y={toSvgY(-1.8)} width={toSvgX(1.2) - toSvgX(-1.2)} height={toSvgY(-1.4) - toSvgY(-1.8)} fill="#ffd23f" opacity="0.6" />
+
+            {/* Architectural Doorway & Stair Icons */}
+            <g aria-label="Doorways and Stairs" opacity="0.95">
+              {/* Grand Entrance Gate */}
+              <text x={toSvgX(0)} y={toSvgY(4.55)} fontSize="2.8" textAnchor="middle">🚪</text>
+              {/* Room 1 Door */}
+              <text x={toSvgX(0)} y={toSvgY(1.85)} fontSize="2.8" textAnchor="middle">🚪</text>
+              {/* Room 2 Door */}
+              <text x={toSvgX(2.95)} y={toSvgY(0.05)} fontSize="2.6" textAnchor="middle">🚪</text>
+              {/* Room 3 Door */}
+              <text x={toSvgX(-2.95)} y={toSvgY(0.05)} fontSize="2.6" textAnchor="middle">🚪</text>
+              {/* Room 4 Door */}
+              <text x={toSvgX(-2.95)} y={toSvgY(3.25)} fontSize="2.6" textAnchor="middle">🚪</text>
+              {/* Room 5 Door */}
+              <text x={toSvgX(2.95)} y={toSvgY(3.25)} fontSize="2.6" textAnchor="middle">🚪</text>
+              {/* Footbridge Stairs on Platform 1 & Platform 2 */}
+              <text x={toSvgX(6.2)} y={toSvgY(-3.3)} fontSize="2.4" textAnchor="middle">🪜</text>
+              <text x={toSvgX(6.2)} y={toSvgY(-6.3)} fontSize="2.4" textAnchor="middle">🪜</text>
+            </g>
 
             {/* Walking Path Connectors (Graph edges) */}
             {STATION_WAYPOINTS.map((wp) =>

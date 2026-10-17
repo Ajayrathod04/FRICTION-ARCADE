@@ -366,6 +366,66 @@ export function createPassengerActors(options: PassengerActorsOptions): Passenge
   group.add(rohanGroup);
 
   // =========================================================================
+  // 7. STATION FORECOURT ATTENDANT: OFFICER DEV (Plaza — x: 2.2, z: 6.8)
+  // Station attendant in khaki/teal service uniform, peaked cap, welcoming travelers
+  // =========================================================================
+  const devGroup = new THREE.Group();
+  devGroup.position.set(2.2, 0, 6.8);
+  devGroup.rotation.y = Math.PI; // Faces south toward the city approach road & spawn
+
+  const devJacketMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.45 }));
+  const devPantsMat = registerMat(new THREE.MeshStandardMaterial({ color: 0x17131f, roughness: 0.55 }));
+
+  const devTorso = new THREE.Mesh(registerGeo(new THREE.CylinderGeometry(0.2, 0.23, 0.58, 12)), devJacketMat);
+  devTorso.position.y = 0.68;
+  devTorso.castShadow = true;
+  devGroup.add(devTorso);
+
+  // Gold Service Badge & Name Tag
+  const devBadge = new THREE.Mesh(
+    registerGeo(new THREE.BoxGeometry(0.08, 0.05, 0.02)),
+    registerMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.85, roughness: 0.2 }))
+  );
+  devBadge.position.set(0.1, 0.76, 0.21);
+  devGroup.add(devBadge);
+
+  const devHead = new THREE.Mesh(registerGeo(new THREE.SphereGeometry(0.15, 12, 12)), skinMat);
+  devHead.position.y = 1.14;
+  devHead.castShadow = true;
+  devGroup.add(devHead);
+
+  // Service Cap with gold braid
+  const devCap = new THREE.Mesh(registerGeo(new THREE.CylinderGeometry(0.17, 0.17, 0.08, 12)), devJacketMat);
+  devCap.position.set(0, 1.25, 0);
+  const devCapBrim = new THREE.Mesh(registerGeo(new THREE.BoxGeometry(0.18, 0.02, 0.12)), registerMat(new THREE.MeshStandardMaterial({ color: 0x111111 })));
+  devCapBrim.position.set(0, 1.22, 0.1);
+  const devBraid = new THREE.Mesh(registerGeo(new THREE.TorusGeometry(0.16, 0.015, 6, 16)), registerMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.85 })));
+  devBraid.rotation.x = Math.PI / 2;
+  devBraid.position.set(0, 1.22, 0);
+  devGroup.add(devCap, devCapBrim, devBraid);
+
+  // Left arm raised in a welcoming guiding gesture toward the grand entrance gate
+  const devLeftArm = new THREE.Group();
+  devLeftArm.position.set(-0.24, 0.88, 0);
+  const devLArmMesh = new THREE.Mesh(registerGeo(new THREE.CylinderGeometry(0.06, 0.05, 0.38, 8)), devJacketMat);
+  devLArmMesh.position.set(-0.08, 0.08, -0.1);
+  devLArmMesh.rotation.z = Math.PI / 4;
+  devLArmMesh.rotation.x = -Math.PI / 6;
+  devLeftArm.add(devLArmMesh);
+  devGroup.add(devLeftArm);
+
+  // Right arm relaxed at side
+  const devRightArm = new THREE.Group();
+  devRightArm.position.set(0.24, 0.88, 0);
+  const devRArmMesh = new THREE.Mesh(registerGeo(new THREE.CylinderGeometry(0.06, 0.05, 0.38, 8)), devJacketMat);
+  devRArmMesh.position.y = -0.18;
+  devRightArm.add(devRArmMesh);
+  devGroup.add(devRightArm);
+
+  createArticulatedLegs(devPantsMat, devGroup);
+  group.add(devGroup);
+
+  // =========================================================================
   // 7. FRICTION VISION: GHOST FORENSIC REPLAY TRAILS & BEACONS
   // =========================================================================
   const ghostArjunPoints = [

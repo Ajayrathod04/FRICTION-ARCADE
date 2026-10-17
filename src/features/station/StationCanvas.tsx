@@ -481,6 +481,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       const priyaDist = playerVec.distanceTo(new THREE.Vector2(-5.6, 0.1));
       const rajivDist = playerVec.distanceTo(new THREE.Vector2(-0.8, -2.9));
       const rohanDist = playerVec.distanceTo(new THREE.Vector2(-5.4, 3.2));
+      const devDist = playerVec.distanceTo(new THREE.Vector2(2.2, 6.8));
 
       const PROX_THRESHOLD = 1.45;
       if (kioskDist < PROX_THRESHOLD || arjunDist < PROX_THRESHOLD) {
@@ -501,6 +502,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       } else if (rohanDist < PROX_THRESHOLD) {
         setNearbyHotspot(null);
         setNearbyNPC(STATION_NPCS.find((n) => n.id === 'rohan') || null);
+      } else if (devDist < PROX_THRESHOLD) {
+        setNearbyHotspot(null);
+        setNearbyNPC(STATION_NPCS.find((n) => n.id === 'dev') || null);
       } else {
         setNearbyHotspot(null);
         setNearbyNPC(null);
