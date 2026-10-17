@@ -338,7 +338,7 @@ export const GamePage: React.FC<GamePageProps> = ({
               onLaunchBookingChallenge={() => setGameStage('booking_before')}
               onOpenHowToPlay={() => setShowTutorial(true)}
               onOpenDuoJam={() => setShowDuoJam(true)}
-              onOpenDesignLab={onExitToHome}
+              onOpenDesignLab={() => setGameStage('designer_mode')}
               activeWaypointId={activeWaypointId}
               onSetWaypoint={(wpId) => setActiveWaypointId(wpId)}
               onPlayerCoordsChange={(coords) => setPlayerCoords(coords)}

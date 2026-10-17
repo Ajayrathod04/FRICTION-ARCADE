@@ -17,15 +17,98 @@ export interface StationEnvironmentHandles {
   trainSystem: TrainSystemHandles;
   tokenCollectibles: TokenCollectiblesHandles;
   departureBoardLed: THREE.Mesh;
+  departureBoardLed2: THREE.Mesh;
   kioskScreenMesh: THREE.Mesh;
   kioskBannerMesh: THREE.Mesh;
   deskSignMesh: THREE.Mesh;
   deskMonitorMesh: THREE.Mesh;
   clockHandMesh: THREE.Mesh;
-  update: (playerPos: THREE.Vector3, time: number, delta: number) => { collectedTokenId: string | null };
+  entranceGateGroup: THREE.Group;
+  isGateOpen: () => boolean;
+  openEntranceGate: () => void;
+  setCutawayMode: (enabled: boolean) => void;
+  setXRayMode: (enabled: boolean) => void;
+  getOccluderMeshes: () => THREE.Mesh[];
+  update: (playerPos: THREE.Vector3, time: number, delta: number) => { collectedTokenId: string | null; nearbyDoorName: string | null };
   triggerTrainDeparture: () => void;
   triggerTrainBoarding: () => void;
   dispose: () => void;
+}
+
+function createPlatform2BoardCanvasTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.fillStyle = '#0f0c18';
+  ctx.fillRect(0, 0, 1024, 512);
+
+  ctx.strokeStyle = '#2b233d';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, 1016, 504);
+
+  // Red/Gold Header Banner
+  ctx.fillStyle = '#b91c1c';
+  ctx.fillRect(8, 8, 1008, 64);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillText('PLATFORM 2 · INTERCITY & EXPRESS DEPARTURES', 24, 52);
+
+  // Table Column Headers
+  ctx.fillStyle = '#221a36';
+  ctx.fillRect(8, 76, 1008, 44);
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText('TRAIN NO.', 28, 106);
+  ctx.fillText('DESTINATION', 230, 106);
+  ctx.fillText('TIME', 450, 106);
+  ctx.fillText('PLATFORM', 560, 106);
+  ctx.fillText('STATUS', 730, 106);
+
+  // Row 1: 12951 RAJDHANI EXP
+  ctx.fillStyle = '#191328';
+  ctx.fillRect(8, 126, 1008, 76);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText('12951 RAJDHANI EXP', 28, 172);
+  ctx.fillStyle = '#fde047';
+  ctx.fillText('NEW DELHI', 230, 172);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('07:45', 450, 172);
+  ctx.fillStyle = '#b6ffb2';
+  ctx.fillText('PL 2', 580, 172);
+  ctx.fillStyle = '#059669';
+  ctx.fillRect(720, 142, 270, 46);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('✓ BOARDING NOW', 740, 172);
+
+  // Row 2: 12009 SHATABDI EXP
+  ctx.fillStyle = '#140f20';
+  ctx.fillRect(8, 206, 1008, 64);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.font = '22px monospace';
+  ctx.fillText('12009 SHATABDI EXP', 28, 246);
+  ctx.fillStyle = '#8ddcff';
+  ctx.fillText('AHMEDABAD', 230, 246);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('08:10', 450, 246);
+  ctx.fillText('PL 2', 580, 246);
+  ctx.fillStyle = '#ffd23f';
+  ctx.fillText('ON TIME', 740, 246);
+
+  // Footer Wayfinding
+  ctx.fillStyle = '#ff8a1f';
+  ctx.fillRect(8, 420, 1008, 80);
+  ctx.fillStyle = '#17131f';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('WAYFINDING: PLATFORM 1 ACCESS VIA OVERHEAD FOOTBRIDGE OR WEST LEVEL CROSSING', 24, 468);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function createBoardCanvasTexture(isErrorsRepaired: boolean): THREE.CanvasTexture {
@@ -511,27 +594,29 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   stationGroup.add(cityPlazaGroup);
 
   // =========================================================================
-  // 2. ZONE 1: STATION ENTRANCE GATE & ARCHITECTURAL FACADE (z = 4.4)
-  // Completely open central portal (x in [-2.4, 2.4]) - direct view into Atrium!
   // =========================================================================
+  // 2. ZONE 1: STATION ENTRANCE GATE & ARCHITECTURAL FACADE (z = 4.4)
+  // Preserves commit db44156 approved entrance with interactive turnstiles
+  // =========================================================================
+  const allWallMeshes: THREE.Mesh[] = [];
   const entranceFacadeGroup = new THREE.Group();
   entranceFacadeGroup.position.set(0, 0, 4.4);
 
-  // Left Sandstone Entrance Tower (West: x = -4.0)
-  const leftTower = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.4, 5.2, 0.8)), sandstoneMat);
-  leftTower.position.set(-4.0, 2.6, 0);
+  // Left Sandstone Entrance Tower & Pylon (West: x = -3.8)
+  const leftTower = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.2, 4.8, 0.8)), sandstoneMat);
+  leftTower.position.set(-3.8, 2.4, 0);
   leftTower.castShadow = true;
   entranceFacadeGroup.add(leftTower);
 
-  // Right Sandstone Entrance Tower (East: x = 4.0)
-  const rightTower = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.4, 5.2, 0.8)), sandstoneMat);
-  rightTower.position.set(4.0, 2.6, 0);
+  // Right Sandstone Entrance Tower & Pylon (East: x = 3.8)
+  const rightTower = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.2, 4.8, 0.8)), sandstoneMat);
+  rightTower.position.set(3.8, 2.4, 0);
   rightTower.castShadow = true;
   entranceFacadeGroup.add(rightTower);
 
-  // Grand Entrance Overhead Lintel Beam (at y = 4.45, high above camera!)
-  const entranceLintel = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.8, 0.7, 0.8)), sandstoneMat);
-  entranceLintel.position.set(0, 4.45, 0);
+  // Grand Entrance Overhead Lintel Beam (framed high at y = 4.2 to eliminate view obstruction)
+  const entranceLintel = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.6, 0.6, 0.8)), sandstoneMat);
+  entranceLintel.position.set(0, 4.2, 0);
   entranceLintel.castShadow = true;
   entranceFacadeGroup.add(entranceLintel);
 
@@ -545,26 +630,112 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
       roughness: 0.25,
     }))
   );
-  stationMarquee.position.set(0, 4.45, 0.42);
+  stationMarquee.position.set(0, 4.2, 0.42);
   entranceFacadeGroup.add(stationMarquee);
+  allWallMeshes.push(leftTower, rightTower, entranceLintel, stationMarquee);
 
-  // Ornamental Gateposts flanking the open walkway (x = -2.5 and 2.5)
-  for (const gx of [-2.5, 2.5]) {
+  // Flank Entrance Pylons with warm globe lanterns (db44156 approved design)
+  const lanternGlobeGeo = regGeo(new THREE.SphereGeometry(0.2, 16, 16));
+  const lanternGlobeMat = regMat(
+    new THREE.MeshStandardMaterial({
+      color: 0xffe2b8,
+      emissive: 0xffa040,
+      emissiveIntensity: 0.95,
+      roughness: 0.2,
+    })
+  );
+
+  for (const px of [-2.6, 2.6]) {
     const postG = new THREE.Group();
-    postG.position.set(gx, 0, 0);
-    const postPillar = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.35, 3.4, 0.35)), castIronMat);
-    postPillar.position.y = 1.7;
-    const postLantern = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.24, 0.35, 0.24)), brassMat);
-    postLantern.position.y = 3.55;
+    postG.position.set(px, 0, 0);
+    const postPillar = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.35, 3.2, 0.35)), castIronMat);
+    postPillar.position.y = 1.6;
+    const postLantern = new THREE.Mesh(lanternGlobeGeo, lanternGlobeMat);
+    postLantern.position.y = 3.35;
     postG.add(postPillar, postLantern);
     entranceFacadeGroup.add(postG);
   }
 
+  // INTERACTIVE ENTRANCE TURNSTILE GATES
+  // Twin motorized swing gates with chevron acrylic barriers and LED status indicators
+  const entranceGateGroup = new THREE.Group();
+  entranceGateGroup.position.set(0, 0, 0);
+
+  // Gate Turnstile Pedestals flanking passage
+  const turnstilePedGeo = regGeo(new THREE.BoxGeometry(0.28, 1.05, 0.5));
+  const turnstilePedMat = regMat(new THREE.MeshStandardMaterial({ color: 0x241b34, roughness: 0.3, metalness: 0.3 }));
+
+  const leftPed = new THREE.Mesh(turnstilePedGeo, turnstilePedMat);
+  leftPed.position.set(-1.15, 0.525, 0);
+  const rightPed = new THREE.Mesh(turnstilePedGeo, turnstilePedMat);
+  rightPed.position.set(1.15, 0.525, 0);
+  entranceGateGroup.add(leftPed, rightPed);
+
+  // Left Motorized Swing Barrier
+  const gateWingLeft = new THREE.Group();
+  gateWingLeft.position.set(-1.0, 0.55, 0);
+  const wingLeftPaddle = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.9, 0.42, 0.04)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.75, roughness: 0.1 }))
+  );
+  wingLeftPaddle.position.set(0.45, 0, 0);
+  const wingLeftTrim = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.92, 0.05, 0.05)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.2 }))
+  );
+  wingLeftTrim.position.set(0.45, 0.21, 0);
+  gateWingLeft.add(wingLeftPaddle, wingLeftTrim);
+
+  // Right Motorized Swing Barrier
+  const gateWingRight = new THREE.Group();
+  gateWingRight.position.set(1.0, 0.55, 0);
+  const wingRightPaddle = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.9, 0.42, 0.04)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.75, roughness: 0.1 }))
+  );
+  wingRightPaddle.position.set(-0.45, 0, 0);
+  const wingRightTrim = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.92, 0.05, 0.05)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.2 }))
+  );
+  wingRightTrim.position.set(-0.45, 0.21, 0);
+  gateWingRight.add(wingRightPaddle, wingRightTrim);
+
+  // Gate Status LED Indicators atop pedestals
+  const gateLedGeo = regGeo(new THREE.SphereGeometry(0.06, 12, 12));
+  const gateLedMat = regMat(
+    new THREE.MeshStandardMaterial({
+      color: 0xffaa00,
+      emissive: 0xff8800,
+      emissiveIntensity: 0.85,
+      roughness: 0.2,
+    })
+  );
+  const leftLed = new THREE.Mesh(gateLedGeo, gateLedMat);
+  leftLed.position.set(-1.15, 1.1, 0);
+  const rightLed = new THREE.Mesh(gateLedGeo, gateLedMat);
+  rightLed.position.set(1.15, 1.1, 0);
+  entranceGateGroup.add(gateWingLeft, gateWingRight, leftLed, rightLed);
+
+  entranceFacadeGroup.add(entranceGateGroup);
   stationGroup.add(entranceFacadeGroup);
+
+  let isGateOpenState = false;
+  let gateOpenAngle = 0;
+
+  const openEntranceGate = () => {
+    isGateOpenState = true;
+    gateLedMat.color.setHex(0x10b981);
+    gateLedMat.emissive.setHex(0x10b981);
+    gateLedMat.emissiveIntensity = 1.2;
+  };
+
+  const isGateOpen = () => isGateOpenState;
 
   // =========================================================================
   // 3. ZONE 2: GRAND VICTORIAN ATRIUM & MEZZANINE (z = 1.8 to 4.4, Hub x in [-3.0, 3.0])
-  // Restores commit 385c55e architecture: seafoam walls, cream sandstone, skylights, clock, mezzanine
+  // Restores commit db44156 & 385c55e architecture: seafoam walls, cream sandstone,
+  // grand clock tower, mezzanine stairs, crimson runner and two feature benches
   // =========================================================================
   const atriumGroup = new THREE.Group();
 
@@ -580,6 +751,144 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   atriumTerrazzo.position.set(0, 0.005, 3.1);
   atriumTerrazzo.receiveShadow = true;
   atriumGroup.add(atriumTerrazzo);
+
+  // -------------------------------------------------------------------------
+  // DEEP-CRIMSON CEREMONIAL CARPET RUNNER WITH REFINED GOLD BORDER
+  // Leads from entrance gate (z = 4.4) to grand hall/concourse threshold (z = 2.0)
+  // Perfectly aligned on the stone floor without floating or clipping
+  // -------------------------------------------------------------------------
+  const crimsonCarpetGroup = new THREE.Group();
+  crimsonCarpetGroup.position.set(0, 0, 3.2);
+
+  // Subtle contact shadow underneath
+  const carpetShadow = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(1.58, 0.002, 2.44)),
+    regMat(new THREE.MeshBasicMaterial({ color: 0x140f1a, transparent: true, opacity: 0.35 }))
+  );
+  carpetShadow.position.y = 0.001;
+  crimsonCarpetGroup.add(carpetShadow);
+
+  // Main Deep-Crimson Fabric Runner (1.5m wide x 2.4m long)
+  const crimsonCarpetMat = regMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x8f152b, // Rich ceremonial crimson
+      roughness: 0.65,
+      metalness: 0.04,
+    })
+  );
+  const crimsonRunner = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.5, 0.012, 2.4)), crimsonCarpetMat);
+  crimsonRunner.position.y = 0.007;
+  crimsonRunner.receiveShadow = true;
+  crimsonCarpetGroup.add(crimsonRunner);
+
+  // Polished Gold / Brass Trim Borders framing the crimson runner
+  const goldBorderMat = regMat(
+    new THREE.MeshStandardMaterial({
+      color: 0xd4af37, // Polished gold trim
+      metalness: 0.85,
+      roughness: 0.2,
+    })
+  );
+  // Left border
+  const borderLeft = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.06, 0.015, 2.4)), goldBorderMat);
+  borderLeft.position.set(-0.72, 0.008, 0);
+  // Right border
+  const borderRight = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.06, 0.015, 2.4)), goldBorderMat);
+  borderRight.position.set(0.72, 0.008, 0);
+  // South border (Gate threshold)
+  const borderSouth = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.5, 0.015, 0.06)), goldBorderMat);
+  borderSouth.position.set(0, 0.008, 1.17);
+  // North border (Concourse threshold meeting dark terrazzo)
+  const borderNorth = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.5, 0.015, 0.06)), goldBorderMat);
+  borderNorth.position.set(0, 0.008, -1.17);
+
+  // Woven center diamond accent strip in gold
+  const centerAccent = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.04, 0.014, 2.3)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.7, roughness: 0.3 }))
+  );
+  centerAccent.position.set(0, 0.008, 0);
+
+  crimsonCarpetGroup.add(borderLeft, borderRight, borderSouth, borderNorth, centerAccent);
+  atriumGroup.add(crimsonCarpetGroup);
+
+  // -------------------------------------------------------------------------
+  // EXACTLY TWO FEATURE BENCHES IN THE ENTRANCE AREA
+  // Symmetrically placed flanking the crimson runner (West & East at z = 3.3)
+  // Teak wood slats, Victorian dark-green metal frames, brass finials,
+  // and comfortable muted mint-cream upholstered seat cushions.
+  // -------------------------------------------------------------------------
+  const teakWoodMat = regMat(new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.42 }));
+  const teakBenchMat = teakWoodMat;
+  const darkGreenFrameMat = regMat(new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.35, metalness: 0.45 }));
+  const mintCushionMat = regMat(new THREE.MeshStandardMaterial({ color: 0xd1fae5, roughness: 0.55, metalness: 0.05 }));
+
+  const createPremiumFeatureBench = (xPos: number, yRot: number) => {
+    const benchGroup = new THREE.Group();
+    benchGroup.position.set(xPos, 0, 3.3);
+    benchGroup.rotation.y = yRot;
+
+    // Contact shadow
+    const bShadow = new THREE.Mesh(
+      regGeo(new THREE.BoxGeometry(1.56, 0.002, 0.56)),
+      regMat(new THREE.MeshBasicMaterial({ color: 0x110e1a, transparent: true, opacity: 0.3 }))
+    );
+    bShadow.position.y = 0.001;
+    benchGroup.add(bShadow);
+
+    // Teak Slat Base
+    const seatBase = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.46, 0.04, 0.46)), teakWoodMat);
+    seatBase.position.y = 0.36;
+    benchGroup.add(seatBase);
+
+    // Muted Mint-Cream Upholstered Seat Cushion with Tufting
+    const cushion = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.42, 0.08, 0.44)), mintCushionMat);
+    cushion.position.y = 0.42;
+    cushion.castShadow = true;
+    benchGroup.add(cushion);
+
+    // 4 Polished Teak Backrest Slats
+    for (let si = 0; si < 4; si++) {
+      const slat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.46, 0.055, 0.025)), teakWoodMat);
+      slat.position.set(0, 0.58 + si * 0.085, -0.21);
+      benchGroup.add(slat);
+    }
+
+    // Victorian Dark-Green Cast Iron End Frames & Curved Scroll Armrests
+    for (const ex of [-0.68, 0.68]) {
+      // Front & Rear Curved Legs
+      const legFrame = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.06, 0.44, 0.46)), darkGreenFrameMat);
+      legFrame.position.set(ex, 0.22, 0);
+      legFrame.castShadow = true;
+
+      // Brass Feet Caps
+      const footCap = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.08, 0.06, 0.48)), brassMat);
+      footCap.position.set(ex, 0.03, 0);
+
+      // Backrest Support Stanchion
+      const backStanchion = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.05, 0.45, 0.05)), darkGreenFrameMat);
+      backStanchion.position.set(ex, 0.7, -0.21);
+
+      // Graceful Curved Armrest
+      const armrest = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.07, 0.04, 0.48)), darkGreenFrameMat);
+      armrest.position.set(ex, 0.54, 0);
+
+      // Brass Finial Knobs on armrest front
+      const knob = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.035, 12, 12)), brassMat);
+      knob.position.set(ex, 0.55, 0.23);
+
+      benchGroup.add(legFrame, footCap, backStanchion, armrest, knob);
+    }
+
+    return benchGroup;
+  };
+
+  // Exactly two feature benches placed symmetrically:
+  // Bench 1: West side of entrance foyer, facing East towards crimson runner
+  const entranceBenchWest = createPremiumFeatureBench(-1.85, Math.PI / 2);
+  // Bench 2: East side of entrance foyer, facing West towards crimson runner
+  const entranceBenchEast = createPremiumFeatureBench(1.85, -Math.PI / 2);
+  atriumGroup.add(entranceBenchWest, entranceBenchEast);
 
   // Fluted Sandstone Columns framing the Atrium
   const atriumColumnPositions = [
@@ -649,24 +958,7 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   stairGroup.add(mezzSlab, handrail);
   atriumGroup.add(stairGroup);
 
-  // Teak Slat Benches with Sage Cast-Iron Frames
-  const teakBenchMat = regMat(new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.6 }));
-  const sageIronMat = regMat(new THREE.MeshStandardMaterial({ color: 0x2e6040, roughness: 0.4, metalness: 0.3 }));
-  const benchG = new THREE.Group();
-  benchG.position.set(-1.4, 0, 2.4);
-  const seat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.5, 0.08, 0.45)), teakBenchMat);
-  seat.position.y = 0.42;
-  const back = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.5, 0.35, 0.06)), teakBenchMat);
-  back.position.set(0, 0.62, -0.2);
-  for (const lx of [-0.65, 0.65]) {
-    const leg = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.04, 0.04, 0.42, 8)), sageIronMat);
-    leg.position.set(lx, 0.21, 0);
-    benchG.add(leg);
-  }
-  benchG.add(seat, back);
-  atriumGroup.add(benchG);
-
-  // Terracotta Urn Planters with Tropical Palms
+  // Terracotta Urn Planters with Tropical Palms flanking staircase and clock
   const urnMat = regMat(new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7 }));
   const palmMat = regMat(new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 }));
   for (const px of [-1.8, 1.2]) {
@@ -701,10 +993,134 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   stationGroup.add(atriumGroup);
 
   // =========================================================================
+  // ARCHITECTURAL VISIBLE ROOM ENTRANCE DOORWAYS (ROOMS 1 TO 5)
+  // Each room receives an authentic, clearly modeled doorframe with side jambs,
+  // top lintel header, brass threshold, readable illuminated room signplate,
+  // and smooth proximity-animated sliding frosted glass door leaves.
+  // =========================================================================
+  interface AnimatedDoor {
+    name: string;
+    pos: THREE.Vector3;
+    leafLeft: THREE.Mesh;
+    leafRight: THREE.Mesh;
+    openAxis: 'x' | 'z';
+    maxSlide: number;
+    currentOpen: number;
+    initialLeftPos: number;
+    initialRightPos: number;
+  }
+  const animatedDoors: AnimatedDoor[] = [];
+
+  const createRoomDoorway = (
+    parentGroup: THREE.Group,
+    roomName: string,
+    pos: THREE.Vector3,
+    axis: 'x' | 'z',
+    width: number,
+    height: number
+  ) => {
+    const doorGroup = new THREE.Group();
+    doorGroup.position.copy(pos);
+
+    // Left and Right Sandstone Door Jambs
+    const jambGeo = regGeo(axis === 'x' ? new THREE.BoxGeometry(0.2, height, 0.24) : new THREE.BoxGeometry(0.24, height, 0.2));
+    const jambLeft = new THREE.Mesh(jambGeo, sandstoneMat);
+    const jambRight = new THREE.Mesh(jambGeo, sandstoneMat);
+    if (axis === 'x') {
+      jambLeft.position.set(-width / 2, height / 2, 0);
+      jambRight.position.set(width / 2, height / 2, 0);
+    } else {
+      jambLeft.position.set(0, height / 2, -width / 2);
+      jambRight.position.set(0, height / 2, width / 2);
+    }
+    doorGroup.add(jambLeft, jambRight);
+    allWallMeshes.push(jambLeft, jambRight);
+
+    // Sandstone Header Lintel Beam with Classical Molded Trim
+    const lintelGeo = regGeo(axis === 'x' ? new THREE.BoxGeometry(width + 0.4, 0.36, 0.28) : new THREE.BoxGeometry(0.28, 0.36, width + 0.4));
+    const lintel = new THREE.Mesh(lintelGeo, sandstoneMat);
+    lintel.position.y = height + 0.18;
+    doorGroup.add(lintel);
+    allWallMeshes.push(lintel);
+
+    // Readable Illuminated Room Signplate
+    const signGeo = regGeo(axis === 'x' ? new THREE.BoxGeometry(width * 0.88, 0.32, 0.08) : new THREE.BoxGeometry(0.08, 0.32, width * 0.88));
+    const signMat = regMat(
+      new THREE.MeshStandardMaterial({
+        color: 0x17131f,
+        emissive: 0xffd23f,
+        emissiveIntensity: 0.65,
+        roughness: 0.25,
+      })
+    );
+    const sign = new THREE.Mesh(signGeo, signMat);
+    sign.position.y = height + 0.48;
+    doorGroup.add(sign);
+
+    // Polished Brass Door Sill / Threshold Plate
+    const sillGeo = regGeo(axis === 'x' ? new THREE.BoxGeometry(width + 0.1, 0.015, 0.32) : new THREE.BoxGeometry(0.32, 0.015, width + 0.1));
+    const sill = new THREE.Mesh(sillGeo, brassMat);
+    sill.position.y = 0.008;
+    doorGroup.add(sill);
+
+    // Sliding Frosted Glass Door Panels with Brass Stile Handles
+    const leafWidth = width / 2;
+    const leafGeo = regGeo(axis === 'x' ? new THREE.BoxGeometry(leafWidth * 0.98, height * 0.94, 0.04) : new THREE.BoxGeometry(0.04, height * 0.94, leafWidth * 0.98));
+    const leafMat = regMat(
+      new THREE.MeshStandardMaterial({
+        color: 0x93c5fd,
+        transparent: true,
+        opacity: 0.7,
+        roughness: 0.15,
+        metalness: 0.2,
+      })
+    );
+    const leafLeft = new THREE.Mesh(leafGeo, leafMat);
+    const leafRight = new THREE.Mesh(leafGeo, leafMat);
+
+    // Polished Brass Handle Bars
+    const handleGeo = regGeo(new THREE.BoxGeometry(0.03, 0.45, 0.06));
+    const handleLeft = new THREE.Mesh(handleGeo, brassMat);
+    const handleRight = new THREE.Mesh(handleGeo, brassMat);
+    handleLeft.position.y = 0;
+    handleRight.position.y = 0;
+    leafLeft.add(handleLeft);
+    leafRight.add(handleRight);
+
+    const initL = -leafWidth / 2;
+    const initR = leafWidth / 2;
+    if (axis === 'x') {
+      leafLeft.position.set(initL, height * 0.47, 0);
+      leafRight.position.set(initR, height * 0.47, 0);
+    } else {
+      leafLeft.position.set(0, height * 0.47, initL);
+      leafRight.position.set(0, height * 0.47, initR);
+    }
+
+    doorGroup.add(leafLeft, leafRight);
+    parentGroup.add(doorGroup);
+
+    animatedDoors.push({
+      name: roomName,
+      pos: pos.clone(),
+      leafLeft,
+      leafRight,
+      openAxis: axis,
+      maxSlide: leafWidth * 0.88,
+      currentOpen: 0,
+      initialLeftPos: initL,
+      initialRightPos: initR,
+    });
+  };
+
+  // =========================================================================
   // 4. ROOM 1: ORIGINAL TICKET CONCOURSE (Center North: x in [-2.6, 2.6], z in [-1.4, 1.8])
   // PRESERVED BASELINE: Kiosk, royal-blue queue carpet, velvet stanchions, Arjun
   // =========================================================================
   const room1Group = new THREE.Group();
+
+  // Visible Entrance Doorway to Room 1 (Facing South to Atrium at z = 1.8)
+  createRoomDoorway(room1Group, 'ROOM 1 · TICKET CONCOURSE', new THREE.Vector3(0, 0, 1.8), 'x', 2.4, 2.5);
 
   // Room 1 Floor Slab
   const r1Floor = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.6, 0.4, 3.4)), concourseFloorMat);
@@ -821,6 +1237,9 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   r2WestArchBeam.position.set(3.0, 3.8, 0.2);
   room2Group.add(r2WestWallNorth, r2WestWallSouth, r2WestArchBeam);
 
+  // Visible Entrance Doorway to Room 2 from Room 1 (at x = 3.0, z = 0.2)
+  createRoomDoorway(room2Group, 'ROOM 2 · DEPARTURE GALLERY', new THREE.Vector3(3.0, 0, 0.2), 'z', 1.4, 2.4);
+
   // Dividing Wall South (z = 1.8) between Room 2 & Room 5 with open doorway (x in [5.0, 6.4])
   const r2SouthWallWest = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.0, 4.4, 0.24)), sandstoneMat);
   r2SouthWallWest.position.set(4.0, 2.2, 1.8);
@@ -829,6 +1248,7 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   const r2SouthArchBeam = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.6, 0.3)), sandstoneMat);
   r2SouthArchBeam.position.set(5.7, 3.8, 1.8);
   room2Group.add(r2SouthWallWest, r2SouthWallEast, r2SouthArchBeam);
+  allWallMeshes.push(r2EastWall, r2NorthWallLeft, r2WestWallNorth, r2WestWallSouth, r2WestArchBeam, r2SouthWallWest, r2SouthWallEast, r2SouthArchBeam);
 
   // Monumental Solari Departures Board (mounted at x = 5.4, z = -1.25)
   const departureBoardLedMat = regMat(
@@ -895,6 +1315,9 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   r3EastArchBeam.position.set(-3.0, 3.8, 0.2);
   room3Group.add(r3EastWallNorth, r3EastWallSouth, r3EastArchBeam);
 
+  // Visible Entrance Doorway to Room 3 from Room 1 (at x = -3.0, z = 0.2)
+  createRoomDoorway(room3Group, 'ROOM 3 · PASSENGER SERVICES', new THREE.Vector3(-3.0, 0, 0.2), 'z', 1.4, 2.4);
+
   // Dividing Wall South (z = 1.8) between Room 3 & Room 4 with open doorway (x in [-6.4, -5.0])
   const r3SouthWallWest = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.0, 4.4, 0.24)), sandstoneMat);
   r3SouthWallWest.position.set(-7.4, 2.2, 1.8);
@@ -903,6 +1326,7 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   const r3SouthArchBeam = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.6, 0.3)), sandstoneMat);
   r3SouthArchBeam.position.set(-5.7, 3.8, 1.8);
   room3Group.add(r3SouthWallWest, r3SouthWallEast, r3SouthArchBeam);
+  allWallMeshes.push(r3WestWall, r3NorthWall, r3EastWallNorth, r3EastWallSouth, r3EastArchBeam, r3SouthWallWest, r3SouthWallEast, r3SouthArchBeam);
 
   // Curved Customer Service Counter Desk (at x = -5.6, z = 0.2)
   const helpDeskGroup = new THREE.Group();
@@ -980,6 +1404,10 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   r4EastArchBeam.position.set(-3.0, 3.8, 3.2);
   room4Group.add(r4EastWallNorth, r4EastWallSouth, r4EastArchBeam);
 
+  // Visible Entrance Doorway to Room 4 from Atrium (at x = -3.0, z = 3.2)
+  createRoomDoorway(room4Group, 'ROOM 4 · WAITING LOUNGE', new THREE.Vector3(-3.0, 0, 3.2), 'z', 1.6, 2.4);
+  allWallMeshes.push(r4WestWall, r4SouthWall, r4EastWallNorth, r4EastWallSouth, r4EastArchBeam);
+
   // Refreshment Snack Counter / Chai Kiosk ("MUMBAI CHAI & SNACKS")
   const snackBar = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.2, 1.0, 0.7)), sandstoneMat);
   snackBar.position.set(-5.6, 0.5, 4.4);
@@ -1044,6 +1472,10 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   r5WestArchBeam.position.set(3.0, 3.8, 3.2);
   room5Group.add(r5WestWallNorth, r5WestWallSouth, r5WestArchBeam);
 
+  // Visible Entrance Doorway to Room 5 from Atrium (at x = 3.0, z = 3.2)
+  createRoomDoorway(room5Group, 'ROOM 5 · DESIGNER WORKSHOP', new THREE.Vector3(3.0, 0, 3.2), 'z', 1.6, 2.4);
+  allWallMeshes.push(r5EastWall, r5SouthWall, r5WestWallNorth, r5WestWallSouth, r5WestArchBeam);
+
   // Luminous Neon Sign: "CLARITY DESIGN LAB"
   const labSignMat = regMat(
     new THREE.MeshStandardMaterial({
@@ -1082,27 +1514,29 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
   stationGroup.add(room5Group);
 
   // =========================================================================
-  // 9. GRAND PLATFORM 1 & TRACKS (North: z = -2.0 to -5.5, x in [-8.8, 8.8])
+  // 9. GRAND PLATFORMS & DOUBLE TRACKS (PLATFORM 1 & OPPOSITE PLATFORM 2)
+  // Complete architectural dual-platform layout with parallel tracks,
+  // overhead footbridge, west pedestrian crossing, and Platform 2 canopy.
   // =========================================================================
   const platformGroup = new THREE.Group();
 
-  // Long Passenger Platform Slab
-  const platGeo = regGeo(new THREE.BoxGeometry(18.0, 0.4, 2.2));
-  const platMat = regMat(new THREE.MeshStandardMaterial({ color: 0xded8cc, roughness: 0.5 }));
-  const platform = new THREE.Mesh(platGeo, platMat);
-  platform.position.set(0, -0.2, -2.6);
-  platform.receiveShadow = true;
-  platformGroup.add(platform);
+  // --- PLATFORM 1 (South Platform: z = -2.6) ---
+  const plat1Geo = regGeo(new THREE.BoxGeometry(18.0, 0.4, 2.2));
+  const plat1Mat = regMat(new THREE.MeshStandardMaterial({ color: 0xded8cc, roughness: 0.5 }));
+  const platform1 = new THREE.Mesh(plat1Geo, plat1Mat);
+  platform1.position.set(0, -0.2, -2.6);
+  platform1.receiveShadow = true;
+  platformGroup.add(platform1);
 
-  // Tactile Yellow Safety Edge along platform border (z = -3.2)
-  const safetyEdge = new THREE.Mesh(
+  // Tactile Yellow Safety Edge along Platform 1 (z = -3.2)
+  const safetyEdge1 = new THREE.Mesh(
     regGeo(new THREE.BoxGeometry(18.0, 0.02, 0.18)),
     regMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, roughness: 0.3 }))
   );
-  safetyEdge.position.set(0, 0.01, -3.2);
-  platformGroup.add(safetyEdge);
+  safetyEdge1.position.set(0, 0.01, -3.2);
+  platformGroup.add(safetyEdge1);
 
-  // Platform Direction Signs and Lighting
+  // Platform 1 Direction Signs and Gantry Poles
   for (const px of [-6.0, 0, 6.0]) {
     const pGantry = new THREE.Group();
     pGantry.position.set(px, 0, -2.8);
@@ -1117,26 +1551,31 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     platformGroup.add(pGantry);
   }
 
-  // Railway Track Ballast (Gravel Bed)
+  // --- DOUBLE TRACKS BED (Track 1 at z = -4.6, Track 2 at z = -5.8) ---
   const ballast = new THREE.Mesh(
-    regGeo(new THREE.BoxGeometry(20.0, 0.25, 2.8)),
+    regGeo(new THREE.BoxGeometry(20.0, 0.25, 3.4)),
     regMat(new THREE.MeshStandardMaterial({ color: 0x14101e, roughness: 0.9 }))
   );
-  ballast.position.set(0, -0.22, -4.8);
+  ballast.position.set(0, -0.22, -5.2);
   platformGroup.add(ballast);
 
-  // Wooden Sleepers
+  // Wooden Sleepers along double tracks
   for (let sx = -9.5; sx <= 9.5; sx += 0.5) {
-    const sleeper = new THREE.Mesh(
-      regGeo(new THREE.BoxGeometry(0.22, 0.08, 2.0)),
+    const sleeper1 = new THREE.Mesh(
+      regGeo(new THREE.BoxGeometry(0.22, 0.08, 1.4)),
       regMat(new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.8 }))
     );
-    sleeper.position.set(sx, -0.06, -4.8);
-    platformGroup.add(sleeper);
+    sleeper1.position.set(sx, -0.06, -4.6);
+    const sleeper2 = new THREE.Mesh(
+      regGeo(new THREE.BoxGeometry(0.22, 0.08, 1.4)),
+      regMat(new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.8 }))
+    );
+    sleeper2.position.set(sx, -0.06, -5.8);
+    platformGroup.add(sleeper1, sleeper2);
   }
 
-  // Polished Steel Rails
-  for (const rz of [-4.3, -5.3]) {
+  // Polished Steel Rails for Track 1 & Track 2
+  for (const rz of [-4.3, -4.9, -5.5, -6.1]) {
     const rail = new THREE.Mesh(
       regGeo(new THREE.BoxGeometry(20.0, 0.08, 0.08)),
       regMat(new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.15 }))
@@ -1145,27 +1584,241 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     platformGroup.add(rail);
   }
 
+  // --- PLATFORM 2 (Opposite North Platform: z = -7.4) ---
+  const plat2Geo = regGeo(new THREE.BoxGeometry(18.0, 0.4, 2.2));
+  const plat2Mat = regMat(new THREE.MeshStandardMaterial({ color: 0xd9d1c1, roughness: 0.48 }));
+  const platform2 = new THREE.Mesh(plat2Geo, plat2Mat);
+  platform2.position.set(0, -0.2, -7.4);
+  platform2.receiveShadow = true;
+  platformGroup.add(platform2);
+
+  // Tactile Yellow Safety Edge along Platform 2 (z = -6.4)
+  const safetyEdge2 = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(18.0, 0.02, 0.18)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0xffd23f, roughness: 0.3 }))
+  );
+  safetyEdge2.position.set(0, 0.01, -6.4);
+  platformGroup.add(safetyEdge2);
+
+  // Platform 2 Back Victorian Cast-Iron Railing Wall (at z = -8.5)
+  const p2BackRailing = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(18.0, 1.1, 0.08)),
+    castIronMat
+  );
+  p2BackRailing.position.set(0, 0.55, -8.5);
+  platformGroup.add(p2BackRailing);
+
+  // Platform 2 Canopy Roof & Cast-Iron Fluted Columns
+  const platform2CanopyRoof = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(18.4, 0.22, 2.6)),
+    sandstoneMat
+  );
+  platform2CanopyRoof.position.set(0, 3.4, -7.4);
+  platformGroup.add(platform2CanopyRoof);
+
+  for (const cx of [-6.0, -2.0, 2.0, 6.0]) {
+    const pColG = new THREE.Group();
+    pColG.position.set(cx, 0, -7.4);
+    const pShaft = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.08, 0.1, 3.2, 12)), castIronMat);
+    pShaft.position.y = 1.6;
+    const pLantern = new THREE.Mesh(
+      regGeo(new THREE.SphereGeometry(0.14, 12, 12)),
+      regMat(new THREE.MeshStandardMaterial({ color: 0xfff0c2, emissive: 0xffaa33, emissiveIntensity: 0.85 }))
+    );
+    pLantern.position.y = 2.9;
+    pColG.add(pShaft, pLantern);
+    platformGroup.add(pColG);
+  }
+
+  // Overhead Platform 2 Wayfinding Gantry Sign: "PLATFORM 2 · FAST CORRIDOR"
+  const p2SignGantry = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(3.6, 0.45, 0.12)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x17131f, emissive: 0xff8a1f, emissiveIntensity: 0.55 }))
+  );
+  p2SignGantry.position.set(0, 3.8, -7.4);
+  platformGroup.add(p2SignGantry);
+
+  // Platform 2 Solari Departures Board (Mounted at x = -1.8, z = -8.3)
+  const departureBoardLed2Mat = regMat(
+    new THREE.MeshStandardMaterial({
+      map: createPlatform2BoardCanvasTexture(),
+      emissive: 0xffffff,
+      emissiveIntensity: 0.65,
+      roughness: 0.2,
+    })
+  );
+  const departureBoardLed2 = new THREE.Mesh(regGeo(new THREE.PlaneGeometry(3.4, 1.7)), departureBoardLed2Mat);
+  departureBoardLed2.position.set(-1.8, 2.2, -8.3);
+  platformGroup.add(departureBoardLed2);
+
+  const boardFrame2 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.6, 1.9, 0.14)), castIronMat);
+  boardFrame2.position.set(-1.8, 2.2, -8.38);
+  platformGroup.add(boardFrame2);
+
+  // Platform 2 Teak Waiting Benches
+  for (const bx of [-4.2, 3.8]) {
+    const p2Bench = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.42, 0.5)), teakBenchMat);
+    p2Bench.position.set(bx, 0.21, -8.0);
+    platformGroup.add(p2Bench);
+  }
+
+  // Waiting Passengers on Platform 2
+  const p2Passenger1 = new THREE.Mesh(
+    regGeo(new THREE.CylinderGeometry(0.2, 0.22, 1.2, 12)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x3b82f6 }))
+  );
+  p2Passenger1.position.set(-2.8, 0.6, -7.2);
+  const p2Luggage1 = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(0.35, 0.45, 0.25)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x78350f }))
+  );
+  p2Luggage1.position.set(-2.4, 0.22, -7.2);
+  platformGroup.add(p2Passenger1, p2Luggage1);
+
+  // --- PEDESTRIAN CONNECTIONS BETWEEN PLATFORM 1 & PLATFORM 2 ---
+  // 1. West Level Crossing (x in [-7.2, -5.2], z in [-3.2, -6.4])
+  const crossingSlab = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(2.0, 0.08, 3.2)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.9 }))
+  );
+  crossingSlab.position.set(-6.2, 0.0, -4.8);
+  platformGroup.add(crossingSlab);
+
+  // Crossing Warning Yellow Border Stripes
+  for (const cx of [-7.15, -5.25]) {
+    const stripe = new THREE.Mesh(
+      regGeo(new THREE.BoxGeometry(0.12, 0.02, 3.2)),
+      regMat(new THREE.MeshBasicMaterial({ color: 0xffd23f }))
+    );
+    stripe.position.set(cx, 0.045, -4.8);
+    platformGroup.add(stripe);
+  }
+
+  // Crossing Warning Crossbuck Posts with Flashing Amber Lights
+  for (const cz of [-3.1, -6.5]) {
+    const xPost = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 8)), castIronMat);
+    xPost.position.set(-7.4, 1.1, cz);
+    const xBeacon = new THREE.Mesh(
+      regGeo(new THREE.SphereGeometry(0.09, 12, 12)),
+      regMat(new THREE.MeshStandardMaterial({ color: 0xff8800, emissive: 0xffaa00, emissiveIntensity: 1.0 }))
+    );
+    xBeacon.position.set(-7.4, 2.25, cz);
+    platformGroup.add(xPost, xBeacon);
+  }
+
+  // 2. East Covered Overhead Footbridge (x in [5.4, 7.0], spanning z = -3.2 to -6.4)
+  const bridgeDeck = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(1.6, 0.2, 3.4)),
+    sandstoneMat
+  );
+  bridgeDeck.position.set(6.2, 1.8, -4.8);
+  bridgeDeck.receiveShadow = true;
+  platformGroup.add(bridgeDeck);
+
+  // Footbridge Covered Arched Roof
+  const bridgeRoof = new THREE.Mesh(
+    regGeo(new THREE.BoxGeometry(1.8, 0.15, 3.6)),
+    regMat(new THREE.MeshStandardMaterial({ color: 0x428e82, roughness: 0.4 }))
+  );
+  bridgeRoof.position.set(6.2, 3.5, -4.8);
+  platformGroup.add(bridgeRoof);
+
+  // Footbridge Brass Railings
+  for (const bx of [5.45, 6.95]) {
+    const bRail = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.06, 0.8, 3.4)), brassMat);
+    bRail.position.set(bx, 2.3, -4.8);
+    platformGroup.add(bRail);
+  }
+
+  // Footbridge Steps from Platform 1 (z = -3.2)
+  for (let s = 0; s < 6; s++) {
+    const stepMesh1 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.18, 0.28)), sandstoneMat);
+    stepMesh1.position.set(6.2, 0.09 + s * 0.18, -3.2 - s * 0.24);
+    platformGroup.add(stepMesh1);
+  }
+  // Footbridge Steps to Platform 2 (z = -6.4)
+  for (let s = 0; s < 6; s++) {
+    const stepMesh2 = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.6, 0.18, 0.28)), sandstoneMat);
+    stepMesh2.position.set(6.2, 0.09 + s * 0.18, -6.4 + s * 0.24);
+    platformGroup.add(stepMesh2);
+  }
+
   stationGroup.add(platformGroup);
 
   // =========================================================================
-  // 10. LIVING RAILWAY: SIMULATED DECCAN EXPRESS & TOKEN COLLECTIBLES
+  // 10. LIVING RAILWAY: SIMULATED DUAL TRAINS & TOKEN COLLECTIBLES
   // =========================================================================
   const trainSystem = createTrainSystem({
     scene,
     cycleInterval: 16,
-    onPhaseChange: onTrainPhaseChange,
+    onPhaseChange: (phase, service, platform) => {
+      onTrainPhaseChange?.(phase, service);
+    },
   });
 
   const tokenCollectibles = createTokenCollectibles(scene);
 
+  const occluderMeshes: THREE.Mesh[] = [
+    leftTower,
+    rightTower,
+    entranceLintel,
+    stationMarquee,
+    r4SouthWall,
+    r5SouthWall,
+  ];
+
+  const setCutawayMode = (enabled: boolean) => {
+    skylightGroup.visible = !enabled;
+    platform2CanopyRoof.visible = !enabled;
+    const targetOpacity = enabled ? 0.22 : 1.0;
+    occluderMeshes.forEach((mesh) => {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (mat) {
+        mat.transparent = enabled;
+        mat.opacity = targetOpacity;
+        mat.depthWrite = !enabled;
+        mat.needsUpdate = true;
+      }
+    });
+  };
+
+  const setXRayMode = (enabled: boolean) => {
+    skylightGroup.visible = !enabled;
+    platform2CanopyRoof.visible = !enabled;
+    allWallMeshes.forEach((mesh) => {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (mat) {
+        if (enabled) {
+          mat.transparent = true;
+          mat.opacity = 0.0;
+          mat.depthWrite = false;
+        } else {
+          mat.transparent = false;
+          mat.opacity = 1.0;
+          mat.depthWrite = true;
+        }
+        mat.needsUpdate = true;
+      }
+    });
+  };
+
+  const getOccluderMeshes = () => occluderMeshes;
+
   // Animation Update Loop
   const update = (playerPos: THREE.Vector3, time: number, delta: number) => {
+    // Animate motorized entrance gate turnstiles
+    const targetGateAngle = isGateOpenState ? Math.PI / 2 : 0;
+    gateOpenAngle = THREE.MathUtils.lerp(gateOpenAngle, targetGateAngle, delta * 6.0);
+    gateWingLeft.rotation.y = gateOpenAngle;
+    gateWingRight.rotation.y = -gateOpenAngle;
+
     // Animate clock minute hand
     clockHandMesh.rotation.z = -time * 0.15;
 
     // Pulse interactive screens
     kioskScreenMat.emissiveIntensity = 0.5 + Math.sin(time * 3.0) * 0.12;
     departureBoardLedMat.emissiveIntensity = 0.6 + Math.sin(time * 2.5) * 0.1;
+    departureBoardLed2Mat.emissiveIntensity = 0.6 + Math.sin(time * 2.8) * 0.1;
 
     // Move City Street Vehicles
     taxiGroup.position.x += delta * 3.2;
@@ -1174,11 +1827,32 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     busGroup.position.x -= delta * 2.4;
     if (busGroup.position.x < -12.0) busGroup.position.x = 12.0;
 
+    // Animate 5 Architectural Room Doors based on player proximity
+    let nearbyDoorName: string | null = null;
+    for (const door of animatedDoors) {
+      const dist = playerPos.distanceTo(door.pos);
+      const isNear = dist < 2.0;
+      const target = isNear ? 1.0 : 0.0;
+      door.currentOpen = THREE.MathUtils.lerp(door.currentOpen, target, delta * 6.0);
+
+      if (door.openAxis === 'x') {
+        door.leafLeft.position.x = door.initialLeftPos - door.maxSlide * door.currentOpen;
+        door.leafRight.position.x = door.initialRightPos + door.maxSlide * door.currentOpen;
+      } else {
+        door.leafLeft.position.z = door.initialLeftPos - door.maxSlide * door.currentOpen;
+        door.leafRight.position.z = door.initialRightPos + door.maxSlide * door.currentOpen;
+      }
+
+      if (isNear && !nearbyDoorName) {
+        nearbyDoorName = door.name;
+      }
+    }
+
     // Tick Train System & Token Collectibles
     trainSystem.update(delta);
     const { collectedId } = tokenCollectibles.update(playerPos, time, delta);
 
-    return { collectedTokenId: collectedId };
+    return { collectedTokenId: collectedId, nearbyDoorName };
   };
 
   const triggerTrainDeparture = () => {
@@ -1201,11 +1875,18 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
     trainSystem,
     tokenCollectibles,
     departureBoardLed,
+    departureBoardLed2,
     kioskScreenMesh,
     kioskBannerMesh,
     deskSignMesh,
     deskMonitorMesh,
     clockHandMesh,
+    entranceGateGroup,
+    isGateOpen,
+    openEntranceGate,
+    setCutawayMode,
+    setXRayMode,
+    getOccluderMeshes,
     update,
     triggerTrainDeparture,
     triggerTrainBoarding,

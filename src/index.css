@@ -3684,6 +3684,144 @@ body {
 }
 
 /* ==========================================================================
+   MULTI-ANGLE CAMERA & ARCHITECTURAL VIEW TOOLBAR
+   ========================================================================== */
+.camera-view-toolbar {
+  position: absolute;
+  top: 78px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(23, 19, 31, 0.92);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 24px;
+  padding: 4px 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  z-index: 24;
+  pointer-events: auto;
+}
+
+.camera-preset-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cam-tool-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ffd23f;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+.cam-preset-btn {
+  background: transparent;
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 3px 9px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cam-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.cam-preset-btn.is-active {
+  background: #ffd23f;
+  color: #17131f;
+  border-color: #ffd23f;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(255, 210, 63, 0.4);
+}
+
+.camera-action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 8px;
+}
+
+.cam-action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 3px 9px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.68rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.cam-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.cam-action-btn--xray.is-active {
+  background: #10b981;
+  color: #17131f;
+  border-color: #10b981;
+  font-weight: 900;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.cam-action-btn--reset {
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.4);
+}
+
+.cam-action-btn--reset:hover {
+  background: rgba(251, 146, 60, 0.2);
+}
+
+.cam-zoom-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  padding: 1px 4px;
+}
+
+.cam-zoom-btn {
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cam-zoom-val {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #93c5fd;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* ==========================================================================
    SF QUEST / CAMPUS MINIMAP RADAR (Bottom-Left In-World HUD)
    ========================================================================== */
 .station-minimap-radar {
@@ -5698,6 +5836,73 @@ body {
 .footer-cream-container {
   max-width: 1240px;
   margin: 0 auto;
+}
+
+/* Monumental Full-Width Creator Signature */
+.footer-signature-monumental {
+  background: #17131f;
+  background-image: radial-gradient(#2d2244 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  border: 3.5px solid #17131f;
+  border-radius: 16px;
+  padding: 36px 24px;
+  margin-bottom: 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 6px 6px 0px #ff3d8b, 12px 12px 0px #ffd23f;
+}
+
+.signature-badge-kicker {
+  display: inline-block;
+  background: #ff3d8b;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 2px solid #ffffff;
+  box-shadow: 2px 2px 0px #17131f;
+  margin-bottom: 12px;
+  transform: rotate(-1deg);
+}
+
+.signature-graffiti-display {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 9.5vw, 7.8rem);
+  font-weight: 950;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: #ffd23f;
+  -webkit-text-stroke: 2.5px #17131f;
+  text-shadow: 4px 4px 0px #ff3d8b, 8px 8px 0px #ff8a1f, 12px 12px 0px #000000;
+  transform: rotate(-1.5deg);
+  margin: 6px 0 16px 0;
+  user-select: none;
+}
+
+.signature-supporting-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffd23f;
+  color: #17131f;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(0.78rem, 2vw, 0.98rem);
+  letter-spacing: 0.08em;
+  padding: 8px 20px;
+  border-radius: 30px;
+  border: 3px solid #17131f;
+  box-shadow: 3px 3px 0px #ff3d8b;
+  transform: rotate(1deg);
+}
+
+.signature-star {
+  color: #ff3d8b;
+  font-size: 1.1em;
 }
 
 .footer-headline-row {

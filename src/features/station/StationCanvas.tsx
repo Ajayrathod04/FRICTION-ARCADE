@@ -33,6 +33,8 @@ interface StationCanvasProps {
   isBoarding?: boolean;
 }
 
+export type CameraPreset = 'isometric' | 'orbit' | 'top_down' | 'front' | 'side';
+
 export const StationCanvas: React.FC<StationCanvasProps> = ({
   onSelectHotspot,
   onTriggerEcho,
@@ -57,6 +59,31 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const [nearbyHotspot, setNearbyHotspot] = useState<'kiosk' | 'board' | 'desk' | null>(null);
   const [nearbyNPC, setNearbyNPC] = useState<StationNPC | null>(null);
+  const [isCutawayView, setIsCutawayView] = useState<boolean>(false);
+  const [isGateOpened, setIsGateOpened] = useState<boolean>(false);
+  const [nearbyGate, setNearbyGate] = useState<boolean>(false);
+  const [nearbyLab, setNearbyLab] = useState<boolean>(false);
+
+  // Camera & Architectural View States
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>('isometric');
+  const cameraPresetRef = useRef<CameraPreset>('isometric');
+  cameraPresetRef.current = cameraPreset;
+
+  const [isXRayMode, setIsXRayMode] = useState<boolean>(false);
+  const isXRayModeRef = useRef<boolean>(false);
+  isXRayModeRef.current = isXRayMode;
+
+  const [zoomLevel, setZoomLevel] = useState<number>(1.0);
+  const zoomLevelRef = useRef<number>(1.0);
+  zoomLevelRef.current = zoomLevel;
+
+  const orbitAngles = useRef({ yaw: 0, pitch: 0 });
+  const isPointerDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  const [nearbyDoor, setNearbyDoor] = useState<string | null>(null);
+  const nearbyDoorRef = useRef<string | null>(null);
+  nearbyDoorRef.current = nearbyDoor;
 
   // Campus & SF Quest HUD states
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -101,6 +128,12 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
   voiceNarrationRef.current = voiceNarration;
   const isFrictionVisionRef = useRef(isFrictionVision);
   isFrictionVisionRef.current = isFrictionVision;
+  const isCutawayViewRef = useRef(isCutawayView);
+  isCutawayViewRef.current = isCutawayView;
+  const isGateOpenedRef = useRef(isGateOpened);
+  isGateOpenedRef.current = isGateOpened;
+  const envHandlesRef = useRef<any>(null);
+  const charControllerRef = useRef<any>(null);
 
   const keysDown = useRef<{ [key: string]: boolean }>({});
   const pointerPos = useRef({ x: 0, y: 0 });
@@ -111,6 +144,14 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     board: new THREE.Vector3(5.4, 0, -1.25),
     desk: new THREE.Vector3(-5.6, 0, 0.2),
   };
+
+  const handleResetCamera = useCallback(() => {
+    SoundEffects.playBlip();
+    setCameraPreset('isometric');
+    setZoomLevel(1.0);
+    zoomLevelRef.current = 1.0;
+    orbitAngles.current = { yaw: 0, pitch: 0 };
+  }, []);
 
   const handleInteract = useCallback(() => {
     if (nearbyHotspot) {
@@ -146,10 +187,41 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         e.preventDefault();
         SoundEffects.playBlip();
         setIsPaused((prev) => !prev);
+      } else if (e.key === '1') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setCameraPreset('isometric');
+      } else if (e.key === '2') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setCameraPreset('orbit');
+      } else if (e.key === '3') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setCameraPreset('top_down');
+      } else if (e.key === '4') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setCameraPreset('front');
+      } else if (e.key === '5') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setCameraPreset('side');
+      } else if (e.key.toLowerCase() === 'x') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setIsXRayMode((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        handleResetCamera();
       } else if (e.key.toLowerCase() === 'p') {
         e.preventDefault();
         SoundEffects.playBlip();
         setIsPhoneOpen((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'v' || e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        SoundEffects.playBlip();
+        setIsCutawayView((prev) => !prev);
       } else if (e.key.toLowerCase() === 'q') {
         e.preventDefault();
         SoundEffects.playCollect();
@@ -162,7 +234,24 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
           onTriggerEcho?.(target);
         }
       } else if (e.key.toLowerCase() === 'e' || e.key === 'Enter') {
-        if (nearbyHotspot || nearbyNPC) {
+        if (nearbyGate && !isGateOpenedRef.current) {
+          e.preventDefault();
+          SoundEffects.playCollect();
+          envHandlesRef.current?.openEntranceGate();
+          charControllerRef.current?.setGateOpen(true);
+          setIsGateOpened(true);
+          RewardLedger.recordZoneVisit('atrium');
+          if (voiceNarrationRef.current) {
+            VoiceNarration.speak('Station entrance gate opened. Welcome to Friction Central.');
+          }
+        } else if (nearbyLab) {
+          e.preventDefault();
+          SoundEffects.playBlip();
+          if (voiceNarrationRef.current) {
+            VoiceNarration.speak('Entering Designer Workshop');
+          }
+          onOpenDesignLab?.();
+        } else if (nearbyHotspot || nearbyNPC) {
           e.preventDefault();
           SoundEffects.playBlip();
           handleInteract();
@@ -200,7 +289,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [nearbyHotspot, nearbyNPC, handleInteract, onToggleMap, onShowHint, onTriggerEcho, onToggleFrictionVision, cluesFound]);
+  }, [nearbyHotspot, nearbyNPC, nearbyGate, nearbyLab, handleInteract, handleResetCamera, onToggleMap, onShowHint, onTriggerEcho, onToggleFrictionVision, onOpenDesignLab, cluesFound]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -267,6 +356,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       clarityRepairs: repairsCompleted,
       isFrictionVision: isFrictionVisionRef.current,
     });
+    envHandlesRef.current = envHandles;
 
     // --- 6. BUILD ARTICULATED PROTAGONIST CONTROLLER ---
     const charController = createCharacterController({
@@ -275,6 +365,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       initialX: 0.0,
       initialZ: 8.5,
     });
+    charControllerRef.current = charController;
 
     // --- 7. BUILD SCRIPTED PASSENGER NPCS & GHOST TRAILS ---
     const passengerHandles = createPassengerActors({
@@ -294,6 +385,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     let animationFrameId: number;
     const clock = new THREE.Clock();
     let frameCount = 0;
+    const camRaycaster = new THREE.Raycaster();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -309,12 +401,42 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       // Tick Character Controller with active keys
       charController.update(delta, time, keysDown.current);
       const playerPos = charController.getPosition();
+      const playerPosY = charController.group.position.y;
       const playerAngle = charController.getAngle();
 
-      // Tick Station Environment, Collectibles & Train
-      const { collectedTokenId } = envHandles.update(charController.group.position, time, delta);
+      // Apply Architectural Cutaway & Full X-Ray Walls States
+      envHandles.setCutawayMode(isCutawayViewRef.current);
+      envHandles.setXRayMode(isXRayModeRef.current);
+
+      // Dynamic Camera Line-of-Sight Raycasting Obstruction Fading (when not in full X-Ray)
+      if (!isXRayModeRef.current && !isCutawayViewRef.current) {
+        const rayOrigin = camera.position.clone();
+        const rayTarget = new THREE.Vector3(playerPos.x, 1.0, playerPos.z);
+        const rayDir = rayTarget.clone().sub(rayOrigin).normalize();
+        camRaycaster.set(rayOrigin, rayDir);
+        const occluders = envHandles.getOccluderMeshes();
+        const intersects = camRaycaster.intersectObjects(occluders, false);
+        const hitMeshUuidSet = new Set(intersects.map((i) => i.object.uuid));
+
+        for (const occ of occluders) {
+          const mat = occ.material as THREE.MeshStandardMaterial;
+          if (mat) {
+            const isBlocked = hitMeshUuidSet.has(occ.uuid);
+            const targetOp = isBlocked ? 0.22 : 1.0;
+            mat.transparent = true;
+            mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOp, 0.15);
+            mat.depthWrite = mat.opacity > 0.85;
+          }
+        }
+      }
+
+      // Tick Station Environment, Collectibles, 5 Room Doors & Dual Trains
+      const { collectedTokenId, nearbyDoorName } = envHandles.update(charController.group.position, time, delta);
       if (collectedTokenId) {
         SoundEffects.playCollect();
+      }
+      if (nearbyDoorName !== nearbyDoorRef.current) {
+        setNearbyDoor(nearbyDoorName);
       }
 
       // Record Visited Zone for Station Explorer Badge
@@ -339,11 +461,19 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       // Tick Scripted Passengers
       passengerHandles.update(time, delta, isFrictionVisionRef.current, isBoarding);
 
-      // PROXIMITY DETECTION TO HOTSPOTS & NPCS ACROSS ALL 5 ROOMS
+      // PROXIMITY DETECTION TO HOTSPOTS, ENTRANCE GATE, LAB & NPCS
       const playerVec = new THREE.Vector2(playerPos.x, playerPos.z);
       const kioskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.kiosk.x, hotspotPositions.kiosk.z));
       const boardDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.board.x, hotspotPositions.board.z));
       const deskDist = playerVec.distanceTo(new THREE.Vector2(hotspotPositions.desk.x, hotspotPositions.desk.z));
+
+      // Proximity check to Entrance Gate (z = 4.4, x in [-2.2, 2.2])
+      const inGateZone = playerPos.z >= 4.1 && playerPos.z <= 5.8 && Math.abs(playerPos.x) <= 2.2;
+      setNearbyGate(inGateZone && !isGateOpenedRef.current);
+
+      // Proximity check to Room 5 Designer Workshop Repair Stations
+      const inLabZone = playerPos.x >= 3.8 && playerPos.x <= 7.6 && playerPos.z >= 2.8 && playerPos.z <= 4.8;
+      setNearbyLab(inLabZone);
 
       const arjunDist = playerVec.distanceTo(new THREE.Vector2(0.0, 0.65));
       const meeraDist = playerVec.distanceTo(new THREE.Vector2(5.4, -0.4));
@@ -384,19 +514,54 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         onPlayerCoordsChange?.(coords);
       }
 
-      // Camera handling: 3/4 Isometric Follow Camera framing traveler, landmarks, and Platform 1
-      if (cameraModeRef.current === 'over_the_shoulder') {
-        const camTargetX = playerPos.x - Math.sin(playerAngle) * 0.35;
-        const camTargetZ = playerPos.z + Math.cos(playerAngle) * 2.6;
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.09);
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.09);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.2, 0.09);
-        camera.lookAt(playerPos.x, 0.9, playerPos.z - 1.2);
+      // Camera handling: Multi-Angle Camera Presets & Smooth Lerping
+      const zoom = zoomLevelRef.current;
+      const preset = cameraPresetRef.current;
+
+      if (preset === 'top_down') {
+        // High-angle architectural top-down view showing city, entrance, 5 rooms and both platforms
+        const targetX = playerPos.x * 0.35;
+        const targetY = 16.5 * zoom;
+        const targetZ = playerPos.z * 0.35 - 1.2;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
+        camera.lookAt(playerPos.x * 0.35, 0.4, playerPos.z * 0.35 - 2.0);
+      } else if (preset === 'orbit') {
+        // Free orbital camera rotating around player
+        const dist = 5.6 * zoom;
+        const yaw = orbitAngles.current.yaw;
+        const pitch = 0.42 + orbitAngles.current.pitch;
+        const targetX = playerPos.x + Math.sin(yaw) * Math.cos(pitch) * dist;
+        const targetY = Math.max(1.2, playerPosY + 1.1 + Math.sin(pitch) * dist);
+        const targetZ = playerPos.z + Math.cos(yaw) * Math.cos(pitch) * dist;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.14);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.14);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.14);
+        camera.lookAt(playerPos.x, playerPosY + 0.9, playerPos.z);
+      } else if (preset === 'front') {
+        // Front view facing the traveler and environment ahead
+        const targetX = playerPos.x;
+        const targetY = playerPosY + 1.8 * zoom;
+        const targetZ = playerPos.z - 3.8 * zoom;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
+        camera.lookAt(playerPos.x, playerPosY + 0.95, playerPos.z + 0.5);
+      } else if (preset === 'side') {
+        // Lateral side view useful for inspecting architecture and platform alignment
+        const targetX = playerPos.x + 6.2 * zoom;
+        const targetY = playerPosY + 2.8 * zoom;
+        const targetZ = playerPos.z;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
+        camera.lookAt(playerPos.x, playerPosY + 0.9, playerPos.z);
       } else {
-        // High-clarity 3/4 isometric follow camera centered behind player
+        // High-clarity 3/4 isometric follow camera centered behind player (Default)
         const camTargetX = THREE.MathUtils.clamp(playerPos.x * 0.82 + pointerPos.current.x * 0.2, -7.2, 7.2);
-        const camTargetY = 3.65;
-        const camTargetZ = Math.min(playerPos.z + 3.8 + pointerPos.current.y * 0.15, 11.8);
+        const camTargetY = 3.65 * zoom;
+        const camTargetZ = Math.min(playerPos.z + 3.8 * zoom + pointerPos.current.y * 0.15, 12.5);
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.08);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
@@ -426,11 +591,55 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     resizeObserver.observe(container);
     window.addEventListener('resize', handleResize);
 
+    // MOUSE DRAG ROTATION & WHEEL ZOOM
+    const onContainerPointerDown = (e: PointerEvent) => {
+      if ((e.target as HTMLElement)?.closest('button, input, select, .proximity-prompt, .campus-concourse-hud, .camera-view-toolbar, .route-map-hud')) {
+        return;
+      }
+      isPointerDragging.current = true;
+      dragStart.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onContainerPointerMove = (e: PointerEvent) => {
+      if (!isPointerDragging.current) return;
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      dragStart.current = { x: e.clientX, y: e.clientY };
+
+      orbitAngles.current.yaw -= dx * 0.007;
+      orbitAngles.current.pitch = THREE.MathUtils.clamp(orbitAngles.current.pitch + dy * 0.005, -0.45, 0.75);
+
+      if (cameraPresetRef.current !== 'orbit' && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        setCameraPreset('orbit');
+      }
+    };
+
+    const onContainerPointerUp = () => {
+      isPointerDragging.current = false;
+    };
+
+    const onContainerWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.08 : -0.08;
+      const nextZoom = THREE.MathUtils.clamp(zoomLevelRef.current + delta, 0.55, 2.2);
+      zoomLevelRef.current = nextZoom;
+      setZoomLevel(Number(nextZoom.toFixed(2)));
+    };
+
+    container.addEventListener('pointerdown', onContainerPointerDown);
+    window.addEventListener('pointermove', onContainerPointerMove);
+    window.addEventListener('pointerup', onContainerPointerUp);
+    container.addEventListener('wheel', onContainerWheel, { passive: false });
+
     // CLEANUP
     return () => {
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
+      container.removeEventListener('pointerdown', onContainerPointerDown);
+      window.removeEventListener('pointermove', onContainerPointerMove);
+      window.removeEventListener('pointerup', onContainerPointerUp);
+      container.removeEventListener('wheel', onContainerWheel);
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
       }
@@ -589,6 +798,43 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
             ⚡ Vision (Q)
           </button>
 
+          {/* Full X-Ray Walls Transparency Toggle */}
+          <button
+            type="button"
+            className={`campus-hud-btn ${isXRayMode ? 'campus-hud-btn--active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setIsXRayMode((v) => !v);
+            }}
+            title="Toggle Complete X-Ray Wall Transparency (X)"
+            style={{
+              background: isXRayMode ? '#10b981' : '#ffffff',
+              color: isXRayMode ? '#ffffff' : '#17131f',
+              fontWeight: 800,
+              boxShadow: isXRayMode ? '0 0 10px rgba(16, 185, 129, 0.7)' : undefined,
+            }}
+          >
+            👓 {isXRayMode ? 'X-Ray ON (X)' : 'X-Ray (X)'}
+          </button>
+
+          {/* Architectural Cutaway View Toggle */}
+          <button
+            type="button"
+            className={`campus-hud-btn ${isCutawayView ? 'campus-hud-btn--active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setIsCutawayView((v) => !v);
+            }}
+            title="Toggle Architectural Cutaway View (V)"
+            style={{
+              background: isCutawayView ? '#b6ffb2' : '#ffffff',
+              color: '#17131f',
+              fontWeight: 700,
+            }}
+          >
+            🏛 {isCutawayView ? 'Cutaway ON (V)' : 'Cutaway (V)'}
+          </button>
+
           <button
             type="button"
             className="campus-hud-btn"
@@ -643,6 +889,123 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         </div>
       </div>
 
+      {/* Multi-Angle Camera & Architectural View Toolbar */}
+      <div className="camera-view-toolbar" role="toolbar" aria-label="Camera and Architecture Controls">
+        <div className="camera-preset-group">
+          <span className="cam-tool-label">CAMERA:</span>
+          <button
+            type="button"
+            className={`cam-preset-btn ${cameraPreset === 'isometric' ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setCameraPreset('isometric');
+            }}
+            title="3/4 Follow / Isometric Third-Person View (1)"
+          >
+            FOLLOW
+          </button>
+          <button
+            type="button"
+            className={`cam-preset-btn ${cameraPreset === 'orbit' ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setCameraPreset('orbit');
+            }}
+            title="Free Orbit Camera (2) · Drag scene to rotate"
+          >
+            ORBIT
+          </button>
+          <button
+            type="button"
+            className={`cam-preset-btn ${cameraPreset === 'top_down' ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setCameraPreset('top_down');
+            }}
+            title="Top-Down Concourse & Platforms View (3)"
+          >
+            TOP-DOWN
+          </button>
+          <button
+            type="button"
+            className={`cam-preset-btn ${cameraPreset === 'front' ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setCameraPreset('front');
+            }}
+            title="Front Facing View (4)"
+          >
+            FRONT
+          </button>
+          <button
+            type="button"
+            className={`cam-preset-btn ${cameraPreset === 'side' ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setCameraPreset('side');
+            }}
+            title="Lateral Side View (5)"
+          >
+            SIDE
+          </button>
+        </div>
+
+        <div className="camera-action-group">
+          {/* X-Ray Walls Toggle */}
+          <button
+            type="button"
+            className={`cam-action-btn cam-action-btn--xray ${isXRayMode ? 'is-active' : ''}`}
+            onClick={() => {
+              SoundEffects.playBlip();
+              setIsXRayMode((v) => !v);
+            }}
+            title="Toggle Complete X-Ray Wall Transparency (X)"
+          >
+            <span className="cam-icon">👓</span>
+            <span>{isXRayMode ? 'X-RAY ON (X)' : 'X-RAY WALLS (X)'}</span>
+          </button>
+
+          {/* Reset Camera Button */}
+          <button
+            type="button"
+            className="cam-action-btn cam-action-btn--reset"
+            onClick={handleResetCamera}
+            title="Reset Camera View to Default Isometric (R)"
+          >
+            ↺ RESET CAMERA
+          </button>
+
+          {/* Zoom In / Out Controls */}
+          <div className="cam-zoom-group">
+            <button
+              type="button"
+              className="cam-zoom-btn"
+              onClick={() => {
+                const nz = Math.min(2.2, zoomLevel + 0.15);
+                setZoomLevel(Number(nz.toFixed(2)));
+                zoomLevelRef.current = nz;
+              }}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <span className="cam-zoom-val">{Math.round(zoomLevel * 100)}%</span>
+            <button
+              type="button"
+              className="cam-zoom-btn"
+              onClick={() => {
+                const nz = Math.max(0.55, zoomLevel - 0.15);
+                setZoomLevel(Number(nz.toFixed(2)));
+                zoomLevelRef.current = nz;
+              }}
+              title="Zoom In"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Persistent Mini Route Map HUD */}
       <div className="route-map-hud" aria-label="Station Route Trail">
         <div className="route-map-hud__title">
@@ -682,6 +1045,59 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         activeWaypointId={activeWaypointId}
       />
 
+      {/* Proximity Interaction Prompt for Entrance Gate */}
+      {nearbyGate && (
+        <div className="proximity-prompt">
+          <div className="proximity-prompt__pill" style={{ background: '#17131f', border: '3px solid #ffd23f' }}>
+            <span className="key-cap" style={{ background: '#ffd23f', color: '#17131f' }}>
+              E
+            </span>
+            <span>
+              <strong>Station Entrance Gate · Press E to Open 🏛</strong>
+            </span>
+            <button
+              className="proximity-prompt__btn"
+              style={{ background: '#ffd23f', color: '#17131f', fontWeight: 800 }}
+              onClick={() => {
+                SoundEffects.playCollect();
+                envHandlesRef.current?.openEntranceGate();
+                charControllerRef.current?.setGateOpen(true);
+                setIsGateOpened(true);
+                RewardLedger.recordZoneVisit('atrium');
+              }}
+              aria-label="Open Station Gate"
+            >
+              Open Gate (E) →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Proximity Interaction Prompt for Room 5 Designer Workshop Repair Stations */}
+      {nearbyLab && !nearbyHotspot && !nearbyNPC && !nearbyGate && (
+        <div className="proximity-prompt">
+          <div className="proximity-prompt__pill" style={{ background: '#2e1065', border: '3px solid #c084fc' }}>
+            <span className="key-cap" style={{ background: '#c084fc', color: '#17131f' }}>
+              E
+            </span>
+            <span style={{ color: '#ffffff' }}>
+              <strong>Designer Workshop: Open Repair Lab Stations ⚡</strong>
+            </span>
+            <button
+              className="proximity-prompt__btn"
+              style={{ background: '#c084fc', color: '#17131f', fontWeight: 800 }}
+              onClick={() => {
+                SoundEffects.playBlip();
+                onOpenDesignLab?.();
+              }}
+              aria-label="Open Repair Lab"
+            >
+              Repair Lab (E) →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Proximity Interaction Prompt when standing near a hotspot */}
       {nearbyHotspot && (
         <div className="proximity-prompt">
@@ -720,7 +1136,7 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
       )}
 
       {/* Proximity Interaction Prompt when standing near an NPC */}
-      {nearbyNPC && !nearbyHotspot && (
+      {nearbyNPC && !nearbyHotspot && !nearbyGate && (
         <div className="proximity-prompt">
           <div className="proximity-prompt__pill">
             <span className="key-cap">E</span>
@@ -730,6 +1146,18 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
             <button className="proximity-prompt__btn" onClick={handleInteract} aria-label={`Talk to ${nearbyNPC.name}`}>
               Talk →
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Proximity Interaction Prompt for Room Doors */}
+      {nearbyDoor && !nearbyHotspot && !nearbyNPC && !nearbyGate && !nearbyLab && (
+        <div className="proximity-prompt">
+          <div className="proximity-prompt__pill" style={{ background: '#0f172a', border: '3px solid #38bdf8' }}>
+            <span style={{ fontSize: '16px' }}>🚪</span>
+            <span style={{ color: '#ffffff' }}>
+              <strong>{nearbyDoor}</strong> · Door Open
+            </span>
           </div>
         </div>
       )}

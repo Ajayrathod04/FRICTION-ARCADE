@@ -214,9 +214,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <section className="section-friction-story" id="story" aria-label="Small Design Problems">
           <div className="editorial-container">
             <div className="section-eyebrow-center">
-              <span className="editorial-kicker">THE PROBLEM</span>
+              <span className="editorial-kicker">FEATURED FRICTION</span>
               <h2 className="editorial-section-title">
-                SMALL DESIGN PROBLEMS. REAL FRUSTRATION.
+                THREE TINY FRICTIONS. THREE BIG DIFFERENCES.
               </h2>
               <p className="editorial-section-subtitle">
                 Bad UX doesn't always announce itself with broken code. It sneaks in as vanishing field context, cryptic error messages, and competing buttons that make travelers second-guess themselves.
@@ -298,8 +298,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <section className="section-design-principles" id="principles" aria-label="Design Principles">
           <div className="editorial-container">
             <div className="section-eyebrow-center">
-              <span className="editorial-kicker">CORE HEURISTICS</span>
-              <h2 className="editorial-section-title">8 Principles for Clearer Journeys</h2>
+              <span className="editorial-kicker">DESIGN RULEBOOK</span>
+              <h2 className="editorial-section-title">EIGHT RULES. LESS FRICTION. BETTER EXPERIENCES.</h2>
               <p className="editorial-section-subtitle">
                 Keep these human-centered rules top-of-mind whenever you build forms, flows, and digital products people rely on.
               </p>
@@ -369,14 +369,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ---------------- 9. REBUILT SIGNATURE CREATOR FOOTER ---------------- */}
       <footer className="signature-creator-footer" id="about" role="contentinfo">
         <div className="footer-cream-container">
+          {/* Monumental Full-Width Creator Signature: AJRATHOD */}
+          <div className="footer-signature-monumental" aria-label="Creator Signature AJRATHOD">
+            <div className="signature-badge-kicker">CREATOR SIGNATURE</div>
+            <h2 className="signature-graffiti-display">AJRATHOD</h2>
+            <div className="signature-supporting-pill">
+              <span className="signature-star">✦</span>
+              <span>MADE TO MAKE THE WEB LESS FRUSTRATING.</span>
+              <span className="signature-star">✦</span>
+            </div>
+          </div>
+
           {/* Top Editorial Row */}
           <div className="footer-headline-row">
             <div className="footer-title-block">
-              <h3 className="footer-graffiti-headline">BUILT BY AJAY RATHOD</h3>
-              <div className="footer-annotation-sticker">
-                <span className="sticker-icon">✍️</span>
-                <span>Made to make the web less frustrating.</span>
+              <div className="footer-brand-lockup">
+                <Icons.Train size={24} color="#FF8A1F" />
+                <span className="footer-brand-text">FRICTION ARCADE</span>
               </div>
+              <p className="footer-mission-statement">
+                “Spot the friction. Fix the flow.” An interactive educational transit adventure teaching practical interface design, accessibility heuristics, and human-centered engineering.
+              </p>
             </div>
 
             <div className="footer-badge-strip">
@@ -388,15 +401,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Middle Details Grid */}
           <div className="footer-details-grid">
-            {/* Col 1: About the Mission */}
+            {/* Col 1: Identity & Origin */}
             <div className="footer-info-col">
-              <div className="footer-brand-lockup">
-                <Icons.Train size={22} color="#FF8A1F" />
-                <span className="footer-brand-text">FRICTION ARCADE</span>
+              <h4 className="footer-col-heading">IDENTITY & ORIGIN</h4>
+              <div className="footer-author-details">
+                <div className="author-row">
+                  <span className="author-label">Project:</span>
+                  <span className="author-val">FRICTION ARCADE</span>
+                </div>
+                <div className="author-row">
+                  <span className="author-label">Tagline:</span>
+                  <span className="author-val">Spot the friction. Fix the flow.</span>
+                </div>
+                <div className="author-row">
+                  <span className="author-label">Mission:</span>
+                  <span className="author-val">Make the web less frustrating.</span>
+                </div>
               </div>
-              <p className="footer-mission-statement">
-                “Spot the friction. Fix the flow.” An interactive educational transit adventure teaching practical interface design, accessibility heuristics, and human-centered engineering.
-              </p>
             </div>
 
             {/* Col 2: Navigation Links */}
@@ -412,18 +433,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </ul>
             </div>
 
-            {/* Col 3: Creator & Contact */}
+            {/* Col 3: Creator & GitHub Verification */}
             <div className="footer-author-col">
-              <h4 className="footer-col-heading">CREATOR & CONTACT</h4>
+              <h4 className="footer-col-heading">CREATOR & CODEBASE</h4>
               <div className="footer-author-details">
                 <div className="author-row">
                   <span className="author-label">Creator:</span>
-                  <span className="author-val">Ajay Rathod</span>
+                  <span className="author-val">AJRATHOD</span>
                 </div>
                 <div className="author-row">
                   <span className="author-label">GitHub:</span>
                   <a href="https://github.com/Ajayrathod04" target="_blank" rel="noopener noreferrer" className="author-email-link">
-                    Ajayrathod04
+                    https://github.com/Ajayrathod04
                   </a>
                 </div>
                 <div className="author-row">
@@ -446,7 +467,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Bottom Copyright Bar */}
           <div className="footer-bottom-strap">
             <p className="strap-text">
-              © 2026 FRICTION ARCADE · Created by Ajay Rathod for Hyperbloom October · Fictional transit simulations for UX education.
+              © 2026 FRICTION ARCADE · Created by AJRATHOD for Hyperbloom October · Fictional transit simulations for UX education.
             </p>
             <div className="strap-ticket-mark">
               🎟️ <span>TICKET NO. 042 · CONFIRMED</span>

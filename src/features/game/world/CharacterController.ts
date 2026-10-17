@@ -13,6 +13,7 @@ export interface CharacterControllerHandles {
   getPosition: () => { x: number; z: number };
   getAngle: () => number;
   setPosition: (x: number, z: number) => void;
+  setGateOpen: (open: boolean) => void;
   update: (delta: number, time: number, keys: Record<string, boolean>) => { isMoving: boolean; speed: number };
   dispose: () => void;
 }
@@ -38,6 +39,7 @@ export function createCharacterController(options: CharacterControllerOptions): 
 
   const pos = { x: initialX, z: initialZ };
   let currentAngle = Math.PI;
+  let isGateOpen = false;
 
   // =========================================================================
   // 1. ANATOMY & STYLIZED OUTFIT
@@ -249,22 +251,22 @@ export function createCharacterController(options: CharacterControllerOptions): 
       const moveX = (dx / len) * speed * delta;
       const moveZ = (dz / len) * speed * delta;
 
-      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -7.8, 7.8);
-      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -3.1, 10.5);
+      const nextX = THREE.MathUtils.clamp(pos.x + moveX, -8.4, 8.4);
+      const nextZ = THREE.MathUtils.clamp(pos.z + moveZ, -8.2, 10.5);
 
       // Traversal zones through open doorways / archways:
-      // Doorway: Atrium <-> Room 4 (West): x around -3.0, z in [2.5, 3.9]
-      const inDoorAtriumLounge = Math.abs(nextX - -3.0) < 0.45 && nextZ >= 2.5 && nextZ <= 3.9;
-      // Doorway: Atrium <-> Room 5 (East): x around 3.0, z in [2.5, 3.9]
-      const inDoorAtriumLab = Math.abs(nextX - 3.0) < 0.45 && nextZ >= 2.5 && nextZ <= 3.9;
-      // Doorway: Room 1 <-> Room 3 (West): x around -3.0, z in [-0.5, 0.9]
-      const inDoorConcourseDesk = Math.abs(nextX - -3.0) < 0.45 && nextZ >= -0.5 && nextZ <= 0.9;
-      // Doorway: Room 1 <-> Room 2 (East): x around 3.0, z in [-0.5, 0.9]
-      const inDoorConcourseBoard = Math.abs(nextX - 3.0) < 0.45 && nextZ >= -0.5 && nextZ <= 0.9;
-      // Doorway: Room 4 <-> Room 3: z around 1.8, x in [-6.5, -4.7]
-      const inDoorLoungeDesk = Math.abs(nextZ - 1.8) < 0.35 && nextX >= -6.5 && nextX <= -4.7;
-      // Doorway: Room 5 <-> Room 2: z around 1.8, x in [4.7, 6.5]
-      const inDoorLabBoard = Math.abs(nextZ - 1.8) < 0.35 && nextX >= 4.7 && nextX <= 6.5;
+      // Doorway: Atrium <-> Room 4 (West): x around -3.0, z in [2.4, 4.0]
+      const inDoorAtriumLounge = Math.abs(nextX - -3.0) < 0.45 && nextZ >= 2.4 && nextZ <= 4.0;
+      // Doorway: Atrium <-> Room 5 (East): x around 3.0, z in [2.4, 4.0]
+      const inDoorAtriumLab = Math.abs(nextX - 3.0) < 0.45 && nextZ >= 2.4 && nextZ <= 4.0;
+      // Doorway: Room 1 <-> Room 3 (West): x around -3.0, z in [-0.6, 1.0]
+      const inDoorConcourseDesk = Math.abs(nextX - -3.0) < 0.45 && nextZ >= -0.6 && nextZ <= 1.0;
+      // Doorway: Room 1 <-> Room 2 (East): x around 3.0, z in [-0.6, 1.0]
+      const inDoorConcourseBoard = Math.abs(nextX - 3.0) < 0.45 && nextZ >= -0.6 && nextZ <= 1.0;
+      // Doorway: Room 4 <-> Room 3: z around 1.8, x in [-6.6, -4.6]
+      const inDoorLoungeDesk = Math.abs(nextZ - 1.8) < 0.35 && nextX >= -6.6 && nextX <= -4.6;
+      // Doorway: Room 5 <-> Room 2: z around 1.8, x in [4.6, 6.6]
+      const inDoorLabBoard = Math.abs(nextZ - 1.8) < 0.35 && nextX >= 4.6 && nextX <= 6.6;
       // Platform Turnstiles from Room 1: z around -1.4, x in [-1.8, 1.8]
       const inPlatformGate = Math.abs(nextZ - -1.4) < 0.35 && Math.abs(nextX) <= 1.8;
       // Platform Ramp from Room 3: z around -1.4, x in [-7.5, -5.0]
@@ -290,8 +292,21 @@ export function createCharacterController(options: CharacterControllerOptions): 
       const hitDesk = Math.abs(nextX - -5.6) < 1.3 && Math.abs(nextZ - 0.2) < 0.55;
       const hitBoard = Math.abs(nextX - 5.4) < 0.45 && Math.abs(nextZ - -1.2) < 0.45;
       const hitClock = Math.abs(nextX - 1.8) < 0.35 && Math.abs(nextZ - 2.4) < 0.35;
-      const hitGate = (Math.abs(nextX - -2.5) < 0.35 || Math.abs(nextX - 2.5) < 0.35) && Math.abs(nextZ - 4.4) < 0.35;
-      const hitTracks = nextZ < -3.1;
+      const hitGatePosts = (Math.abs(nextX - -2.5) < 0.35 || Math.abs(nextX - 2.5) < 0.35) && Math.abs(nextZ - 4.4) < 0.35;
+      // Closed entrance gate wings block central passage (x in [-1.1, 1.1]) until opened
+      const hitClosedGate = !isGateOpen && Math.abs(nextZ - 4.4) < 0.22 && Math.abs(nextX) < 1.1;
+      // Exactly two feature benches placed symmetrically flanking crimson runner (at x = ±1.85, z = 3.3)
+      const hitFeatureBenchWest = Math.abs(nextX - -1.85) < 0.35 && Math.abs(nextZ - 3.3) < 0.72;
+      const hitFeatureBenchEast = Math.abs(nextX - 1.85) < 0.35 && Math.abs(nextZ - 3.3) < 0.72;
+
+      // Platform 2 & Double Tracks Traversal:
+      // Tracks run between z = -3.4 and z = -6.4.
+      // Crossing is allowed via West Crossing (x in [-7.4, -5.2]) or East Footbridge (x in [5.2, 7.4]).
+      const inCrossingWest = nextX >= -7.4 && nextX <= -5.2;
+      const inCrossingEast = nextX >= 5.2 && nextX <= 7.4;
+      const inCrossing = inCrossingWest || inCrossingEast;
+      const hitTracks = nextZ < -3.3 && nextZ > -6.4 && !inCrossing;
+      const hitPlatform2BackWall = nextZ < -8.2;
 
       const isBlocked =
         hitWestDividingWall ||
@@ -304,8 +319,12 @@ export function createCharacterController(options: CharacterControllerOptions): 
         hitDesk ||
         hitBoard ||
         hitClock ||
-        hitGate ||
-        hitTracks;
+        hitGatePosts ||
+        hitClosedGate ||
+        hitFeatureBenchWest ||
+        hitFeatureBenchEast ||
+        hitTracks ||
+        hitPlatform2BackWall;
 
       if (!isBlocked) {
         pos.x = nextX;
@@ -325,15 +344,39 @@ export function createCharacterController(options: CharacterControllerOptions): 
       leftArmGroup.rotation.x = -stride * 0.55;
       rightArmGroup.rotation.x = stride * 0.55;
 
-      group.position.y = Math.abs(Math.sin(time * cycleSpeed)) * 0.06;
+      // Physical staircase elevation in Atrium (staircase at x in [-3.0, -2.1], z in [1.2, 3.1])
+      let elevationY = 0;
+      if (pos.x >= -3.0 && pos.x <= -2.1 && pos.z >= 1.2 && pos.z <= 3.1) {
+        const stairT = (3.1 - pos.z) / 1.9;
+        elevationY = stairT * 1.26;
+      } else if (pos.x >= -3.0 && pos.x <= -2.0 && pos.z >= 0.8 && pos.z < 1.2) {
+        elevationY = 1.26;
+      } else if (inCrossingEast && pos.z < -3.3 && pos.z > -6.4) {
+        // High footbridge arch elevation
+        const bridgeT = Math.sin(((pos.z - -3.3) / (-6.4 - -3.3)) * Math.PI);
+        elevationY = bridgeT * 1.6;
+      }
+
+      group.position.y = elevationY + Math.abs(Math.sin(time * cycleSpeed)) * 0.06;
     } else {
-      // Idle Breathing Animation
+      // Idle Breathing Animation with proper stair height preservation
+      let elevationY = 0;
+      if (pos.x >= -3.0 && pos.x <= -2.1 && pos.z >= 1.2 && pos.z <= 3.1) {
+        const stairT = (3.1 - pos.z) / 1.9;
+        elevationY = stairT * 1.26;
+      } else if (pos.x >= -3.0 && pos.x <= -2.0 && pos.z >= 0.8 && pos.z < 1.2) {
+        elevationY = 1.26;
+      } else if (pos.x >= 5.2 && pos.x <= 7.4 && pos.z < -3.3 && pos.z > -6.4) {
+        const bridgeT = Math.sin(((pos.z - -3.3) / (-6.4 - -3.3)) * Math.PI);
+        elevationY = bridgeT * 1.6;
+      }
+
       const idleSway = Math.sin(time * 2.2);
       leftLegGroup.rotation.x = 0;
       rightLegGroup.rotation.x = 0;
       leftArmGroup.rotation.x = idleSway * 0.08;
       rightArmGroup.rotation.x = -idleSway * 0.08;
-      group.position.y = Math.sin(time * 2.0) * 0.02;
+      group.position.y = elevationY + Math.sin(time * 2.0) * 0.02;
     }
 
     group.position.x = pos.x;
@@ -349,6 +392,9 @@ export function createCharacterController(options: CharacterControllerOptions): 
     pos.z = z;
     group.position.set(x, group.position.y, z);
   };
+  const setGateOpen = (open: boolean) => {
+    isGateOpen = open;
+  };
 
   const dispose = () => {
     scene.remove(group);
@@ -360,6 +406,7 @@ export function createCharacterController(options: CharacterControllerOptions): 
     getPosition,
     getAngle,
     setPosition,
+    setGateOpen,
     update,
     dispose,
   };

@@ -36,9 +36,9 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
     return Math.max(6, Math.min(94, ((x + 8.8) / 17.6) * 84 + 8));
   };
 
-  // World coordinates [-4.6, 11.4] Z -> [6, 94] % Y
+  // World coordinates [-8.2, 11.4] Z -> [4, 96] % Y (accommodating Platform 2 and dual tracks)
   const toSvgY = (z: number) => {
-    return Math.max(6, Math.min(94, ((z + 4.6) / 16.0) * 84 + 8));
+    return Math.max(4, Math.min(96, ((z + 8.2) / 19.6) * 88 + 6));
   };
 
   const pSvgX = toSvgX(playerX);
@@ -119,11 +119,55 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
 
             {/* Zone 2: Grand Victorian Atrium (Center Hub: x = -2.8 to 2.8, z = 1.8 to 4.4) */}
             <rect x={toSvgX(-2.8)} y={toSvgY(1.8)} width={toSvgX(2.8) - toSvgX(-2.8)} height={toSvgY(4.4) - toSvgY(1.8)} fill="#192c27" stroke="#10b981" strokeWidth="1.0" />
-            <text x={toSvgX(0)} y={toSvgY(3.1)} fill="#34d399" fontSize="2.3" fontWeight="bold" textAnchor="middle">
+            <text x={toSvgX(0)} y={toSvgY(2.2)} fill="#34d399" fontSize="2.3" fontWeight="bold" textAnchor="middle">
               GRAND ATRIUM (HUB)
             </text>
-            <text x={toSvgX(1.8)} y={toSvgY(2.7)} fill="#ffd23f" fontSize="1.8" fontWeight="bold">
+            <text x={toSvgX(1.8)} y={toSvgY(2.5)} fill="#ffd23f" fontSize="1.8" fontWeight="bold">
               CLOCK
+            </text>
+
+            {/* Deep-Crimson Ceremonial Carpet Runner with Gold Border (z = 2.0 to 4.4) */}
+            <rect
+              x={toSvgX(-0.75)}
+              y={toSvgY(2.0)}
+              width={toSvgX(0.75) - toSvgX(-0.75)}
+              height={toSvgY(4.4) - toSvgY(2.0)}
+              fill="#8f152b"
+              stroke="#ffd23f"
+              strokeWidth="0.9"
+              rx="0.5"
+            />
+            <text x={toSvgX(0)} y={toSvgY(3.3)} fill="#ffd23f" fontSize="1.7" fontWeight="bold" textAnchor="middle">
+              CRIMSON RUNNER
+            </text>
+
+            {/* Exactly Two Premium Feature Benches Flanking the Crimson Runner */}
+            <rect
+              x={toSvgX(-2.05)}
+              y={toSvgY(2.7)}
+              width={toSvgX(-1.65) - toSvgX(-2.05)}
+              height={toSvgY(3.9) - toSvgY(2.7)}
+              fill="#78350f"
+              stroke="#10b981"
+              strokeWidth="0.8"
+              rx="0.5"
+            />
+            <text x={toSvgX(-1.85)} y={toSvgY(4.1)} fill="#a7f3d0" fontSize="1.5" fontWeight="bold" textAnchor="middle">
+              BENCH W
+            </text>
+
+            <rect
+              x={toSvgX(1.65)}
+              y={toSvgY(2.7)}
+              width={toSvgX(2.05) - toSvgX(1.65)}
+              height={toSvgY(3.9) - toSvgY(2.7)}
+              fill="#78350f"
+              stroke="#10b981"
+              strokeWidth="0.8"
+              rx="0.5"
+            />
+            <text x={toSvgX(1.85)} y={toSvgY(4.1)} fill="#a7f3d0" fontSize="1.5" fontWeight="bold" textAnchor="middle">
+              BENCH E
             </text>
 
             {/* Room 4: Waiting Lounge & Transit Arcade (SW: x = -8.4 to -3.0, z = 1.8 to 5.0) */}
@@ -187,19 +231,44 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
             {/* Doorway R2 <-> Room 5 (z = 1.8, x = 5.0 to 6.2) */}
             <rect x={toSvgX(5.0)} y={toSvgY(1.6)} width={toSvgX(6.2) - toSvgX(5.0)} height={toSvgY(2.0) - toSvgY(1.6)} fill="#a855f7" opacity="0.5" />
 
-            {/* Grand Platform 1 & Railway Tracks (Top: z = -4.6 to -1.8) */}
-            <rect x={toSvgX(-8.4)} y={toSvgY(-4.6)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(-1.8) - toSvgY(-4.6)} fill="#120e1a" stroke="#4a4060" strokeWidth="0.8" />
-            {/* Tracks */}
-            <line x1={toSvgX(-8.4)} y1={toSvgY(-4.2)} x2={toSvgX(8.4)} y2={toSvgY(-4.2)} stroke="#4a4060" strokeWidth="0.8" />
-            <line x1={toSvgX(-8.4)} y1={toSvgY(-3.7)} x2={toSvgX(8.4)} y2={toSvgY(-3.7)} stroke="#4a4060" strokeWidth="0.8" />
-            {/* Platform Yellow Safety Tactile Edge */}
-            <line x1={toSvgX(-8.4)} y1={toSvgY(-3.2)} x2={toSvgX(8.4)} y2={toSvgY(-3.2)} stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
-            {/* Train Carriage */}
-            <rect x={toSvgX(-7.5)} y={toSvgY(-4.5)} width={toSvgX(7.5) - toSvgX(-7.5)} height={toSvgY(-3.5) - toSvgY(-4.5)} fill="#ff8a1f" rx="1.5" />
-            <text x={toSvgX(0)} y={toSvgY(-3.8)} fill="#17131f" fontSize="2.3" fontWeight="bold" textAnchor="middle">
+            {/* Platform 2 (Opposite North Platform: z = -8.2 to -6.6) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(-8.2)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(-6.6) - toSvgY(-8.2)} fill="#0f2924" stroke="#0d9488" strokeWidth="1.0" />
+            {/* Platform 2 Yellow Safety Line */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-6.65)} x2={toSvgX(8.4)} y2={toSvgY(-6.65)} stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+            {/* Train 2: Rajdhani Express Carriage */}
+            <rect x={toSvgX(-7.2)} y={toSvgY(-6.2)} width={toSvgX(7.2) - toSvgX(-7.2)} height={toSvgY(-5.4) - toSvgY(-6.2)} fill="#dc2626" rx="1.5" />
+            <text x={toSvgX(0)} y={toSvgY(-7.4)} fill="#2dd4bf" fontSize="2.2" fontWeight="bold" textAnchor="middle">
+              PLATFORM 02 · OPPOSITE CONCOURSE & RAJDHANI EXPRESS
+            </text>
+            <text x={toSvgX(0)} y={toSvgY(-5.7)} fill="#ffffff" fontSize="1.8" fontWeight="bold" textAnchor="middle">
+              RAJDHANI EXP · TRACK 2 (SIMULATED SERVICE)
+            </text>
+
+            {/* West Level Crossing (x in [-7.2, -5.2], z in [-6.6, -3.8]) */}
+            <rect x={toSvgX(-7.2)} y={toSvgY(-6.6)} width={toSvgX(-5.2) - toSvgX(-7.2)} height={toSvgY(-3.8) - toSvgY(-6.6)} fill="#422006" stroke="#ffd23f" strokeWidth="0.8" strokeDasharray="2 1.5" />
+            <text x={toSvgX(-6.2)} y={toSvgY(-5.1)} fill="#ffd23f" fontSize="1.4" fontWeight="bold" textAnchor="middle">
+              WEST LEVEL CROSSING
+            </text>
+
+            {/* East Covered Footbridge (x in [5.2, 7.2], z in [-6.6, -3.8]) */}
+            <rect x={toSvgX(5.2)} y={toSvgY(-6.6)} width={toSvgX(7.2) - toSvgX(5.2)} height={toSvgY(-3.8) - toSvgY(-6.6)} fill="#2e1065" stroke="#c084fc" strokeWidth="0.8" />
+            <text x={toSvgX(6.2)} y={toSvgY(-5.1)} fill="#e9d5ff" fontSize="1.4" fontWeight="bold" textAnchor="middle">
+              EAST OVERHEAD FOOTBRIDGE
+            </text>
+
+            {/* Track 1 Rails & Sleepers (z = -4.6) */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-4.6)} x2={toSvgX(8.4)} y2={toSvgY(-4.6)} stroke="#ffd23f" strokeWidth="0.8" strokeDasharray="3 2" />
+
+            {/* Grand Platform 1 (Main South Platform: z = -3.8 to -1.8) */}
+            <rect x={toSvgX(-8.4)} y={toSvgY(-3.8)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(-1.8) - toSvgY(-3.8)} fill="#120e1a" stroke="#4a4060" strokeWidth="0.8" />
+            {/* Platform 1 Yellow Safety Tactile Edge */}
+            <line x1={toSvgX(-8.4)} y1={toSvgY(-3.75)} x2={toSvgX(8.4)} y2={toSvgY(-3.75)} stroke="#ffd23f" strokeWidth="1.2" strokeDasharray="3 2" />
+            {/* Train 1 Carriage: Deccan Express */}
+            <rect x={toSvgX(-7.5)} y={toSvgY(-4.5)} width={toSvgX(7.5) - toSvgX(-7.5)} height={toSvgY(-3.9) - toSvgY(-4.5)} fill="#ff8a1f" rx="1.2" />
+            <text x={toSvgX(0)} y={toSvgY(-3.0)} fill="#fbbf24" fontSize="2.2" fontWeight="bold" textAnchor="middle">
               PLATFORM 01 · DECCAN EXPRESS (SIMULATED SERVICE)
             </text>
-            <text x={toSvgX(0)} y={toSvgY(-2.3)} fill="#c7b5ff" fontSize="2.0" fontWeight="bold" textAnchor="middle">
+            <text x={toSvgX(0)} y={toSvgY(-2.1)} fill="#c7b5ff" fontSize="1.8" textAnchor="middle">
               PASSENGER BOARDING PLATFORM · CONDUCTOR RAJIV
             </text>
             {/* Turnstile Passage Room 1 -> Platform (z = -1.6, x = -1.2 to 1.2) */}
