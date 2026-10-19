@@ -251,6 +251,12 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
             VoiceNarration.speak('Entering Designer Workshop');
           }
           onOpenDesignLab?.();
+        } else if (nearbyDoor) {
+          e.preventDefault();
+          SoundEffects.playBlip();
+          if (voiceNarrationRef.current) {
+            VoiceNarration.speak(`Entering ${nearbyDoor}`);
+          }
         } else if (nearbyHotspot || nearbyNPC) {
           e.preventDefault();
           SoundEffects.playBlip();
@@ -308,9 +314,9 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
     );
 
     // --- 2. CAMERA ---
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100);
     camera.position.set(0.0, 3.8, 12.2);
-    camera.lookAt(0.0, 0.85, 8.0);
+    camera.lookAt(0.0, 1.8, 6.0);
 
     // --- 3. RENDERER ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -563,13 +569,16 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
         camera.lookAt(playerPos.x, playerPosY + 0.9, playerPos.z);
       } else {
         // High-clarity 3/4 isometric follow camera centered behind player (Default)
+        const isOutdoor = playerPos.z > 4.4;
         const camTargetX = THREE.MathUtils.clamp(playerPos.x * 0.82 + pointerPos.current.x * 0.2, -7.2, 7.2);
-        const camTargetY = 3.65 * zoom;
-        const camTargetZ = Math.min(playerPos.z + 3.8 * zoom + pointerPos.current.y * 0.15, 12.5);
+        const camTargetY = (isOutdoor ? 3.4 : 3.65) * zoom;
+        const camTargetZ = Math.min(playerPos.z + (isOutdoor ? 4.2 : 3.8) * zoom + pointerPos.current.y * 0.15, 13.2);
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, camTargetX, 0.08);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.08);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, camTargetZ, 0.08);
-        camera.lookAt(playerPos.x * 0.82, 0.85, playerPos.z - 0.9);
+        const targetLookY = isOutdoor ? 2.1 : 0.95;
+        const targetLookZ = isOutdoor ? playerPos.z - 2.8 : playerPos.z - 1.0;
+        camera.lookAt(playerPos.x * 0.82, targetLookY, targetLookZ);
       }
 
       renderer.render(scene, camera);
@@ -1160,8 +1169,21 @@ export const StationCanvas: React.FC<StationCanvasProps> = ({
           <div className="proximity-prompt__pill" style={{ background: '#0f172a', border: '3px solid #38bdf8' }}>
             <span style={{ fontSize: '16px' }}>🚪</span>
             <span style={{ color: '#ffffff' }}>
-              <strong>{nearbyDoor}</strong> · Door Open
+              <strong>E — Enter {nearbyDoor}</strong>
             </span>
+            <button
+              type="button"
+              className="proximity-prompt__btn"
+              onClick={() => {
+                if (voiceNarrationRef.current) {
+                  VoiceNarration.speak(`Entering ${nearbyDoor}`);
+                }
+                SoundEffects.playBlip();
+              }}
+              aria-label={`Enter ${nearbyDoor}`}
+            >
+              Enter →
+            </button>
           </div>
         </div>
       )}

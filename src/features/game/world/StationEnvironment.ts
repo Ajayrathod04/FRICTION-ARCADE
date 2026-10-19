@@ -890,13 +890,10 @@ export function buildStationEnvironment(options: StationEnvironmentBuildOptions)
 
   // PROMINENT MAIN STATION IDENTITY MARQUEE
   // "FRICTION CENTRAL" · "MUMBAI CENTRAL · DECCAN EXPRESS · PLATFORMS 1 & 2"
+  const marqueeTex = createStationMarqueeCanvasTexture();
   const marqueeMat = regMat(
-    new THREE.MeshStandardMaterial({
-      map: createStationMarqueeCanvasTexture(),
-      emissive: 0xffffff,
-      emissiveIntensity: 0.85,
-      roughness: 0.25,
-      metalness: 0.15,
+    new THREE.MeshBasicMaterial({
+      map: marqueeTex,
     })
   );
   const stationMarquee = new THREE.Mesh(
