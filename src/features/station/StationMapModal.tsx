@@ -330,10 +330,10 @@ export const StationMapModal: React.FC<StationMapModalProps> = ({
             {/* Room 5: Designer Workshop & Clarity Lab (SE: x = 3.0 to 8.4, z = 1.8 to 5.0) */}
             <rect x={toSvgX(3.0)} y={toSvgY(1.8)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1832" stroke="#a855f7" strokeWidth="1.0" />
             <text x={toSvgX(5.7)} y={toSvgY(2.6)} fill="#c084fc" fontSize="2.2" fontWeight="bold" textAnchor="middle">
-              ROOM 5: DESIGNER LAB
+              ROOM 5: DESIGNER WORKSHOP
             </text>
             <text x={toSvgX(5.7)} y={toSvgY(4.2)} fill="#e2d9cc" fontSize="1.8" textAnchor="middle">
-              Repair Pedestals · Clarity Lab
+              Repair Pedestals · Clarity Workshop
             </text>
             {/* Doorway R5 <-> Atrium (x = 3.0, z = 2.8 to 4.0) */}
             <rect x={toSvgX(2.7)} y={toSvgY(2.8)} width={toSvgX(3.1) - toSvgX(2.7)} height={toSvgY(4.0) - toSvgY(2.8)} fill="#a855f7" opacity="0.5" />

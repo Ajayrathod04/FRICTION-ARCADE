@@ -67,10 +67,11 @@ src/
 | Check | Tool / Command | Status |
 |---|---|---|
 | **TypeScript** | `tsc -b` | **PASS (0 errors)** |
-| **Unit Tests** | `node --test src/tests/*.test.ts` | **PASS (10/10 tests pass)** |
+| **Unit Tests** | `node --test src/tests/*.test.ts` | **PASS (36/36 tests pass)** |
 | **Production Build** | `tsc -b && vite build` | **PASS (clean bundle in dist/)** |
 | **Route Separation** | Router unit tests & browser verification | **PASS (Zero canvas on `/`)** |
-| **Dev Server** | `vite` | **PASS (active on http://127.0.0.1:5173/)** |
+| **Continuous 5-Room World** | Geometry, connectivity & waypoint graph | **PASS (5 physical rooms + 2 platforms)** |
+| **Live Production (Vercel)** | `https://friction-arcade.vercel.app` | **PASS (active and serving latest bundle)** |
 | **A11y & Motion** | `prefers-reduced-motion` & WCAG AA contrast | **PASS** |
 
 ---

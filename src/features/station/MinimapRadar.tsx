@@ -117,7 +117,7 @@ export const MinimapRadar: React.FC<MinimapRadarProps> = ({
         <rect x={toSvgX(1.65)} y={toSvgY(2.7)} width={toSvgX(2.05) - toSvgX(1.65)} height={toSvgY(3.9) - toSvgY(2.7)} fill="#78350f" stroke="#a7f3d0" strokeWidth="0.5" />
         {/* Room 4: Waiting Lounge */}
         <rect x={toSvgX(-8.4)} y={toSvgY(1.8)} width={toSvgX(-3.0) - toSvgX(-8.4)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1f18" stroke="#f97316" strokeWidth="0.8" />
-        {/* Room 5: Designer Lab */}
+        {/* Room 5: Designer Workshop */}
         <rect x={toSvgX(3.0)} y={toSvgY(1.8)} width={toSvgX(8.4) - toSvgX(3.0)} height={toSvgY(5.0) - toSvgY(1.8)} fill="#2a1832" stroke="#a855f7" strokeWidth="0.8" />
         {/* Arrival Plaza */}
         <rect x={toSvgX(-8.4)} y={toSvgY(4.4)} width={toSvgX(8.4) - toSvgX(-8.4)} height={toSvgY(8.8) - toSvgY(4.4)} fill="#201b2a" stroke="#3d3356" strokeWidth="0.6" />
